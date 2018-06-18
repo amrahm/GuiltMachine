@@ -66,6 +66,7 @@ public class PlayerMovement : MonoBehaviour {
         }
     }
 
+    /// <summary> Flip the player around the y axis </summary>
     private void Flip() {
         // Switch the way the player is labelled as facing.
         facingRight = !facingRight;
