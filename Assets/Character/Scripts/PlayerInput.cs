@@ -3,28 +3,22 @@ using UnityStandardAssets.CrossPlatformInput;
 
 [RequireComponent(typeof(PlayerMovement))]
 public class PlayerInput : MonoBehaviour {
-    private PlayerMovement _cMovement; //Reference to PlayerMovement script
-    private bool _isJumping; //To determine if the player is jumping
+    private PlayerMovement _playerMovement; //Reference to PlayerMovement script
 
     private void Awake() {
         //References
-        _cMovement = GetComponent<PlayerMovement>();
-    }
-
-    private void Update() {
-        //If he is not jumping...
-        if(!_isJumping) {
-            //See if button is pressed...
-            _isJumping = CrossPlatformInputManager.GetButtonDown("Jump");
-        }
+        _playerMovement = GetComponent<PlayerMovement>();
     }
 
     private void FixedUpdate() {
-        //Get horizontal axis
+
         float h = CrossPlatformInputManager.GetAxis("Horizontal");
-        //Call movement function in PlayerMovement
-        _cMovement.Move(h, _isJumping);
-        //Reset
-        _isJumping = false;
+        bool hPressed = CrossPlatformInputManager.GetButton("Horizontal");
+        float sprintAxis = CrossPlatformInputManager.GetAxis("Sprint");
+        bool isJumping = CrossPlatformInputManager.GetButton("Jump");
+        
+        //Call movement functions in PlayerMovement
+        _playerMovement.Move(h, hPressed, sprintAxis);
+        _playerMovement.Jump(isJumping);
     }
 }
