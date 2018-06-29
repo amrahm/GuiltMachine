@@ -6,20 +6,9 @@ using UnityEngine;
 
 public class PlayerPhysics : MonoBehaviour {
     [SerializeField] private float _forceMult = 100;
-    public GameObject torso, head;
-    public GameObject upperArmR, lowerArmR, handR;
-    public GameObject upperArmL, lowerArmL, handL;
-    public GameObject thighR, shinR, footR;
-    public GameObject thighL, shinL, footL;
 
-    public GameObject torsoTarget, headTarget;
-    public GameObject upperArmRTarget, lowerArmRTarget, handRTarget;
-    public GameObject upperArmLTarget, lowerArmLTarget, handLTarget;
-    public GameObject thighRTarget, shinRTarget, footRTarget;
-    public GameObject thighLTarget, shinLTarget, footLTarget;
-
-    public PIDController torsoPID, headPID;
-    public PIDController upperArmRpid, upperArmLpid;
+    private PIDController _torsoPID, _headPID;
+    private PIDController _upperArmRpid, _upperArmLpid;
     public float p, i, d;
 
     public BodyPartClass hitRotArmR, hitRotArmL;
@@ -27,21 +16,23 @@ public class PlayerPhysics : MonoBehaviour {
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
 
     private PlayerMovement _playerMovement; //Reference to PlayerMovement script
+    private Parts _parts; //Reference to Parts script
 
 
     private void Awake() {
         //References
         _playerMovement = GetComponent<PlayerMovement>();
+        _parts = GetComponent<Parts>();
 
-        torsoPID = new PIDController {ki = i, kp = p, kd = d};
-        headPID = new PIDController {ki = i, kp = p, kd = d};
-        upperArmRpid = new PIDController {ki = i, kp = p, kd = d};
-        upperArmLpid = new PIDController {ki = i, kp = p, kd = d};
+        _torsoPID = new PIDController {ki = i, kp = p, kd = d};
+        _headPID = new PIDController {ki = i, kp = p, kd = d};
+        _upperArmRpid = new PIDController {ki = i, kp = p, kd = d};
+        _upperArmLpid = new PIDController {ki = i, kp = p, kd = d};
 
-        hitRotArmR = new BodyPartClass(lowerArmR, false, 1f, new List<GameObject> {lowerArmR, handR}, collToPart);
-        hitRotArmL = new BodyPartClass(lowerArmL, false, 1f, new List<GameObject> {lowerArmL, handL}, collToPart);
-        hitRotThighR = new BodyPartClass(thighR, true, 1.2f, new List<GameObject> {thighR, shinR, footR}, collToPart);
-        hitRotThighL = new BodyPartClass(thighL, true, 1.2f, new List<GameObject> {thighL, shinL, footL}, collToPart);
+        hitRotArmR = new BodyPartClass(_parts.lowerArmR, false, 1f, new List<GameObject> {_parts.lowerArmR, _parts.handR}, collToPart);
+        hitRotArmL = new BodyPartClass(_parts.lowerArmL, false, 1f, new List<GameObject> {_parts.lowerArmL, _parts.handL}, collToPart);
+        hitRotThighR = new BodyPartClass(_parts.thighR, true, 1.2f, new List<GameObject> {_parts.thighR, _parts.shinR, _parts.footR}, collToPart);
+        hitRotThighL = new BodyPartClass(_parts.thighL, true, 1.2f, new List<GameObject> {_parts.thighL, _parts.shinL, _parts.footL}, collToPart);
     }
 
     private void Update() {
@@ -52,20 +43,21 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        RotateTo(torso, torsoTarget, torsoPID);
-        RotateTo(head, headTarget, headPID);
-        RotateTo(upperArmR, upperArmRTarget, upperArmRpid);
-        RotateTo(lowerArmR, lowerArmRTarget);
-        RotateTo(handR, handRTarget);
-        RotateTo(upperArmL, upperArmLTarget, upperArmLpid);
-        RotateTo(lowerArmL, lowerArmLTarget);
-        RotateTo(handL, handLTarget);
-        RotateTo(thighR, thighRTarget);
-        RotateTo(shinR, shinRTarget);
-        RotateTo(footR, footRTarget);
-        RotateTo(thighL, thighLTarget);
-        RotateTo(shinL, shinLTarget);
-        RotateTo(footL, footLTarget);
+        RotateTo(_parts.torso, _parts.torsoTarget, _torsoPID);
+        RotateTo(_parts.head, _parts.headTarget, _headPID);
+        RotateTo(_parts.upperArmR, _parts.upperArmRTarget, _upperArmRpid);
+        RotateTo(_parts.lowerArmR, _parts.lowerArmRTarget);
+        RotateTo(_parts.handR, _parts.handRTarget);
+        RotateTo(_parts.upperArmL, _parts.upperArmLTarget, _upperArmLpid);
+        RotateTo(_parts.lowerArmL, _parts.lowerArmLTarget);
+        RotateTo(_parts.handL, _parts.handLTarget);
+        RotateTo(_parts.thighR, _parts.thighRTarget);
+        RotateTo(_parts.shinR, _parts.shinRTarget);
+        RotateTo(_parts.footR, _parts.footRTarget);
+        RotateTo(_parts.thighL, _parts.thighLTarget);
+        RotateTo(_parts.shinL, _parts.shinLTarget);
+        RotateTo(_parts.footL, _parts.footLTarget);
+        RotateTo(_parts.hips, _parts.hipsTarget);
 
         foreach(var part in collToPart.Values) {
             part.HitRot();
@@ -75,6 +67,12 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void RotateTo(GameObject obj, GameObject target, PIDController pid = null) {
+        //Reset the local positions cause sometimes they get moved
+        if(!_parts.partsToLPositions.ContainsKey(obj)) {
+            Debug.Log(obj.name);
+        }
+        obj.transform.localPosition = _parts.partsToLPositions[obj];
+
         if(obj.GetComponent<Rigidbody2D>() == null) { //Match the animation rotation
             obj.transform.rotation = target.transform.rotation;
             return;
@@ -86,7 +84,7 @@ public class PlayerPhysics : MonoBehaviour {
         float angle = Vector3.Angle(obj.transform.right, target.transform.right);
         Debug.Assert(pid != null, "PIDController can't be null if the object has a Rigidbody2D");
         float speed = pid.Update(angle) * angle;
-        motor.motorSpeed = _forceMult * speed * dir;
+        motor.motorSpeed = _forceMult * speed * dir; //TODO: Set a max on this speed so that things don't freak out
         hinge.motor = motor;
         hinge.useMotor = true;
     }
@@ -95,7 +93,6 @@ public class PlayerPhysics : MonoBehaviour {
     public class BodyPartClass {
         #region Variables
 
-        private const float MaxIsTouchingPush = 300;
         [UsedImplicitly] public bool testMode;
         public readonly GameObject bodyPart;
         private readonly BodyPartClass _parentPart;
@@ -180,10 +177,10 @@ public class PlayerPhysics : MonoBehaviour {
                 //TODO: Crouch stuff
             }
 
-            if(bodyPart.name == "ThighL") {
-                Debug.Log(forceVector);
-                Debug.DrawRay(bodyPart.transform.position, toTop);
-            }
+//            if(bodyPart.name == "ThighL") {
+//                Debug.Log(forceVector);
+//                Debug.DrawRay(bodyPart.transform.position, toTop);
+//            }
 
             AddTorque(rVelocity, mass, forceVector);
         }
@@ -224,8 +221,6 @@ public class PlayerPhysics : MonoBehaviour {
 
             float torquePlus = (_facingRight ? 1 : -1) * -2 * Mult * _massMult * _positionVector.magnitude * Vector3.Angle(postRight, _right) / 5 *
                                Mathf.Sign(Vector3.Cross(_collisionNormal, postRight).z) * _upDown * (_isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
-            if(bodyPart.name == "LowerArmL")
-                Debug.Log(torquePlus + "   :::   " + Time.time);
 
             _torqueAmount += torquePlus * Time.deltaTime;
             _shouldHitRot = true;

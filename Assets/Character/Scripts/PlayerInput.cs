@@ -11,14 +11,9 @@ public class PlayerInput : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-
-        float h = CrossPlatformInputManager.GetAxis("Horizontal");
-        bool hPressed = CrossPlatformInputManager.GetButton("Horizontal");
-        float sprintAxis = CrossPlatformInputManager.GetAxis("Sprint");
-        bool isJumping = CrossPlatformInputManager.GetButton("Jump");
-        
         //Call movement functions in PlayerMovement
-        _playerMovement.Move(h, hPressed, sprintAxis);
-        _playerMovement.Jump(isJumping);
+        _playerMovement.Move(CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetButton("Horizontal"), CrossPlatformInputManager.GetAxis("Sprint"));
+        _playerMovement.Jump(CrossPlatformInputManager.GetButton("Jump"));
+        _playerMovement.Crouch(CrossPlatformInputManager.GetAxis("Vertical") < -0.01f);
     }
 }
