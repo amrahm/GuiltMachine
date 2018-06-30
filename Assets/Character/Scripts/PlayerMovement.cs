@@ -57,7 +57,7 @@ public class PlayerMovement : MonoBehaviour {
     private bool _crouching;
 
     /// <summary> Rigidbody component of the GameObject </summary>
-    private Rigidbody2D _rb, _torsoRb, _headRb, _armRRb, _armLRb;
+    private Rigidbody2D _rb, _armRRb, _armLRb;
 
     /// <summary> Which way the player is currently facing </summary>
     [NonSerialized] public bool facingRight = true;
@@ -84,8 +84,6 @@ public class PlayerMovement : MonoBehaviour {
         _parts = GetComponent<Parts>();
         _anim = GetComponent<Animator>();
         _rb = GetComponent<Rigidbody2D>();
-        _torsoRb = _parts.torso.GetComponent<Rigidbody2D>();
-        _headRb = _parts.head.GetComponent<Rigidbody2D>();
         _armRRb = _parts.upperArmR.GetComponent<Rigidbody2D>();
         _armLRb = _parts.upperArmL.GetComponent<Rigidbody2D>();
     }
@@ -117,13 +115,9 @@ public class PlayerMovement : MonoBehaviour {
             //::Kick - If pressing walk from standstill, gives a kick so walking is more responsive.
             if(move > 0 && _velForward < _maxSpeed / 3) {
                 _rb.AddForce(_rb.mass * transform.right * force * 30);
-                _headRb.AddForce(_rb.mass * transform.right * force * 5);
-                _torsoRb.AddForce(_rb.mass * transform.right * force * 5);
 //                Debug.Log("kickf " + Time.time); //\\\\\\\\\\\\\\\\\\\\\\\\\\
             } else if(move < 0 && _velForward > -_maxSpeed / 3) {
                 _rb.AddForce(_rb.mass * transform.right * -force * 30);
-                _headRb.AddForce(_rb.mass * transform.right * -force * 5);
-                _torsoRb.AddForce(_rb.mass * transform.right * -force * 5);
 //                Debug.Log("kickb " + Time.time); //\\\\\\\\\\\\\\\\\\\\\\\\\\
             }
         };
@@ -148,8 +142,6 @@ public class PlayerMovement : MonoBehaviour {
                     _frictionZero = false;
                 }
                 _rb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * 30;
-                _headRb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * 30;
-                _torsoRb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * 30;
             }
 
             kick(_kick);
@@ -174,8 +166,6 @@ public class PlayerMovement : MonoBehaviour {
             _jumpStarted = true;
             _anim.SetBool("Ground", false);
             _rb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
-            _torsoRb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
-            _headRb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
             _armRRb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
             _armLRb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
         } else if(jump && _jumpFuelLeft > 0) {
@@ -183,14 +173,10 @@ public class PlayerMovement : MonoBehaviour {
             _rb.AddForce(new Vector2(0f, _rb.mass * _jumpFuelForce), ForceMode2D.Force);
             float grav = Mathf.Lerp(0.0f, 1, (_jumpFuel - _jumpFuelLeft) / _jumpFuel);
             _rb.gravityScale = grav;
-            _torsoRb.gravityScale = grav;
-            _headRb.gravityScale = grav;
             _armRRb.gravityScale = grav;
             _armLRb.gravityScale = grav;
         } else {
             _rb.gravityScale = 1f;
-            _torsoRb.gravityScale = 1f;
-            _headRb.gravityScale = 1f;
             _armRRb.gravityScale = 1f;
             _armLRb.gravityScale = 1f;
             _jumpFuelLeft = 0;
@@ -219,13 +205,5 @@ public class PlayerMovement : MonoBehaviour {
         Vector3 theScale = transform.localScale;
         theScale.x *= -1;
         transform.localScale = theScale;
-        Func<GameObject, JointAngleLimits2D> flipLimits = obj => {
-            var limits = obj.GetComponent<HingeJoint2D>().limits;
-            limits.max = limits.max + (!facingRight ? 90 : -90);
-            limits.min = limits.min + (!facingRight ? 90 : -90);
-            return limits;
-        };
-//        _parts.head.GetComponent<HingeJoint2D>().limits = flipLimits(_parts.head); //I don't know why this isn't needed, but ...
-        _parts.torso.GetComponent<HingeJoint2D>().limits = flipLimits(_parts.torso);
     }
 }

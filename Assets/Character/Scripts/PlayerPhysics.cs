@@ -7,10 +7,10 @@ using UnityEngine;
 public class PlayerPhysics : MonoBehaviour {
     [SerializeField] private float _forceMult = 100;
 
-    private PIDController _torsoPID, _headPID;
     private PIDController _upperArmRpid, _upperArmLpid;
     public float p, i, d;
 
+    [UsedImplicitly] public BodyPartClass hitRotTorso, hitRotHead;
     public BodyPartClass hitRotArmR, hitRotArmL;
     [UsedImplicitly] public BodyPartClass hitRotThighR, hitRotThighL;
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
@@ -24,11 +24,11 @@ public class PlayerPhysics : MonoBehaviour {
         _playerMovement = GetComponent<PlayerMovement>();
         _parts = GetComponent<Parts>();
 
-        _torsoPID = new PIDController {ki = i, kp = p, kd = d};
-        _headPID = new PIDController {ki = i, kp = p, kd = d};
         _upperArmRpid = new PIDController {ki = i, kp = p, kd = d};
         _upperArmLpid = new PIDController {ki = i, kp = p, kd = d};
-
+        
+        hitRotTorso = new BodyPartClass(_parts.torso, false, 1.2f, new List<GameObject> {_parts.torso}, collToPart);
+        hitRotHead = new BodyPartClass(_parts.head, false, 1.2f, new List<GameObject> {_parts.head}, collToPart, hitRotTorso);
         hitRotArmR = new BodyPartClass(_parts.lowerArmR, false, 1f, new List<GameObject> {_parts.lowerArmR, _parts.handR}, collToPart);
         hitRotArmL = new BodyPartClass(_parts.lowerArmL, false, 1f, new List<GameObject> {_parts.lowerArmL, _parts.handL}, collToPart);
         hitRotThighR = new BodyPartClass(_parts.thighR, true, 1.2f, new List<GameObject> {_parts.thighR, _parts.shinR, _parts.footR}, collToPart);
@@ -43,8 +43,8 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        RotateTo(_parts.torso, _parts.torsoTarget, _torsoPID);
-        RotateTo(_parts.head, _parts.headTarget, _headPID);
+        RotateTo(_parts.torso, _parts.torsoTarget);
+        RotateTo(_parts.head, _parts.headTarget);
         RotateTo(_parts.upperArmR, _parts.upperArmRTarget, _upperArmRpid);
         RotateTo(_parts.lowerArmR, _parts.lowerArmRTarget);
         RotateTo(_parts.handR, _parts.handRTarget);
