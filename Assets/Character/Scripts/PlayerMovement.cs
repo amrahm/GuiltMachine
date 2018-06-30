@@ -14,6 +14,9 @@ public class PlayerMovement : MonoBehaviour {
     [Tooltip("A kick to make the player start moving faster")] [SerializeField]
     private float _kick = 1;
 
+    [Tooltip("How much player automatically slows down while not walking but on the ground")] [SerializeField]
+    private float _groundSlowdownMultiplier;
+
     [Tooltip("Sprint multiplier for when running")] [SerializeField]
     private float _sprintSpeed = 2;
 
@@ -56,8 +59,8 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> Whether or not the player is crouching </summary>
     private bool _crouching;
 
-    /// <summary> Rigidbody component of the GameObject </summary>
-    private Rigidbody2D _rb, _armRRb, _armLRb;
+    /// <summary> Rigidbody component of the gameObject </summary>
+    private Rigidbody2D _rb;
 
     /// <summary> Which way the player is currently facing </summary>
     [NonSerialized] public bool facingRight = true;
@@ -84,8 +87,6 @@ public class PlayerMovement : MonoBehaviour {
         _parts = GetComponent<Parts>();
         _anim = GetComponent<Animator>();
         _rb = GetComponent<Rigidbody2D>();
-        _armRRb = _parts.upperArmR.GetComponent<Rigidbody2D>();
-        _armLRb = _parts.upperArmL.GetComponent<Rigidbody2D>();
     }
 
     private void FixedUpdate() {
@@ -141,7 +142,7 @@ public class PlayerMovement : MonoBehaviour {
                     _parts.footR.GetComponent<Collider2D>().sharedMaterial.friction = 1;
                     _frictionZero = false;
                 }
-                _rb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * 30;
+                _rb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
             }
 
             kick(_kick);
@@ -166,19 +167,13 @@ public class PlayerMovement : MonoBehaviour {
             _jumpStarted = true;
             _anim.SetBool("Ground", false);
             _rb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
-            _armRRb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
-            _armLRb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
         } else if(jump && _jumpFuelLeft > 0) {
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
             _rb.AddForce(new Vector2(0f, _rb.mass * _jumpFuelForce), ForceMode2D.Force);
             float grav = Mathf.Lerp(0.0f, 1, (_jumpFuel - _jumpFuelLeft) / _jumpFuel);
             _rb.gravityScale = grav;
-            _armRRb.gravityScale = grav;
-            _armLRb.gravityScale = grav;
         } else {
             _rb.gravityScale = 1f;
-            _armRRb.gravityScale = 1f;
-            _armLRb.gravityScale = 1f;
             _jumpFuelLeft = 0;
         }
         if(_grounded && !jump) {

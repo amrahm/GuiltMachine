@@ -7,11 +7,8 @@ using UnityEngine;
 public class PlayerPhysics : MonoBehaviour {
     [SerializeField] private float _forceMult = 100;
 
-    private PIDController _upperArmRpid, _upperArmLpid;
-    public float p, i, d;
-
     [UsedImplicitly] public BodyPartClass hitRotTorso, hitRotHead;
-    public BodyPartClass hitRotArmR, hitRotArmL;
+    [UsedImplicitly] public BodyPartClass hitRotUpperArmR, hitRotUpperArmL, hitRotLowerArmR, hitRotLowerArmL;
     [UsedImplicitly] public BodyPartClass hitRotThighR, hitRotThighL;
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
 
@@ -24,13 +21,13 @@ public class PlayerPhysics : MonoBehaviour {
         _playerMovement = GetComponent<PlayerMovement>();
         _parts = GetComponent<Parts>();
 
-        _upperArmRpid = new PIDController {ki = i, kp = p, kd = d};
-        _upperArmLpid = new PIDController {ki = i, kp = p, kd = d};
-        
+
         hitRotTorso = new BodyPartClass(_parts.torso, false, 1.2f, new List<GameObject> {_parts.torso}, collToPart);
         hitRotHead = new BodyPartClass(_parts.head, false, 1.2f, new List<GameObject> {_parts.head}, collToPart, hitRotTorso);
-        hitRotArmR = new BodyPartClass(_parts.lowerArmR, false, 1f, new List<GameObject> {_parts.lowerArmR, _parts.handR}, collToPart);
-        hitRotArmL = new BodyPartClass(_parts.lowerArmL, false, 1f, new List<GameObject> {_parts.lowerArmL, _parts.handL}, collToPart);
+        hitRotUpperArmR = new BodyPartClass(_parts.upperArmR, false, 1f, new List<GameObject> {_parts.upperArmR}, collToPart);
+        hitRotUpperArmL = new BodyPartClass(_parts.upperArmL, false, 1f, new List<GameObject> {_parts.upperArmL}, collToPart);
+        hitRotLowerArmR = new BodyPartClass(_parts.lowerArmR, false, 1f, new List<GameObject> {_parts.lowerArmR, _parts.handR}, collToPart, hitRotUpperArmR);
+        hitRotLowerArmL = new BodyPartClass(_parts.lowerArmL, false, 1f, new List<GameObject> {_parts.lowerArmL, _parts.handL}, collToPart, hitRotUpperArmL);
         hitRotThighR = new BodyPartClass(_parts.thighR, true, 1.2f, new List<GameObject> {_parts.thighR, _parts.shinR, _parts.footR}, collToPart);
         hitRotThighL = new BodyPartClass(_parts.thighL, true, 1.2f, new List<GameObject> {_parts.thighL, _parts.shinL, _parts.footL}, collToPart);
     }
@@ -45,10 +42,10 @@ public class PlayerPhysics : MonoBehaviour {
     private void FixedUpdate() {
         RotateTo(_parts.torso, _parts.torsoTarget);
         RotateTo(_parts.head, _parts.headTarget);
-        RotateTo(_parts.upperArmR, _parts.upperArmRTarget, _upperArmRpid);
+        RotateTo(_parts.upperArmR, _parts.upperArmRTarget);
         RotateTo(_parts.lowerArmR, _parts.lowerArmRTarget);
         RotateTo(_parts.handR, _parts.handRTarget);
-        RotateTo(_parts.upperArmL, _parts.upperArmLTarget, _upperArmLpid);
+        RotateTo(_parts.upperArmL, _parts.upperArmLTarget);
         RotateTo(_parts.lowerArmL, _parts.lowerArmLTarget);
         RotateTo(_parts.handL, _parts.handLTarget);
         RotateTo(_parts.thighR, _parts.thighRTarget);
@@ -66,27 +63,15 @@ public class PlayerPhysics : MonoBehaviour {
         }
     }
 
-    private void RotateTo(GameObject obj, GameObject target, PIDController pid = null) {
+    private void RotateTo(GameObject obj, GameObject target) {
         //Reset the local positions cause sometimes they get moved
         if(!_parts.partsToLPositions.ContainsKey(obj)) {
             Debug.Log(obj.name);
         }
         obj.transform.localPosition = _parts.partsToLPositions[obj];
 
-        if(obj.GetComponent<Rigidbody2D>() == null) { //Match the animation rotation
-            obj.transform.rotation = target.transform.rotation;
-            return;
-        }
-        //Otherwise, add forces to try and match the rotation
-        var hinge = obj.GetComponent<HingeJoint2D>();
-        var motor = hinge.motor;
-        float dir = -Mathf.Sign(Vector3.Dot(obj.transform.up, target.transform.right));
-        float angle = Vector3.Angle(obj.transform.right, target.transform.right);
-        Debug.Assert(pid != null, "PIDController can't be null if the object has a Rigidbody2D");
-        float speed = pid.Update(angle) * angle;
-        motor.motorSpeed = _forceMult * speed * dir; //TODO: Set a max on this speed so that things don't freak out
-        hinge.motor = motor;
-        hinge.useMotor = true;
+        //Match the animation rotation
+        obj.transform.rotation = target.transform.rotation;
     }
 
     [Serializable]
@@ -231,7 +216,7 @@ public class PlayerPhysics : MonoBehaviour {
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collInfo) {
+    private void CollisionHandler(Collision2D collInfo) {
         if(collInfo.gameObject.GetComponent<Rigidbody2D>()) {
             foreach(ContactPoint2D c in collInfo.contacts) {
                 if(collToPart.ContainsKey(c.otherCollider)) {
@@ -250,22 +235,11 @@ public class PlayerPhysics : MonoBehaviour {
         }
     }
 
+    private void OnCollisionEnter2D(Collision2D collInfo) {
+        CollisionHandler(collInfo);
+    }
+
     private void OnCollisionStay2D(Collision2D collInfo) {
-        if(collInfo.gameObject.GetComponent<Rigidbody2D>()) {
-            foreach(ContactPoint2D c in collInfo.contacts) {
-                if(collToPart.ContainsKey(c.otherCollider)) {
-                    BodyPartClass part = collToPart[c.otherCollider];
-                    part.HitCalc(c.point, c.normal, collInfo.relativeVelocity, collInfo.gameObject.GetComponent<Rigidbody2D>().mass);
-                }
-            }
-        } else {
-            foreach(ContactPoint2D c in collInfo.contacts) {
-                if(collToPart.ContainsKey(c.otherCollider)) {
-                    BodyPartClass part = collToPart[c.otherCollider];
-                    part.isTouching = true;
-                    part.HitCalc(c.point, c.normal, collInfo.relativeVelocity, 1000);
-                }
-            }
-        }
+        CollisionHandler(collInfo);
     }
 }
