@@ -216,6 +216,8 @@ public class PlayerPhysics : MonoBehaviour {
         }
     }
 
+    /// <summary> Passes info from collision events to the BodyPartClass HitCalc method </summary>
+    /// <param name="collInfo">The collision info from the collision event</param>
     private void CollisionHandler(Collision2D collInfo) {
         if(collInfo.gameObject.GetComponent<Rigidbody2D>()) {
             foreach(ContactPoint2D c in collInfo.contacts) {
