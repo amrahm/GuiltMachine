@@ -40,22 +40,30 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        RotateTo(_parts.torso, _parts.torsoTarget);
-        RotateTo(_parts.head, _parts.headTarget);
-        RotateTo(_parts.upperArmR, _parts.upperArmRTarget);
-        RotateTo(_parts.lowerArmR, _parts.lowerArmRTarget);
-        RotateTo(_parts.handR, _parts.handRTarget);
-        RotateTo(_parts.upperArmL, _parts.upperArmLTarget);
-        RotateTo(_parts.lowerArmL, _parts.lowerArmLTarget);
-        RotateTo(_parts.handL, _parts.handLTarget);
-        RotateTo(_parts.thighR, _parts.thighRTarget);
-        RotateTo(_parts.shinR, _parts.shinRTarget);
-        RotateTo(_parts.footR, _parts.footRTarget);
-        RotateTo(_parts.thighL, _parts.thighLTarget);
-        RotateTo(_parts.shinL, _parts.shinLTarget);
-        RotateTo(_parts.footL, _parts.footLTarget);
-        RotateTo(_parts.hips, _parts.hipsTarget);
+        RotateTo(_parts.torso);
+        RotateTo(_parts.head);
+        RotateTo(_parts.upperArmR);
+        RotateTo(_parts.lowerArmR);
+        RotateTo(_parts.handR);
+        RotateTo(_parts.upperArmL);
+        RotateTo(_parts.lowerArmL);
+        RotateTo(_parts.handL);
+        RotateTo(_parts.thighR);
+        RotateTo(_parts.shinR);
+        RotateTo(_parts.footR);
+        RotateTo(_parts.thighL);
+        RotateTo(_parts.shinL);
+        RotateTo(_parts.footL);
+        RotateTo(_parts.hips);
 
+//        foreach(var part in collToPart.Values) {
+//            part.HitRot();
+//            part.IsTouching();
+//            part.postRight = part.bodyPart.transform.right;
+//        }
+    }
+
+    private void LateUpdate() {
         foreach(var part in collToPart.Values) {
             part.HitRot();
             part.IsTouching();
@@ -63,15 +71,12 @@ public class PlayerPhysics : MonoBehaviour {
         }
     }
 
-    private void RotateTo(GameObject obj, GameObject target) {
+    private void RotateTo(GameObject obj) {
         //Reset the local positions cause sometimes they get moved
         if(!_parts.partsToLPositions.ContainsKey(obj)) {
             Debug.Log(obj.name);
         }
         obj.transform.localPosition = _parts.partsToLPositions[obj];
-
-        //Match the animation rotation
-        obj.transform.rotation = target.transform.rotation;
     }
 
     [Serializable]
