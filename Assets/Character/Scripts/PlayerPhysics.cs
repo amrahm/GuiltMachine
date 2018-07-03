@@ -33,13 +33,34 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void Update() {
+//        crouchAmountSmooth = Extensions.SharpInDamp(crouchAmountSmooth, crouchAmountP, 3.0f);
+//        crouchAmountP -= crouchAmountP * Time.deltaTime * 2;
+//        crouchAmount = crouchAmountSmooth;
         foreach(var part in collToPart.Values) part.StoreForward(part.bodyPart.transform.right, _playerMovement.facingRight);
     }
 
     private void FixedUpdate() {
-        foreach(var part in collToPart.Values) {
-            RotateTo(part.bodyPart);
-        }
+        RotateTo(_parts.torso);
+        RotateTo(_parts.head);
+        RotateTo(_parts.upperArmR);
+        RotateTo(_parts.lowerArmR);
+        RotateTo(_parts.handR);
+        RotateTo(_parts.upperArmL);
+        RotateTo(_parts.lowerArmL);
+        RotateTo(_parts.handL);
+        RotateTo(_parts.thighR);
+        RotateTo(_parts.shinR);
+        RotateTo(_parts.footR);
+        RotateTo(_parts.thighL);
+        RotateTo(_parts.shinL);
+        RotateTo(_parts.footL);
+        RotateTo(_parts.hips);
+
+//        foreach(var part in collToPart.Values) {
+//            part.HitRot();
+//            part.IsTouching();
+//            part.postRight = part.bodyPart.transform.right;
+//        }
     }
 
     private void LateUpdate() {
