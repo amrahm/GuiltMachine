@@ -39,14 +39,15 @@ public class PlayerPhysics : MonoBehaviour {
     private void FixedUpdate() {
         foreach(var part in collToPart.Values) {
             RotateTo(part.bodyPart);
+            part.HitRot();
+            part.IsTouching();
+            part.postRight = part.bodyPart.transform.right;
         }
     }
 
     private void LateUpdate() {
         foreach(var part in collToPart.Values) {
             part.HitRot();
-            part.IsTouching();
-            part.postRight = part.bodyPart.transform.right;
         }
     }
 
