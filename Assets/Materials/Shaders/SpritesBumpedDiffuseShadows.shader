@@ -1,7 +1,8 @@
 Shader "Sprites/Bumped Diffuse with Shadows" {
     Properties {
         [PerRendererData] _MainTex("Sprite Texture", 2D) = "white" {}
-        _BumpMap("Normalmap", 2D) = "bump" {}
+        _BumpScale("Normal Scale", Float) = 1.0
+        _BumpMap("Normal Map", 2D) = "bump" {}
         _Color("Tint", Color) = (1,1,1,1)
         [MaterialToggle] PixelSnap("Pixel snap", Float) = 0
         _Cutoff("Shadow Alpha Cutoff", Range(0.15,0.85)) = 0.4
@@ -18,17 +19,16 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
 
 
         CGPROGRAM
+			#pragma target 3.0
             #pragma surface surf Lambert vertex:vert alpha
             #pragma multi_compile DUMMY PIXELSNAP_ON 
 
             sampler2D _MainTex;
-            sampler2D _BumpMap;
             fixed4 _Color;
 
             struct Input
             {
                 float2 uv_MainTex;
-                float2 uv_BumpMap;
                 fixed4 color;
             };
 
@@ -47,19 +47,20 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
                 fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * IN.color;
                 o.Albedo = c.rgb;
                 o.Alpha = c.a;
-                o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));
             }
         ENDCG
 
         Cull Off
 
         CGPROGRAM
+            #pragma target 3.0
             #pragma surface surf Lambert vertex:vert addshadow fullforwardshadows alphatest:_Cutoff
             #pragma multi_compile DUMMY PIXELSNAP_ON 
 
             sampler2D _MainTex;
             sampler2D _BumpMap;
             fixed4 _Color;
+            float _BumpScale;
 
             struct Input
             {
@@ -83,7 +84,8 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
                 fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * IN.color;
                 o.Albedo = c.rgb;
                 o.Alpha = c.a;
-                o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));
+//                o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_BumpMap));
+                o.Normal = UnpackScaleNormal(tex2D(_BumpMap, IN.uv_BumpMap), _BumpScale);
             }
         ENDCG
     }
