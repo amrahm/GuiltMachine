@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 
 public class PlayerPhysics : MonoBehaviour {
-    [SerializeField] private float _forceMult = 100;
+    [SerializeField] private float _crouchAmount;
 
     [UsedImplicitly] public BodyPartClass hitRotTorso, hitRotHead;
     [UsedImplicitly] public BodyPartClass hitRotUpperArmR, hitRotUpperArmL, hitRotLowerArmR, hitRotLowerArmL;
@@ -13,12 +13,18 @@ public class PlayerPhysics : MonoBehaviour {
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
 
     private PlayerMovement _playerMovement; //Reference to PlayerMovement script
-    private Parts _parts; //Reference to Parts script
+
+    /// <summary> Reference to the player's animator component </summary>
+    private Animator _anim;
+
+    /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
+    private Parts _parts;
 
 
     private void Awake() {
         //References
         _playerMovement = GetComponent<PlayerMovement>();
+        _anim = GetComponent<Animator>();
         _parts = GetComponent<Parts>();
 
 
@@ -36,6 +42,7 @@ public class PlayerPhysics : MonoBehaviour {
 //        crouchAmountSmooth = Extensions.SharpInDamp(crouchAmountSmooth, crouchAmountP, 3.0f);
 //        crouchAmountP -= crouchAmountP * Time.deltaTime * 2;
 //        crouchAmount = crouchAmountSmooth;
+
         foreach(var part in collToPart.Values) part.StoreForward(part.bodyPart.transform.right, _playerMovement.facingRight);
     }
 
@@ -61,6 +68,10 @@ public class PlayerPhysics : MonoBehaviour {
             part.IsTouching();
             part.postRight = part.bodyPart.transform.right;
         }
+    }
+
+    private void LateUpdate() {
+//        throw new System.NotImplementedException();
     }
 
     private void RotateTo(GameObject obj, GameObject target) {

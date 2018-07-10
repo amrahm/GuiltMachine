@@ -100,13 +100,9 @@ namespace Light2D {
         private tk2dCamera _tk2dCamera;
 #endif
 
-        private float LightPixelsPerUnityMeter {
-            get { return 1 / lightPixelSize; }
-        }
+        private float LightPixelsPerUnityMeter => 1 / lightPixelSize;
 
-        public static LightingSystem Instance {
-            get { return _instance ?? (_instance = FindObjectOfType<LightingSystem>()); }
-        }
+        public static LightingSystem Instance => _instance ?? (_instance = FindObjectOfType<LightingSystem>());
 
 
         private void OnEnable() {
