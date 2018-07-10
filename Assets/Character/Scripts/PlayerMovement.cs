@@ -74,6 +74,12 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> True if the player is still holding jump after jumping </summary>
     private bool _jumpStarted;
 
+    /// <summary> Whether or not the player is touching something </summary>
+    private bool _isTouching;
+
+    /// <summary> The normal vector to the surface the player is touching </summary>
+    private Vector2 _touchingNormal;
+
     /// <summary> Reference to the player's animator component </summary>
     private Animator _anim;
 
@@ -149,10 +155,12 @@ public class PlayerMovement : MonoBehaviour {
 
             if(move > 0 && !facingRight || move < 0 && facingRight) Flip();
         } else { //Not grounded
-            fwdVec *= _airControl;
-            kick(_kickAir);
-            if(movePressed && (move > 0 && _velForward < _maxSpeed * sprintAmt || move < 0 && _velForward > -_maxSpeed * sprintAmt)) {
-                _rb.AddForce(fwdVec, ForceMode2D.Impulse);
+            if(!_isTouching || Vector2.Dot(_touchingNormal, fwdVec) < .5) {
+                fwdVec *= _airControl;
+                kick(_kickAir);
+                if(movePressed && (move > 0 && _velForward < _maxSpeed * sprintAmt || move < 0 && _velForward > -_maxSpeed * sprintAmt)) {
+                    _rb.AddForce(fwdVec, ForceMode2D.Impulse);
+                }
             }
             _rb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
             _anim.SetFloat("Speed", Extensions.SharpInDamp(_anim.GetFloat("Speed"), 0, 1));
@@ -200,5 +208,14 @@ public class PlayerMovement : MonoBehaviour {
         Vector3 theScale = transform.localScale;
         theScale.x *= -1;
         transform.localScale = theScale;
+    }
+
+    private void OnCollisionStay2D(Collision2D collInfo) {
+        _isTouching = true;
+        _touchingNormal = collInfo.contacts[0].normal;
+    }
+
+    private void OnCollisionExit2D(Collision2D collInfo) {
+        _isTouching = false;
     }
 }

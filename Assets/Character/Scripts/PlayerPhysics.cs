@@ -167,7 +167,7 @@ public class PlayerPhysics : MonoBehaviour {
             if(!(Vector3.Dot(direction.normalized, rVelocity.normalized) > 0.01f))
                 return; //Makes sure an object sliding away doesn't cause errant rotations
             Vector2 forceVectorPre = Vector2.Dot(rVelocity, direction) * direction * _upDown;
-            Vector2 forceVector = _isLeg ? Vector2.Dot(forceVectorPre, Vector2.right) * Vector2.right : forceVectorPre;
+            Vector2 forceVector = _isLeg ? Vector2.Dot(forceVectorPre, bodyPart.transform.up) * (Vector2) bodyPart.transform.up : forceVectorPre;
             if(_isLeg) {
                 Vector2 crouchVector = forceVectorPre - forceVector;
                 //TODO: Crouch stuff
