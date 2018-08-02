@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 
 public class PlayerPhysics : MonoBehaviour {
-    [SerializeField] private List<BodyPartClass> _bodyParts;
+    public List<BodyPartClass> bodyParts;
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
 
     private PlayerMovement _playerMovement; //Reference to PlayerMovement script
@@ -21,7 +21,7 @@ public class PlayerPhysics : MonoBehaviour {
         _playerMovement = GetComponent<PlayerMovement>();
         _parts = GetComponent<Parts>();
 
-        foreach(var part in _bodyParts) part.Initialize(collToPart, _bodyParts);
+        foreach(var part in bodyParts) part.Initialize(collToPart, bodyParts);
     }
 
     private void Update() {
@@ -29,7 +29,7 @@ public class PlayerPhysics : MonoBehaviour {
 //        crouchAmountP -= crouchAmountP * Time.deltaTime * 2;
 //        crouchAmount = crouchAmountSmooth;
 
-        foreach(var part in _bodyParts) {
+        foreach(var part in bodyParts) {
             part.Right = part.bodyPart.transform.right;
             part.FacingRight = _playerMovement.facingRight;
         }
@@ -74,43 +74,28 @@ public class PlayerPhysics : MonoBehaviour {
     public class BodyPartClass {
         #region Variables
 
-//        [CustomEditor(typeof(BodyPartClass))]
-//        public class ListTesterInspector : Editor {
-//            public override void OnInspectorGUI () {
-//                serializedObject.Update();
-//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(bodyPart)), true);
-//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_parentPart)), true);
-//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_colliderObjects)), true);
-//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_partStrength)), true);
-//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_isLeg)), true);
-//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_bendLeft)), true);
-//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_bendRight)), true);
-//                serializedObject.ApplyModifiedProperties();
-//            }
-//        }
-
-//        [UsedImplicitly] public string name; //Sets the name of this class within lists in unity inspector
+        [UsedImplicitly] public string name; //Sets the name of this class within lists in unity inspector
 
         [Tooltip("The body part to rotate/control")]
         public GameObject bodyPart;
 
-        [Tooltip("The parent body part of this body part. Can be null.")] [SerializeField]
-        private GameObject _parentPart;
+        [Tooltip("The parent body part of this body part. Can be null.")]
+        public GameObject parentPart;
 
-        [Tooltip("A list of all of the objects that contain colliders for this body part")] [SerializeField]
-        private List<GameObject> _colliderObjects = new List<GameObject>();
+        [Tooltip("A list of all of the objects that contain colliders for this body part")]
+        public List<GameObject> colliderObjects = new List<GameObject>();
 
-        [Tooltip("How resistant this part is to rotation. 1 is standard, 2 is twice as strong")] [SerializeField]
-        private float _partStrength = 1;
+        [Tooltip("How resistant this part is to rotation. 1 is standard, 2 is twice as strong")]
+        public float partStrength = 1;
 
-        [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")] [SerializeField]
-        private bool _isLeg;
+        [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
+        public bool isLeg;
 
-        [Tooltip("A list of all of the objects that of this leg that should bend left when crouching")] [SerializeField]
-        private List<GameObject> _bendLeft = new List<GameObject>();
+        [Tooltip("A list of all of the objects that of this leg that should bend left when crouching")]
+        public List<GameObject> bendLeft = new List<GameObject>();
 
-        [Tooltip("A list of all of the objects that of this leg that should bend right when crouching")] [SerializeField]
-        private List<GameObject> _bendRight = new List<GameObject>();
+        [Tooltip("A list of all of the objects that of this leg that should bend right when crouching")]
+        public List<GameObject> bendRight = new List<GameObject>();
 
         /// <summary> The parent body part class of this body part. Can be null. </summary>
         private BodyPartClass _parent;
@@ -161,12 +146,13 @@ public class PlayerPhysics : MonoBehaviour {
         /// <param name="collToPart">The dictionary to set up</param>
         /// <param name="bodyParts">A list of all BodyPart classes</param>
         public void Initialize(IDictionary<Collider2D, BodyPartClass> collToPart, IEnumerable<BodyPartClass> bodyParts) {
-            if(_parentPart != null) _parent = bodyParts.First(part => part.bodyPart == _parentPart);
+            Debug.Log(bodyPart.name);
+            if(parentPart != null) _parent = bodyParts.First(part => part.bodyPart == parentPart);
             _rb = bodyPart.GetComponentInParent<Rigidbody2D>();
             Vector3 objPos = bodyPart.transform.position;
             Vector3 farPoint = objPos;
             Collider2D farColl = bodyPart.GetComponent<Collider2D>();
-            foreach(GameObject co in _colliderObjects) {
+            foreach(GameObject co in colliderObjects) {
                 Collider2D[] colliders = co.GetComponents<Collider2D>();
                 foreach(Collider2D collider in colliders) {
                     if(Vector3.Distance(collider.bounds.center, objPos) >= Vector3.Distance(farPoint, objPos)) {
@@ -196,7 +182,7 @@ public class PlayerPhysics : MonoBehaviour {
             _positionVector = point - (Vector2) bodyPart.transform.position;
 
             //Determines how much influence collision will have. Ranges from 0 to 1.
-            _massMult = 1 / (1 + Mathf.Exp(-((mass / _partStrength - 20) / 20)));
+            _massMult = 1 / (1 + Mathf.Exp(-((mass / partStrength - 20) / 20)));
 
             Vector3 toTop = bodyPart.transform.TransformPoint(_topVector) - bodyPart.transform.position;
             _upDown = Mathf.Clamp(Vector3.Dot(toTop, _positionVector) / Vector3.SqrMagnitude(toTop), -1, 1);
@@ -204,9 +190,9 @@ public class PlayerPhysics : MonoBehaviour {
             if(!(Vector3.Dot(direction.normalized, rVelocity.normalized) > 0.01f))
                 return; //Makes sure an object sliding away doesn't cause errant rotations
             Vector2 forceVectorPre = Vector2.Dot(rVelocity, direction) * direction * _upDown;
-            Vector2 forceVector = _isLeg ? Vector2.Dot(forceVectorPre, Vector2.right) * Vector2.right : forceVectorPre;
+            Vector2 forceVector = isLeg ? Vector2.Dot(forceVectorPre, Vector2.right) * Vector2.right : forceVectorPre;
 
-            if(_isLeg) {
+            if(isLeg) {
                 Vector2 crouchVector = forceVectorPre - forceVector;
                 Debug.Log(crouchVector);
                 //TODO: Crouch stuff
@@ -237,7 +223,7 @@ public class PlayerPhysics : MonoBehaviour {
         /// <param name="mass">Mass of the colliding object</param>
         private void HitTransfer(Vector3 point, Vector3 rVelocity, Vector3 transferredForceVector, float mass) {
             _shouldHitRot = true;
-            _massMult = Mathf.Exp(-9 / (mass / _partStrength + 2f));
+            _massMult = Mathf.Exp(-9 / (mass / partStrength + 2f));
             _positionVector = bodyPart.transform.position - point;
             Vector3 unknownVel = Mathf.Abs(rVelocity.magnitude - _rb.velocity.magnitude) * rVelocity.normalized;
             AddTorque(unknownVel, mass, transferredForceVector);
@@ -261,7 +247,7 @@ public class PlayerPhysics : MonoBehaviour {
             if(!IsTouching || !((FacingRight ? -1 : 1) * Vector3.Dot(_collisionNormal, (PostRight - Right).normalized) > 0.1f)) return;
 
             float torquePlus = (FacingRight ? 1 : -1) * -2 * Mult * _massMult * _positionVector.magnitude * Vector3.Angle(PostRight, Right) / 5 *
-                               Mathf.Sign(Vector3.Cross(_collisionNormal, PostRight).z) * _upDown * (_isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
+                               Mathf.Sign(Vector3.Cross(_collisionNormal, PostRight).z) * _upDown * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
 
             _torqueAmount += torquePlus * Time.fixedDeltaTime;
             _shouldHitRot = true;
@@ -301,5 +287,109 @@ public class PlayerPhysics : MonoBehaviour {
 
     private void OnCollisionStay2D(Collision2D collInfo) {
         CollisionHandler(collInfo);
+    }
+}
+
+[CustomEditor(typeof(PlayerPhysics))]
+public class PlayerPhysicsInspector : Editor {
+    private PlayerPhysics _t;
+    private SerializedObject _getTarget;
+    private SerializedProperty _bodyParts;
+
+    private void OnEnable() {
+        _t = (PlayerPhysics) target;
+        _getTarget = new SerializedObject(_t);
+        _bodyParts = _getTarget.FindProperty(nameof(PlayerPhysics.bodyParts)); // Find the List in our script and create a refrence of it
+    }
+
+    public override void OnInspectorGUI() {
+        //Update our list
+        _getTarget.Update();
+
+        //Display our list to the inspector window
+        for(int i = 0; i < _bodyParts.arraySize; i++) {
+            SerializedProperty myListRef = _bodyParts.GetArrayElementAtIndex(i);
+            SerializedProperty bodyPart = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bodyPart));
+            SerializedProperty parentPart = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.parentPart));
+            SerializedProperty colliderObjects = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.colliderObjects));
+            SerializedProperty partStrength = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.partStrength));
+            SerializedProperty isLeg = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.isLeg));
+            SerializedProperty bendLeft = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bendLeft));
+            SerializedProperty bendRight = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bendRight));
+
+            string partName = bodyPart.objectReferenceValue == null ? "Part " + i : bodyPart.objectReferenceValue.name;
+
+            bodyPart.isExpanded = EditorGUILayout.Foldout(bodyPart.isExpanded, partName, true);
+            if(bodyPart.isExpanded) {
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.PropertyField(bodyPart);
+                EditorGUILayout.PropertyField(parentPart);
+                PlusMinusGameObjectList(colliderObjects, "Colliders");
+                EditorGUILayout.PropertyField(partStrength);
+                EditorGUILayout.PropertyField(isLeg);
+                if(isLeg.boolValue) {
+                    EditorGUI.indentLevel++;
+                    PlusMinusGameObjectList(bendLeft, "Left Bending Leg Parts");
+                    PlusMinusGameObjectList(bendRight, "Right Bending Leg Parts");
+                    EditorGUI.indentLevel--;
+                }
+
+                //Add a delete button
+                GUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if(GUILayout.Button("   Delete " + partName + " Body Part   ")) {
+                    _bodyParts.DeleteArrayElementAtIndex(i);
+                }
+                GUILayout.Space(10);
+                GUILayout.EndHorizontal();
+
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        EditorGUILayout.Space();
+        if(GUILayout.Button("Add New Body Part")) {
+            _t.bodyParts.Add(new PlayerPhysics.BodyPartClass());
+            _getTarget.Update();
+            _bodyParts.GetArrayElementAtIndex(_bodyParts.arraySize - 1).FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bodyPart)).isExpanded = true;
+        }
+
+        //Apply the changes to our list
+        _getTarget.ApplyModifiedProperties();
+    }
+
+    /// <summary> Displays a collapsible list with a plus next to the list name and a minus next to each entry </summary>
+    /// <param name="list">The list to display</param>
+    /// <param name="listName">The name to show for the list</param>
+    private static void PlusMinusGameObjectList(SerializedProperty list, string listName) {
+        GUILayout.BeginHorizontal();
+        list.isExpanded = EditorGUILayout.Foldout(list.isExpanded, listName, true);
+        if(list.isExpanded) {
+            GUILayout.Space(GUI.skin.label.CalcSize(new GUIContent(listName)).x - 10);
+            if(GUILayout.Button("   +   ", GUILayout.MaxHeight(15))) {
+                list.InsertArrayElementAtIndex(list.arraySize);
+                list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = null;
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            EditorGUI.indentLevel++;
+            EditorGUI.indentLevel++;
+            if(list.arraySize == 0) list.InsertArrayElementAtIndex(0);
+            for(int a = 0; a < list.arraySize; a++) {
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(a), new GUIContent(""));
+                if(GUILayout.Button("  -  ", GUILayout.MaxWidth(40), GUILayout.MaxHeight(15))) {
+                    list.DeleteArrayElementAtIndex(a);
+                }
+                GUILayout.EndHorizontal();
+            }
+
+            EditorGUI.indentLevel--;
+            EditorGUI.indentLevel--;
+        } else {
+            GUILayout.EndHorizontal();
+        }
     }
 }
