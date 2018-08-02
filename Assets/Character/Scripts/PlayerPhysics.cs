@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExtensionMethods;
+using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
 
 public class PlayerPhysics : MonoBehaviour {
@@ -27,7 +29,7 @@ public class PlayerPhysics : MonoBehaviour {
 //        crouchAmountP -= crouchAmountP * Time.deltaTime * 2;
 //        crouchAmount = crouchAmountSmooth;
 
-        foreach(var part in collToPart.Values) {
+        foreach(var part in _bodyParts) {
             part.Right = part.bodyPart.transform.right;
             part.FacingRight = _playerMovement.facingRight;
         }
@@ -72,6 +74,23 @@ public class PlayerPhysics : MonoBehaviour {
     public class BodyPartClass {
         #region Variables
 
+//        [CustomEditor(typeof(BodyPartClass))]
+//        public class ListTesterInspector : Editor {
+//            public override void OnInspectorGUI () {
+//                serializedObject.Update();
+//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(bodyPart)), true);
+//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_parentPart)), true);
+//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_colliderObjects)), true);
+//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_partStrength)), true);
+//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_isLeg)), true);
+//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_bendLeft)), true);
+//                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_bendRight)), true);
+//                serializedObject.ApplyModifiedProperties();
+//            }
+//        }
+
+//        [UsedImplicitly] public string name; //Sets the name of this class within lists in unity inspector
+
         [Tooltip("The body part to rotate/control")]
         public GameObject bodyPart;
 
@@ -86,6 +105,12 @@ public class PlayerPhysics : MonoBehaviour {
 
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")] [SerializeField]
         private bool _isLeg;
+
+        [Tooltip("A list of all of the objects that of this leg that should bend left when crouching")] [SerializeField]
+        private List<GameObject> _bendLeft = new List<GameObject>();
+
+        [Tooltip("A list of all of the objects that of this leg that should bend right when crouching")] [SerializeField]
+        private List<GameObject> _bendRight = new List<GameObject>();
 
         /// <summary> The parent body part class of this body part. Can be null. </summary>
         private BodyPartClass _parent;
@@ -183,6 +208,7 @@ public class PlayerPhysics : MonoBehaviour {
 
             if(_isLeg) {
                 Vector2 crouchVector = forceVectorPre - forceVector;
+                Debug.Log(crouchVector);
                 //TODO: Crouch stuff
             }
 
