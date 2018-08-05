@@ -24,6 +24,6 @@ public class Player : MonoBehaviour {
 
     void HealPlayer(float healing)
     {
-        playerStats.health = Mathf.Max(playerStats.maxHealth, playerStats.health + healing);
+        playerStats.health = Mathf.Min(playerStats.maxHealth, playerStats.health + healing);
     }
 }

@@ -215,6 +215,7 @@ public class PlayerMovement : MonoBehaviour {
         _touchingNormal = collInfo.contacts[0].normal;
     }
 
+    // ReSharper disable once UnusedParameter.Local
     private void OnCollisionExit2D(Collision2D collInfo) {
         _isTouching = false;
     }

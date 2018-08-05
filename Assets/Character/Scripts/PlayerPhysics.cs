@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExtensionMethods;
-using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
+using static PlayerPhysics;
 
 public class PlayerPhysics : MonoBehaviour {
     public List<BodyPartClass> bodyParts;
@@ -25,14 +25,7 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void Update() {
-//        crouchAmountSmooth = Extensions.SharpInDamp(crouchAmountSmooth, crouchAmountP, 3.0f);
-//        crouchAmountP -= crouchAmountP * Time.deltaTime * 2;
-//        crouchAmount = crouchAmountSmooth;
-
-        foreach(var part in bodyParts) {
-            part.Right = part.bodyPart.transform.right;
-            part.FacingRight = _playerMovement.facingRight;
-        }
+        foreach(var part in bodyParts) part.FacingRight = _playerMovement.facingRight;
     }
 
     private void FixedUpdate() {
@@ -52,18 +45,20 @@ public class PlayerPhysics : MonoBehaviour {
         RotateTo(_parts.footL, _parts.footLTarget);
         RotateTo(_parts.hips, _parts.hipsTarget);
 
-        foreach(var part in collToPart.Values) {
-            part.HitRotation();
-            part.HandleTouching();
-            part.PostRight = part.bodyPart.transform.right;
-        }
+        foreach(var part in collToPart.Values) part.HitRotation();
     }
 
+    /// <summary> Rotates the non-animated skeleton to the animated skeleton </summary>
+    /// <param name="obj">part from the non-animated skeleton</param>
+    /// <param name="target">part from the animated skeleton</param>
     private void RotateTo(GameObject obj, GameObject target) {
+#if DEBUG || UNITY_EDITOR
+        //Log any errors, since this shouldn't happen
+        if(!_parts.partsToLPositions.ContainsKey(obj))
+            Debug.LogError($"Trying to rotate {obj.name}, but it wasn't found in{nameof(Parts)}.{nameof(Parts.partsToLPositions)}");
+#endif
+
         //Reset the local positions cause sometimes they get moved
-        if(!_parts.partsToLPositions.ContainsKey(obj)) {
-            Debug.Log(obj.name);
-        }
         obj.transform.localPosition = _parts.partsToLPositions[obj];
 
         //Match the animation rotation
@@ -74,8 +69,6 @@ public class PlayerPhysics : MonoBehaviour {
     public class BodyPartClass {
         #region Variables
 
-        [UsedImplicitly] public string name; //Sets the name of this class within lists in unity inspector
-
         [Tooltip("The body part to rotate/control")]
         public GameObject bodyPart;
 
@@ -85,26 +78,33 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("A list of all of the objects that contain colliders for this body part")]
         public List<GameObject> colliderObjects = new List<GameObject>();
 
-        [Tooltip("How resistant this part is to rotation. 1 is standard, 2 is twice as strong")]
-        public float partStrength = 1;
+        [Tooltip("How intensely this part reacts to impacts")]
+        public float partWeakness = 65;
 
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
         public bool isLeg;
 
-        [Tooltip("A list of all of the objects that of this leg that should bend left when crouching")]
+        /// <summary> A list of all of other legs that should crouch with this one") </summary>
+        private IEnumerable<BodyPartClass> _linkedLegs;
+
+        [Tooltip("A list of all of the objects that should bend left when crouching, along with an amount from 0 to 1 that they should bend")]
         public List<GameObject> bendLeft = new List<GameObject>();
 
-        [Tooltip("A list of all of the objects that of this leg that should bend right when crouching")]
+        [Tooltip("The amount that the corresponding part should rotate from 0 to 1")]
+        public List<float> bendLeftAmounts = new List<float>();
+
+        [Tooltip("A list of all of the objects that should bend right when crouching, along with an amount from 0 to 1 that they should bend")]
         public List<GameObject> bendRight = new List<GameObject>();
+
+        [Tooltip("The amount that the corresponding part should rotate from 0 to 1")]
+        public List<float> bendRightAmounts = new List<float>();
+
 
         /// <summary> The parent body part class of this body part. Can be null. </summary>
         private BodyPartClass _parent;
 
         /// <summary> How far up the length of the body part the collision was </summary>
         private float _upDown;
-
-        /// <summary> A multiplier from 0 to 1 based on the mass of the colliding object </summary>
-        private float _massMult;
 
         /// <summary> A vector from the base position of this body part to the point of the collision </summary>
         private Vector3 _positionVector;
@@ -118,17 +118,14 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> How much torque is actively being added to rotate this part </summary>
         private float _torqueAmount;
 
+        /// <summary> If this is a leg, how much crouch is being added from an impact </summary>
+        private float _crouchPlus;
+
+        /// <summary> If this is a leg, how much should it crouch </summary>
+        private float _crouchAmount;
+
         /// <summary> Should the hit rotation code run? </summary>
         private bool _shouldHitRot;
-
-        /// <summary> Is the body part currently touching something? </summary>
-        public bool IsTouching { private get; set; }
-
-        /// <summary> The rightward direction of this bodypart after rotating </summary>
-        public Vector3 PostRight { private get; set; }
-
-        /// <summary> The rightward direction of this bodypart before rotating </summary>
-        public Vector3 Right { private get; set; }
 
         /// <summary> Is the player facing right? </summary>
         public bool FacingRight { private get; set; }
@@ -136,18 +133,15 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Reference to the rigidbody </summary>
         private Rigidbody2D _rb;
 
-        /// <summary> Constant multiplier to scale up the rotations </summary>
-        private const float Mult = 25f;
-
         private Vector3 _topVector;
 
         /// <summary> Adds all of the colliderObjects to a handy dictionary named collToPart.
         /// Also determines the length of this body part by looking at all of these colliders, thenceby setting _topVector </summary>
         /// <param name="collToPart">The dictionary to set up</param>
         /// <param name="bodyParts">A list of all BodyPart classes</param>
-        public void Initialize(IDictionary<Collider2D, BodyPartClass> collToPart, IEnumerable<BodyPartClass> bodyParts) {
-            Debug.Log(bodyPart.name);
+        public void Initialize(IDictionary<Collider2D, BodyPartClass> collToPart, List<BodyPartClass> bodyParts) {
             if(parentPart != null) _parent = bodyParts.First(part => part.bodyPart == parentPart);
+            if(isLeg) _linkedLegs = bodyParts.Where(part => part.isLeg);
             _rb = bodyPart.GetComponentInParent<Rigidbody2D>();
             Vector3 objPos = bodyPart.transform.position;
             Vector3 farPoint = objPos;
@@ -174,15 +168,10 @@ public class PlayerPhysics : MonoBehaviour {
         /// <param name="point">Point of contact</param>
         /// <param name="direction">Direction of contact</param>
         /// <param name="rVelocity">Relative Velocity of Collision</param>
-        /// <param name="mass">Mass of the colliding object</param>
-        public void HitCalc(Vector2 point, Vector2 direction, Vector2 rVelocity, float mass) {
+        public void HitCalc(Vector2 point, Vector2 direction, Vector2 rVelocity) {
             _shouldHitRot = true; //enable HitRot() to apply rotation
-            IsTouching = true; //enable IsTouching() for continuous touching
             _collisionNormal = direction;
             _positionVector = point - (Vector2) bodyPart.transform.position;
-
-            //Determines how much influence collision will have. Ranges from 0 to 1.
-            _massMult = 1 / (1 + Mathf.Exp(-((mass / partStrength - 20) / 20)));
 
             Vector3 toTop = bodyPart.transform.TransformPoint(_topVector) - bodyPart.transform.position;
             _upDown = Mathf.Clamp(Vector3.Dot(toTop, _positionVector) / Vector3.SqrMagnitude(toTop), -1, 1);
@@ -194,67 +183,69 @@ public class PlayerPhysics : MonoBehaviour {
 
             if(isLeg) {
                 Vector2 crouchVector = forceVectorPre - forceVector;
-                Debug.Log(crouchVector);
-                //TODO: Crouch stuff
+//                Debug.Log(crouchVector);
+                if(crouchVector.y / _rb.mass > 0.2f) {
+                    foreach(var leg in _linkedLegs) {
+                        leg._crouchPlus += crouchVector.y;
+                    }
+                }
             }
 
-            AddTorque(rVelocity, mass, forceVector);
+            AddTorque(rVelocity, forceVector);
         }
 
         /// <summary> Calculates the torque to add based on the collision force, and transfers the rest of the force to the parent part </summary>
         /// <param name="rVelocity">Relative Velocity of Collision</param>
-        /// <param name="mass">Mass of the colliding object</param>
         /// <param name="forceVector">The vector of force from the collision</param>
-        private void AddTorque(Vector2 rVelocity, float mass, Vector2 forceVector) {
+        private void AddTorque(Vector2 rVelocity, Vector2 forceVector) {
             //a vector perpendicular to the force and the vector along the body part, which gives the direction to rotate.
             Vector3 cross = Vector3.Cross(_positionVector, forceVector);
 
-            _torqueAmount += _massMult * forceVector.magnitude * Mathf.Sign(cross.z);
+            _torqueAmount += forceVector.magnitude * Mathf.Sign(cross.z);
 
             //force that is parallel to limb or too close to hinge, so can't rotate it, but can be transferred to parent. 	
             Vector2 transForceVec = -0.2f * (rVelocity - forceVector) - _collisionNormal * (forceVector.magnitude - Vector3.Cross(_positionVector, forceVector).magnitude);
-            _parent?.HitTransfer(bodyPart.transform.position, rVelocity, transForceVec, mass);
+            _parent?.HitTransfer(bodyPart.transform.position, rVelocity, transForceVec);
         }
 
         /// <summary> Transfers force from child to parent </summary>
         /// <param name="point">Point of contact</param>
         /// <param name="rVelocity">Relative Velocity of Collision</param>
         /// <param name="transferredForceVector">The vector of force being transferred</param>
-        /// <param name="mass">Mass of the colliding object</param>
-        private void HitTransfer(Vector3 point, Vector3 rVelocity, Vector3 transferredForceVector, float mass) {
+        private void HitTransfer(Vector3 point, Vector3 rVelocity, Vector3 transferredForceVector) {
             _shouldHitRot = true;
-            _massMult = Mathf.Exp(-9 / (mass / partStrength + 2f));
             _positionVector = bodyPart.transform.position - point;
             Vector3 unknownVel = Mathf.Abs(rVelocity.magnitude - _rb.velocity.magnitude) * rVelocity.normalized;
-            AddTorque(unknownVel, mass, transferredForceVector);
+            AddTorque(unknownVel, transferredForceVector);
         }
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
         public void HitRotation() {
+            if(isLeg) CrouchRotation();
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
-            bodyPart.transform.Rotate(Vector3.forward, Mult * _rotAmount, Space.Self);
+            bodyPart.transform.Rotate(Vector3.forward, partWeakness * _rotAmount, Space.Self); //Rotate the part _rotAmount past where it is animated
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
-            _rotAmount = Extensions.SharpInDamp(_rotAmount, _rotAmount / 2, 0.8f); //and return the body part back to rest
+            _rotAmount = Extensions.SharpInDamp(_rotAmount, _rotAmount / 2, 0.8f, Time.fixedDeltaTime); //and return the body part back to rest
 
-            _shouldHitRot = Mathf.Abs(_rotAmount) * Mult * Mult >= 0.01f; //If the rotation is small enough, stop calling this code
+            _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
         }
 
-        /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
-        public void HandleTouching() {
-            if(!IsTouching || !((FacingRight ? -1 : 1) * Vector3.Dot(_collisionNormal, (PostRight - Right).normalized) > 0.1f)) return;
+        /// <summary> Handles Contracting multi-part legs when they hit the ground </summary>
+        private void CrouchRotation() {
+            if(_crouchAmount < 0.1f && _crouchPlus < 0.1f) return;
 
-            float torquePlus = (FacingRight ? 1 : -1) * -2 * Mult * _massMult * _positionVector.magnitude * Vector3.Angle(PostRight, Right) / 5 *
-                               Mathf.Sign(Vector3.Cross(_collisionNormal, PostRight).z) * _upDown * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
-
-            _torqueAmount += torquePlus * Time.fixedDeltaTime;
-            _shouldHitRot = true;
-            if(_parent != null) {
-                _parent._shouldHitRot = true;
+            _crouchAmount = Extensions.SharpInDamp(_crouchAmount, _crouchPlus, 1f, Time.fixedDeltaTime); //Quickly move towards crouchAmount
+            for(int i = 0; i < bendRight.Count; i++) {
+                bendRight[i].transform.Rotate(Vector3.forward, (FacingRight ? -1 : 1) * _crouchAmount * bendRightAmounts[i], Space.Self);
             }
-            IsTouching = false;
+            for(int i = 0; i < bendLeft.Count; i++) {
+                bendLeft[i].transform.Rotate(Vector3.forward, (FacingRight ? 1 : -1) * _crouchAmount * bendLeftAmounts[i], Space.Self);
+            }
+
+            _crouchPlus -= _crouchPlus * 1 * Time.fixedDeltaTime; //Over time, reduce the crouch from impact
         }
     }
 
@@ -266,7 +257,7 @@ public class PlayerPhysics : MonoBehaviour {
                 if(collToPart.ContainsKey(c.otherCollider)) {
                     BodyPartClass part = collToPart[c.otherCollider];
                     Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
-                    part.HitCalc(c.point, c.normal, force, collInfo.gameObject.GetComponent<Rigidbody2D>().mass);
+                    part.HitCalc(c.point, c.normal, force);
                 }
             }
         } else {
@@ -274,8 +265,7 @@ public class PlayerPhysics : MonoBehaviour {
                 if(collToPart.ContainsKey(c.otherCollider)) {
                     BodyPartClass part = collToPart[c.otherCollider];
                     Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
-                    part.IsTouching = true;
-                    part.HitCalc(c.point, c.normal, force, 1000);
+                    part.HitCalc(c.point, c.normal, force);
                 }
             }
         }
@@ -303,19 +293,29 @@ public class PlayerPhysicsInspector : Editor {
     }
 
     public override void OnInspectorGUI() {
+        //Show the script field
+        serializedObject.Update();
+        SerializedProperty prop = serializedObject.FindProperty("m_Script");
+        GUI.enabled = false;
+        EditorGUILayout.PropertyField(prop, true);
+        GUI.enabled = true;
+        serializedObject.ApplyModifiedProperties();
+
         //Update our list
         _getTarget.Update();
 
         //Display our list to the inspector window
         for(int i = 0; i < _bodyParts.arraySize; i++) {
-            SerializedProperty myListRef = _bodyParts.GetArrayElementAtIndex(i);
-            SerializedProperty bodyPart = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bodyPart));
-            SerializedProperty parentPart = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.parentPart));
-            SerializedProperty colliderObjects = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.colliderObjects));
-            SerializedProperty partStrength = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.partStrength));
-            SerializedProperty isLeg = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.isLeg));
-            SerializedProperty bendLeft = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bendLeft));
-            SerializedProperty bendRight = myListRef.FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bendRight));
+            SerializedProperty bodyPartClassRef = _bodyParts.GetArrayElementAtIndex(i);
+            SerializedProperty bodyPart = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bodyPart));
+            SerializedProperty parentPart = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.parentPart));
+            SerializedProperty colliderObjects = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.colliderObjects));
+            SerializedProperty partWeakness = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partWeakness));
+            SerializedProperty isLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeg));
+            SerializedProperty bendLeft = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeft));
+            SerializedProperty bendLeftAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeftAmounts));
+            SerializedProperty bendRight = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendRight));
+            SerializedProperty bendRightAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendRightAmounts));
 
             string partName = bodyPart.objectReferenceValue == null ? "Part " + i : bodyPart.objectReferenceValue.name;
 
@@ -325,13 +325,13 @@ public class PlayerPhysicsInspector : Editor {
 
                 EditorGUILayout.PropertyField(bodyPart);
                 EditorGUILayout.PropertyField(parentPart);
-                PlusMinusGameObjectList(colliderObjects, "Colliders");
-                EditorGUILayout.PropertyField(partStrength);
+                PlusMinusGameObjectList(colliderObjects, i);
+                EditorGUILayout.PropertyField(partWeakness);
                 EditorGUILayout.PropertyField(isLeg);
                 if(isLeg.boolValue) {
                     EditorGUI.indentLevel++;
-                    PlusMinusGameObjectList(bendLeft, "Left Bending Leg Parts");
-                    PlusMinusGameObjectList(bendRight, "Right Bending Leg Parts");
+                    PlusMinusGameObjectList(bendLeft, i, bendLeftAmounts);
+                    PlusMinusGameObjectList(bendRight, i, bendRightAmounts);
                     EditorGUI.indentLevel--;
                 }
 
@@ -350,9 +350,9 @@ public class PlayerPhysicsInspector : Editor {
 
         EditorGUILayout.Space();
         if(GUILayout.Button("Add New Body Part")) {
-            _t.bodyParts.Add(new PlayerPhysics.BodyPartClass());
+            _t.bodyParts.Add(new BodyPartClass());
             _getTarget.Update();
-            _bodyParts.GetArrayElementAtIndex(_bodyParts.arraySize - 1).FindPropertyRelative(nameof(PlayerPhysics.BodyPartClass.bodyPart)).isExpanded = true;
+            _bodyParts.GetArrayElementAtIndex(_bodyParts.arraySize - 1).FindPropertyRelative(nameof(BodyPartClass.bodyPart)).isExpanded = true;
         }
 
         //Apply the changes to our list
@@ -361,27 +361,50 @@ public class PlayerPhysicsInspector : Editor {
 
     /// <summary> Displays a collapsible list with a plus next to the list name and a minus next to each entry </summary>
     /// <param name="list">The list to display</param>
-    /// <param name="listName">The name to show for the list</param>
-    private static void PlusMinusGameObjectList(SerializedProperty list, string listName) {
+    /// <param name="bodyPartClassIndex">Index in the bodyParts list where this BodyPartClass is</param>
+    /// <param name="list2">A second list to display right next to the first</param>
+    private void PlusMinusGameObjectList(SerializedProperty list, int bodyPartClassIndex, SerializedProperty list2 = null) {
         GUILayout.BeginHorizontal();
-        list.isExpanded = EditorGUILayout.Foldout(list.isExpanded, listName, true);
+        list.isExpanded = EditorGUILayout.Foldout(list.isExpanded,
+            new GUIContent(list.displayName, Extensions.GetTooltip(_t.bodyParts[bodyPartClassIndex].GetType().GetField(list.name), true)), true);
         if(list.isExpanded) {
-            GUILayout.Space(GUI.skin.label.CalcSize(new GUIContent(listName)).x - 10);
-            if(GUILayout.Button("   +   ", GUILayout.MaxHeight(15))) {
-                list.InsertArrayElementAtIndex(list.arraySize);
-                list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = null;
+            if(list2 != null) {
+                while(list2.arraySize < list.arraySize) {
+                    list2.InsertArrayElementAtIndex(list2.arraySize);
+                    list2.GetArrayElementAtIndex(list2.arraySize - 1).floatValue = 1;
+                }
             }
-            GUILayout.FlexibleSpace();
+            if(GUILayout.Button("", GUIStyle.none, GUILayout.ExpandWidth(true))) list.isExpanded = !list.isExpanded;
+            if(GUILayout.Button("   +   ", GUILayout.MaxWidth(60), GUILayout.MaxHeight(15))) {
+                list.InsertArrayElementAtIndex(list.arraySize);
+                list2?.InsertArrayElementAtIndex(list2.arraySize);
+                list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = null;
+                if(list2 != null) list2.GetArrayElementAtIndex(list2.arraySize - 1).floatValue = 1;
+            }
             GUILayout.EndHorizontal();
 
             EditorGUI.indentLevel++;
             EditorGUI.indentLevel++;
-            if(list.arraySize == 0) list.InsertArrayElementAtIndex(0);
+            if(list.arraySize == 0) {
+                list.InsertArrayElementAtIndex(0);
+                list2?.InsertArrayElementAtIndex(0);
+                if(list2 != null) list2.GetArrayElementAtIndex(0).floatValue = 1;
+            }
+
             for(int a = 0; a < list.arraySize; a++) {
                 GUILayout.BeginHorizontal();
                 EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(a), new GUIContent(""));
+                if(list2 != null) {
+                    GUILayout.Space(-45);
+                    EditorGUILayout.PropertyField(list2.GetArrayElementAtIndex(a), new GUIContent(""), GUILayout.MaxWidth(100));
+                    GUILayout.Space(5);
+                }
+
                 if(GUILayout.Button("  -  ", GUILayout.MaxWidth(40), GUILayout.MaxHeight(15))) {
-                    list.DeleteArrayElementAtIndex(a);
+                    if(list.GetArrayElementAtIndex(a).objectReferenceValue != null)
+                        list.DeleteArrayElementAtIndex(a); //Delete the value first
+                    list.DeleteArrayElementAtIndex(a); //Then delete the whole entry
+                    list2?.DeleteArrayElementAtIndex(a);
                 }
                 GUILayout.EndHorizontal();
             }
