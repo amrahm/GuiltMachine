@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using ExtensionMethods;
 using UnityEngine;
 
@@ -59,6 +60,9 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> Whether or not the player is crouching </summary>
     private bool _crouching;
 
+    /// <summary> Position of the foot last frame when crouching </summary>
+    private float _lastFootPos;
+
     /// <summary> Rigidbody component of the gameObject </summary>
     private Rigidbody2D _rb;
 
@@ -107,6 +111,12 @@ public class PlayerMovement : MonoBehaviour {
 
         _anim.SetBool("Ground", _grounded); //Set the grounded animation
         _anim.SetFloat("vSpeed", _rb.velocity.y); //Set the vertical animation
+
+        if(_grounded) {
+            //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
+            _rb.transform.position += new Vector3(0, _parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos);
+            _lastFootPos = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
+        }
     }
 
     /// <summary> Handles player walking and running </summary>
@@ -199,6 +209,7 @@ public class PlayerMovement : MonoBehaviour {
         bool roll = wasStanding && _crouching && _walkSprint > .1f;
         _anim.SetBool("Roll", roll);
     }
+
 
     ///<summary> Flip the player around the y axis </summary>
     private void Flip() {

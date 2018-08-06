@@ -58,7 +58,7 @@ namespace Light2D {
                 obstacleSprite.color = multiplicativeColor;
                 obstacleSprite.additiveColor = additiveColor;
                 obstacleSprite.material = material;
-                obstacleObj.transform.parent = gameObject.GetComponent<SpriteMeshInstance>().bones[0].transform;
+//                obstacleObj.transform.parent = gameObject.GetComponent<SpriteMeshInstance>().bones[0].transform;
             } else {
                 LightObstacleMesh obstacleMesh = obstacleObj.AddComponent<LightObstacleMesh>();
                 obstacleMesh.MultiplicativeColor = multiplicativeColor;

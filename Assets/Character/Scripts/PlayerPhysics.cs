@@ -84,16 +84,13 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
         public bool isLeg;
 
-        /// <summary> A list of all of other legs that should crouch with this one") </summary>
-        private IEnumerable<BodyPartClass> _linkedLegs;
-
-        [Tooltip("A list of all of the objects that should bend left when crouching, along with an amount from 0 to 1 that they should bend")]
+        [Tooltip("A list of all objects that should bend left when crouching, along with an amount from 0 to 1 that they should bend")]
         public List<GameObject> bendLeft = new List<GameObject>();
 
         [Tooltip("The amount that the corresponding part should rotate from 0 to 1")]
         public List<float> bendLeftAmounts = new List<float>();
 
-        [Tooltip("A list of all of the objects that should bend right when crouching, along with an amount from 0 to 1 that they should bend")]
+        [Tooltip("A list of all objects that should bend right when crouching, along with an amount from 0 to 1 that they should bend")]
         public List<GameObject> bendRight = new List<GameObject>();
 
         [Tooltip("The amount that the corresponding part should rotate from 0 to 1")]
@@ -118,6 +115,9 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> How much torque is actively being added to rotate this part </summary>
         private float _torqueAmount;
 
+        /// <summary> A list of all other legs that should crouch with this one") </summary>
+        private IEnumerable<BodyPartClass> _linkedLegs;
+
         /// <summary> If this is a leg, how much crouch is being added from an impact </summary>
         private float _crouchPlus;
 
@@ -133,6 +133,7 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Reference to the rigidbody </summary>
         private Rigidbody2D _rb;
 
+        /// <summary> Vector from the base to the tip of this part </summary>
         private Vector3 _topVector;
 
         /// <summary> Adds all of the colliderObjects to a handy dictionary named collToPart.
@@ -238,12 +239,10 @@ public class PlayerPhysics : MonoBehaviour {
             if(_crouchAmount < 0.1f && _crouchPlus < 0.1f) return;
 
             _crouchAmount = Extensions.SharpInDamp(_crouchAmount, _crouchPlus, 1f, Time.fixedDeltaTime); //Quickly move towards crouchAmount
-            for(int i = 0; i < bendRight.Count; i++) {
+            for(int i = 0; i < bendRight.Count; i++)
                 bendRight[i].transform.Rotate(Vector3.forward, (FacingRight ? -1 : 1) * _crouchAmount * bendRightAmounts[i], Space.Self);
-            }
-            for(int i = 0; i < bendLeft.Count; i++) {
+            for(int i = 0; i < bendLeft.Count; i++)
                 bendLeft[i].transform.Rotate(Vector3.forward, (FacingRight ? 1 : -1) * _crouchAmount * bendLeftAmounts[i], Space.Self);
-            }
 
             _crouchPlus -= _crouchPlus * 1 * Time.fixedDeltaTime; //Over time, reduce the crouch from impact
         }
