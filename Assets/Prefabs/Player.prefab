@@ -2345,7 +2345,7 @@ MonoBehaviour:
   _whatIsGround:
     serializedVersion: 2
     m_Bits: 4294965247
-  groundCheckOffset: 0
+  groundCheckOffset: {x: 0.06, y: -0.09, z: 0.15}
 --- !u!114 &114514372537222238
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2665,6 +2665,7 @@ MonoBehaviour:
     - {fileID: 1378567283460082}
     bendRightAmounts:
     - 1
+  parts: {fileID: 0}
 --- !u!114 &114709981622584914
 MonoBehaviour:
   m_ObjectHideFlags: 1

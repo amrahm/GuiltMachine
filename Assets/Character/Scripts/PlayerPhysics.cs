@@ -12,14 +12,13 @@ public class PlayerPhysics : MonoBehaviour {
 
     private PlayerMovement _playerMovement; //Reference to PlayerMovement script
 
-    /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
-    private Parts _parts;
+    [Tooltip("Reference to Parts script, which contains all of the player's body parts")]
+    public PartsAbstract parts;
 
 
     private void Awake() {
         //References
         _playerMovement = GetComponent<PlayerMovement>();
-        _parts = GetComponent<Parts>();
 
         foreach(var part in bodyParts) part.Initialize(collToPart, bodyParts);
     }
@@ -32,21 +31,7 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        RotateTo(_parts.torso, _parts.torsoTarget);
-        RotateTo(_parts.head, _parts.headTarget);
-        RotateTo(_parts.upperArmR, _parts.upperArmRTarget);
-        RotateTo(_parts.lowerArmR, _parts.lowerArmRTarget);
-        RotateTo(_parts.handR, _parts.handRTarget);
-        RotateTo(_parts.upperArmL, _parts.upperArmLTarget);
-        RotateTo(_parts.lowerArmL, _parts.lowerArmLTarget);
-        RotateTo(_parts.handL, _parts.handLTarget);
-        RotateTo(_parts.thighR, _parts.thighRTarget);
-        RotateTo(_parts.shinR, _parts.shinRTarget);
-        RotateTo(_parts.footR, _parts.footRTarget);
-        RotateTo(_parts.thighL, _parts.thighLTarget);
-        RotateTo(_parts.shinL, _parts.shinLTarget);
-        RotateTo(_parts.footL, _parts.footLTarget);
-        RotateTo(_parts.hips, _parts.hipsTarget);
+        foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
 
         foreach(var part in collToPart.Values) {
             part.HitRotation();
@@ -61,12 +46,12 @@ public class PlayerPhysics : MonoBehaviour {
     private void RotateTo(GameObject obj, GameObject target) {
 #if DEBUG || UNITY_EDITOR
         //Log any errors, since this shouldn't happen
-        if(!_parts.partsToLPositions.ContainsKey(obj))
-            Debug.LogError($"Trying to rotate {obj.name}, but it wasn't found in{nameof(Parts)}.{nameof(Parts.partsToLPositions)}");
+        if(!parts.PartsToLPositions.ContainsKey(obj))
+            Debug.LogError($"Trying to rotate {obj.name}, but it wasn't found in{nameof(PlayerParts)}.{nameof(PlayerParts.PartsToLPositions)}");
 #endif
 
         //Reset the local positions cause sometimes they get moved
-        obj.transform.localPosition = _parts.partsToLPositions[obj];
+        obj.transform.localPosition = parts.PartsToLPositions[obj];
 
         //Match the animation rotation
         obj.transform.rotation = target.transform.rotation;
@@ -297,16 +282,19 @@ public class PlayerPhysicsInspector : Editor {
     }
 
     public override void OnInspectorGUI() {
+        //Update serialized class
+        _getTarget.Update();
+
         //Show the script field
-        serializedObject.Update();
         SerializedProperty prop = serializedObject.FindProperty("m_Script");
         GUI.enabled = false;
         EditorGUILayout.PropertyField(prop, true);
         GUI.enabled = true;
-        serializedObject.ApplyModifiedProperties();
 
-        //Update our list
-        _getTarget.Update();
+        //Show the _parts field
+        SerializedProperty parts = _getTarget.FindProperty(nameof(PlayerPhysics.parts));
+        EditorGUILayout.PropertyField(parts, true);
+        GUILayout.Space(15);
 
         //Display our list to the inspector window
         for(int i = 0; i < _bodyParts.arraySize; i++) {

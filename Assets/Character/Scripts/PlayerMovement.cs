@@ -41,11 +41,8 @@ public class PlayerMovement : MonoBehaviour {
     [Tooltip("A mask determining what is ground to the character")] [SerializeField]
     private LayerMask _whatIsGround;
 
-    [Tooltip("How far below the feet should be considered still touching the ground")]
-    public Vector2 groundCheckOffset;
-
-    /// <summary> Radius of the overlap circle to determine if grounded </summary>
-    private const float GroundedRadius = .2f;
+    [Tooltip("How far below the feet should be considered still touching the ground. Z gives the radius")]
+    public Vector3 groundCheckOffset;
 
     /// <summary> Whether or not the player is grounded </summary>
     private bool _grounded;
@@ -87,13 +84,13 @@ public class PlayerMovement : MonoBehaviour {
     private Animator _anim;
 
     /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
-    private Parts _parts;
+    private PlayerParts _parts;
 
     #endregion
 
     private void Awake() {
         //Setting up references.
-        _parts = GetComponent<Parts>();
+        _parts = GetComponent<PlayerParts>();
         _anim = GetComponent<Animator>();
         _rb = GetComponent<Rigidbody2D>();
     }
@@ -102,14 +99,14 @@ public class PlayerMovement : MonoBehaviour {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
         Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
                       transform.right * groundCheckOffset.x * (facingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
-        _grounded = Physics2D.OverlapCircle(pos, GroundedRadius, _whatIsGround) != null;
-        DebugExtension.DebugCircle(pos, Vector3.forward, GroundedRadius);
+        _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null;
+//        DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
 
         _anim.SetFloat("vSpeed", _rb.velocity.y); //Set the vertical animation for moving up/down through the air
 
         if(_grounded) {
             //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
-            _rb.transform.position += new Vector3(0, _parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos);
+            _rb.transform.position += new Vector3(0, (_parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos)/2);
             _lastFootPos = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
         }
     }
