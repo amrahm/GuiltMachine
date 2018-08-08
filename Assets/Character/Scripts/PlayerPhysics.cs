@@ -25,7 +25,10 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void Update() {
-        foreach(var part in bodyParts) part.FacingRight = _playerMovement.facingRight;
+        foreach(var part in bodyParts) {
+            part.Right = part.bodyPart.transform.right;
+            part.FacingRight = _playerMovement.facingRight;
+        }
     }
 
     private void FixedUpdate() {
@@ -45,7 +48,11 @@ public class PlayerPhysics : MonoBehaviour {
         RotateTo(_parts.footL, _parts.footLTarget);
         RotateTo(_parts.hips, _parts.hipsTarget);
 
-        foreach(var part in collToPart.Values) part.HitRotation();
+        foreach(var part in collToPart.Values) {
+            part.HitRotation();
+            part.HandleTouching();
+            part.PostRight = part.bodyPart.transform.right;
+        }
     }
 
     /// <summary> Rotates the non-animated skeleton to the animated skeleton </summary>
@@ -127,6 +134,15 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Should the hit rotation code run? </summary>
         private bool _shouldHitRot;
 
+        /// <summary> Is the body part currently touching something? </summary>
+        private bool _isTouching;
+
+        /// <summary> The rightward direction of this bodypart before rotating </summary>
+        public Vector3 Right { private get; set; }
+
+        /// <summary> The rightward direction of this bodypart after rotating </summary>
+        public Vector3 PostRight { private get; set; }
+
         /// <summary> Is the player facing right? </summary>
         public bool FacingRight { private get; set; }
 
@@ -168,56 +184,33 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Calculate how much rotation should be added on collision </summary>
         /// <param name="point">Point of contact</param>
         /// <param name="direction">Direction of contact</param>
-        /// <param name="rVelocity">Relative Velocity of Collision</param>
-        public void HitCalc(Vector2 point, Vector2 direction, Vector2 rVelocity) {
+        /// <param name="impulse">Impluse of the collision</param>
+        public void HitCalc(Vector3 point, Vector2 direction, Vector2 impulse) {
             _shouldHitRot = true; //enable HitRot() to apply rotation
+            _isTouching = true; //enable IsTouching() for continuous touching
             _collisionNormal = direction;
-            _positionVector = point - (Vector2) bodyPart.transform.position;
+            _positionVector = point - bodyPart.transform.position; //A vector to the position of the hit
 
-            Vector3 toTop = bodyPart.transform.TransformPoint(_topVector) - bodyPart.transform.position;
-            _upDown = Mathf.Clamp(Vector3.Dot(toTop, _positionVector) / Vector3.SqrMagnitude(toTop), -1, 1);
+            Vector3 toTop = bodyPart.transform.TransformPoint(_topVector) - bodyPart.transform.position; //A vector to the top of this part
+            _upDown = Mathf.Clamp(Vector3.Dot(toTop, _positionVector) / Vector3.SqrMagnitude(toTop), -1, 1); //Clamped in case of errors
 
-            if(!(Vector3.Dot(direction.normalized, rVelocity.normalized) > 0.01f))
-                return; //Makes sure an object sliding away doesn't cause errant rotations
-            Vector2 forceVectorPre = Vector2.Dot(rVelocity, direction) * direction * _upDown;
+            //All of the impulse in the direction of the collision normal
+            Vector2 forceVectorPre = Vector2.Dot(impulse, direction) * direction * _upDown;
+            //If it's a leg, only take the horizontal component
             Vector2 forceVector = isLeg ? Vector2.Dot(forceVectorPre, Vector2.right) * Vector2.right : forceVectorPre;
 
-            if(isLeg) {
-                Vector2 crouchVector = forceVectorPre - forceVector;
-//                Debug.Log(crouchVector);
-                if(crouchVector.y / _rb.mass > 0.2f) {
-                    foreach(var leg in _linkedLegs) {
-                        leg._crouchPlus += crouchVector.y;
-                    }
+            if(isLeg) { //Add crouching using the vertical component for legs
+                float verticalForce = (forceVectorPre - forceVector).y;
+                if(verticalForce / _rb.mass > 0.2f) { //Min threshold so this isn't constantly active
+                    foreach(var leg in _linkedLegs) leg._crouchPlus += verticalForce;
                 }
             }
 
-            AddTorque(rVelocity, forceVector);
-        }
+            //Add the magnitude of this force to torqueAmount, which will make the part rotate. The cross product gives us the proper direction.
+            _torqueAmount += forceVector.magnitude * Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
 
-        /// <summary> Calculates the torque to add based on the collision force, and transfers the rest of the force to the parent part </summary>
-        /// <param name="rVelocity">Relative Velocity of Collision</param>
-        /// <param name="forceVector">The vector of force from the collision</param>
-        private void AddTorque(Vector2 rVelocity, Vector2 forceVector) {
-            //a vector perpendicular to the force and the vector along the body part, which gives the direction to rotate.
-            Vector3 cross = Vector3.Cross(_positionVector, forceVector);
-
-            _torqueAmount += forceVector.magnitude * Mathf.Sign(cross.z);
-
-            //force that is parallel to limb or too close to hinge, so can't rotate it, but can be transferred to parent. 	
-            Vector2 transForceVec = -0.2f * (rVelocity - forceVector) - _collisionNormal * (forceVector.magnitude - Vector3.Cross(_positionVector, forceVector).magnitude);
-            _parent?.HitTransfer(bodyPart.transform.position, rVelocity, transForceVec);
-        }
-
-        /// <summary> Transfers force from child to parent </summary>
-        /// <param name="point">Point of contact</param>
-        /// <param name="rVelocity">Relative Velocity of Collision</param>
-        /// <param name="transferredForceVector">The vector of force being transferred</param>
-        private void HitTransfer(Vector3 point, Vector3 rVelocity, Vector3 transferredForceVector) {
-            _shouldHitRot = true;
-            _positionVector = bodyPart.transform.position - point;
-            Vector3 unknownVel = Mathf.Abs(rVelocity.magnitude - _rb.velocity.magnitude) * rVelocity.normalized;
-            AddTorque(unknownVel, transferredForceVector);
+            //Transfer force that was removed because of a low upDown (+ a bit more) at the hinge of this part in the direction of the impulse to the parent
+            _parent?.HitCalc(bodyPart.transform.position, impulse.normalized, (1.5f - _upDown) * impulse);
         }
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
@@ -226,12 +219,12 @@ public class PlayerPhysics : MonoBehaviour {
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
-            bodyPart.transform.Rotate(Vector3.forward, partWeakness * _rotAmount, Space.Self); //Rotate the part _rotAmount past where it is animated
+            bodyPart.transform.Rotate(Vector3.forward, partWeakness * _rotAmount / 2, Space.Self); //Rotate the part _rotAmount past where it is animated
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
-            _rotAmount = Extensions.SharpInDamp(_rotAmount, _rotAmount / 2, 0.8f, Time.fixedDeltaTime); //and return the body part back to rest
+            _rotAmount = Extensions.SharpInDamp(_rotAmount, 7 * _rotAmount / 8, 0.8f, Time.fixedDeltaTime); //and return the body part back to rest
 
-            _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
+            _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
         }
 
         /// <summary> Handles Contracting multi-part legs when they hit the ground </summary>
@@ -245,6 +238,18 @@ public class PlayerPhysics : MonoBehaviour {
                 bendLeft[i].transform.Rotate(Vector3.forward, (FacingRight ? 1 : -1) * _crouchAmount * bendLeftAmounts[i], Space.Self);
 
             _crouchPlus -= _crouchPlus * 1 * Time.fixedDeltaTime; //Over time, reduce the crouch from impact
+        }
+
+        /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
+        public void HandleTouching() {
+            //TODO Something with computepenetration
+            if(!_isTouching || !((FacingRight ? -1 : 1) * Vector3.Dot(_collisionNormal, (PostRight - Right).normalized) > 0.1f)) return;
+            //TODO Is massMult needed here?
+            float torquePlus = (FacingRight ? 1 : -1) * -2 * 40 * _positionVector.magnitude * Vector3.Angle(PostRight, Right) / 5 *
+                               Mathf.Sign(Vector3.Cross(_collisionNormal, PostRight).z) * _upDown * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
+            _torqueAmount += torquePlus * Time.fixedDeltaTime;
+            _shouldHitRot = true;
+            _isTouching = false;
         }
     }
 

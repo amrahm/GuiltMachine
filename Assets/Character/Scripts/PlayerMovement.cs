@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using ExtensionMethods;
 using UnityEngine;
 
@@ -42,8 +41,8 @@ public class PlayerMovement : MonoBehaviour {
     [Tooltip("A mask determining what is ground to the character")] [SerializeField]
     private LayerMask _whatIsGround;
 
-    [Tooltip("A position marking where to check if the player is grounded")]
-    public Transform groundCheck;
+    [Tooltip("How far below the feet should be considered still touching the ground")]
+    public Vector2 groundCheckOffset;
 
     /// <summary> Radius of the overlap circle to determine if grounded </summary>
     private const float GroundedRadius = .2f;
@@ -100,17 +99,13 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        _grounded = false;
-
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
-        //This can be done using layers instead but Sample Assets will not overwrite your project settings.
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, GroundedRadius, _whatIsGround);
-        foreach(Collider2D c in colliders) {
-            if(c.gameObject != gameObject) _grounded = true;
-        }
+        Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
+                      transform.right * groundCheckOffset.x * (facingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
+        _grounded = Physics2D.OverlapCircle(pos, GroundedRadius, _whatIsGround) != null;
+        DebugExtension.DebugCircle(pos, Vector3.forward, GroundedRadius);
 
-        _anim.SetBool("Ground", _grounded); //Set the grounded animation
-        _anim.SetFloat("vSpeed", _rb.velocity.y); //Set the vertical animation
+        _anim.SetFloat("vSpeed", _rb.velocity.y); //Set the vertical animation for moving up/down through the air
 
         if(_grounded) {
             //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
@@ -165,7 +160,8 @@ public class PlayerMovement : MonoBehaviour {
 
             if(move > 0 && !facingRight || move < 0 && facingRight) Flip();
         } else { //Not grounded
-            if(!_isTouching || Vector2.Dot(_touchingNormal, fwdVec) < .5) {
+            //Make sure the player isn't trying to move into a wall or something, since otherwise they'll stick to it
+            if(!_isTouching || Vector2.Dot(_touchingNormal, fwdVec.normalized) > .5) {
                 fwdVec *= _airControl;
                 kick(_kickAir);
                 if(movePressed && (move > 0 && _velForward < _maxSpeed * sprintAmt || move < 0 && _velForward > -_maxSpeed * sprintAmt)) {
@@ -180,10 +176,9 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> Handles player jumping </summary>
     /// <param name="jump">Is jump input pressed</param>
     public void Jump(bool jump) {
-        if(_grounded && jump && _anim.GetBool("Ground") && !_jumpStarted) {
+        if(_grounded && jump && !_jumpStarted) {
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true;
-            _anim.SetBool("Ground", false);
             _rb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
         } else if(jump && _jumpFuelLeft > 0) {
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
