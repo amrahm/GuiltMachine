@@ -23,20 +23,19 @@ public class PlayerPhysics : MonoBehaviour {
         foreach(var part in bodyParts) part.Initialize(collToPart, bodyParts);
     }
 
-    private void Update() {
-        foreach(var part in bodyParts) {
-            part.Right = part.bodyPart.transform.right;
-            part.FacingRight = _playerMovement.facingRight;
-        }
-    }
-
     private void FixedUpdate() {
+        foreach(var part in collToPart.Values) {
+            part.FacingRight = _playerMovement.facingRight;
+            part.PartDirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
+            if(part.visPartDir) Debug.DrawRay(part.bodyPart.transform.position, part.PartDirPre);
+        }
+
         foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
 
         foreach(var part in collToPart.Values) {
             part.HitRotation();
             part.HandleTouching();
-            part.PostRight = part.bodyPart.transform.right;
+            part.PartDirPost = part.bodyPart.transform.right;
         }
     }
 
@@ -88,6 +87,12 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("The amount that the corresponding part should rotate from 0 to 1")]
         public List<float> bendRightAmounts = new List<float>();
 
+        [Tooltip("The direction, in local space, that points from the base of this body part to the tip")]
+        public Vector2 partDir = Vector2.right;
+
+        [Tooltip("Lets you see the part direction in-game for setting it properly")]
+        public bool visPartDir;
+
 
         /// <summary> The parent body part class of this body part. Can be null. </summary>
         private BodyPartClass _parent;
@@ -122,11 +127,11 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Is the body part currently touching something? </summary>
         private bool _isTouching;
 
-        /// <summary> The rightward direction of this bodypart before rotating </summary>
-        public Vector3 Right { private get; set; }
+        /// <summary> The rightward direction of this bodypart after rotating </summary>
+        public Vector3 PartDirPre { get; set; }
 
         /// <summary> The rightward direction of this bodypart after rotating </summary>
-        public Vector3 PostRight { private get; set; }
+        public Vector3 PartDirPost { private get; set; }
 
         /// <summary> Is the player facing right? </summary>
         public bool FacingRight { private get; set; }
@@ -227,11 +232,11 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
         public void HandleTouching() {
-            //TODO Something with computepenetration
-            if(!_isTouching || !((FacingRight ? -1 : 1) * Vector3.Dot(_collisionNormal, (PostRight - Right).normalized) > 0.1f)) return;
+            //TODO Something with transferring to parent part if needed
+            if(!_isTouching || !((FacingRight ? -1 : 1) * Vector3.Dot(_collisionNormal, (PartDirPost - PartDirPre).normalized) > 0.1f)) return;
             //TODO Is massMult needed here?
-            float torquePlus = (FacingRight ? 1 : -1) * -2 * 40 * _positionVector.magnitude * Vector3.Angle(PostRight, Right) / 5 *
-                               Mathf.Sign(Vector3.Cross(_collisionNormal, PostRight).z) * _upDown * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
+            float torquePlus = (FacingRight ? 1 : -1) * -2 * 40 * _positionVector.magnitude * Vector3.Angle(PartDirPost, partDir) / 5 *
+                               Mathf.Sign(Vector3.Cross(_collisionNormal, PartDirPost).z) * _upDown * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
             _torqueAmount += torquePlus * Time.fixedDeltaTime;
             _shouldHitRot = true;
             _isTouching = false;
@@ -303,6 +308,8 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty parentPart = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.parentPart));
             SerializedProperty colliderObjects = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.colliderObjects));
             SerializedProperty partWeakness = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partWeakness));
+            SerializedProperty partDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partDir));
+            SerializedProperty visPartDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visPartDir));
             SerializedProperty isLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeg));
             SerializedProperty bendLeft = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeft));
             SerializedProperty bendLeftAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeftAmounts));
@@ -319,6 +326,8 @@ public class PlayerPhysicsInspector : Editor {
                 EditorGUILayout.PropertyField(parentPart);
                 PlusMinusGameObjectList(colliderObjects, i);
                 EditorGUILayout.PropertyField(partWeakness);
+                EditorGUILayout.PropertyField(partDir);
+                EditorGUILayout.PropertyField(visPartDir);
                 EditorGUILayout.PropertyField(isLeg);
                 if(isLeg.boolValue) {
                     EditorGUI.indentLevel++;

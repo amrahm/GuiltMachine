@@ -2569,6 +2569,8 @@ MonoBehaviour:
     bendLeftAmounts: []
     bendRight: []
     bendRightAmounts: []
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
   - bodyPart: {fileID: 1057057518923330}
     parentPart: {fileID: 1349885878371348}
     colliderObjects:
@@ -2579,6 +2581,8 @@ MonoBehaviour:
     bendLeftAmounts: []
     bendRight: []
     bendRightAmounts: []
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
   - bodyPart: {fileID: 1126129936186242}
     parentPart: {fileID: 1349885878371348}
     colliderObjects:
@@ -2589,6 +2593,8 @@ MonoBehaviour:
     bendLeftAmounts: []
     bendRight: []
     bendRightAmounts: []
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
   - bodyPart: {fileID: 1835508180870504}
     parentPart: {fileID: 1349885878371348}
     colliderObjects:
@@ -2599,6 +2605,8 @@ MonoBehaviour:
     bendLeftAmounts: []
     bendRight: []
     bendRightAmounts: []
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
   - bodyPart: {fileID: 1174598012253806}
     parentPart: {fileID: 1126129936186242}
     colliderObjects:
@@ -2610,6 +2618,8 @@ MonoBehaviour:
     bendLeftAmounts: []
     bendRight: []
     bendRightAmounts: []
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
   - bodyPart: {fileID: 1345188116409558}
     parentPart: {fileID: 1835508180870504}
     colliderObjects:
@@ -2621,6 +2631,8 @@ MonoBehaviour:
     bendLeftAmounts: []
     bendRight: []
     bendRightAmounts: []
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
   - bodyPart: {fileID: 1187883556716760}
     parentPart: {fileID: 0}
     colliderObjects:
@@ -2647,6 +2659,8 @@ MonoBehaviour:
     bendRightAmounts:
     - 1
     - 0.4
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
   - bodyPart: {fileID: 1324330659312684}
     parentPart: {fileID: 0}
     colliderObjects:
@@ -2665,7 +2679,9 @@ MonoBehaviour:
     - {fileID: 1378567283460082}
     bendRightAmounts:
     - 1
-  parts: {fileID: 0}
+    partDir: {x: 1, y: 0}
+    visPartDir: 0
+  parts: {fileID: 114492099688881156}
 --- !u!114 &114709981622584914
 MonoBehaviour:
   m_ObjectHideFlags: 1
