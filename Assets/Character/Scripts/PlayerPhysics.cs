@@ -26,16 +26,15 @@ public class PlayerPhysics : MonoBehaviour {
     private void FixedUpdate() {
         foreach(var part in collToPart.Values) {
             part.FacingRight = _playerMovement.facingRight;
-            part.PartDirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
-            if(part.visPartDir) Debug.DrawRay(part.bodyPart.transform.position, part.PartDirPre);
+            part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
+            if(part.visPartDir) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
         }
 
         foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
 
         foreach(var part in collToPart.Values) {
+            part.DirPost = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
             part.HitRotation();
-            part.HandleTouching();
-            part.PartDirPost = part.bodyPart.transform.right;
         }
     }
 
@@ -124,14 +123,11 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Should the hit rotation code run? </summary>
         private bool _shouldHitRot;
 
-        /// <summary> Is the body part currently touching something? </summary>
-        private bool _isTouching;
+        /// <summary> The rightward direction of this bodypart after rotating </summary>
+        public Vector3 DirPre { get; set; }
 
         /// <summary> The rightward direction of this bodypart after rotating </summary>
-        public Vector3 PartDirPre { get; set; }
-
-        /// <summary> The rightward direction of this bodypart after rotating </summary>
-        public Vector3 PartDirPost { private get; set; }
+        public Vector3 DirPost { private get; set; }
 
         /// <summary> Is the player facing right? </summary>
         public bool FacingRight { private get; set; }
@@ -177,7 +173,6 @@ public class PlayerPhysics : MonoBehaviour {
         /// <param name="impulse">Impluse of the collision</param>
         public void HitCalc(Vector3 point, Vector2 direction, Vector2 impulse) {
             _shouldHitRot = true; //enable HitRot() to apply rotation
-            _isTouching = true; //enable IsTouching() for continuous touching
             _collisionNormal = direction;
             _positionVector = point - bodyPart.transform.position; //A vector to the position of the hit
 
@@ -185,7 +180,7 @@ public class PlayerPhysics : MonoBehaviour {
             _upDown = Mathf.Clamp(Vector3.Dot(toTop, _positionVector) / Vector3.SqrMagnitude(toTop), -1, 1); //Clamped in case of errors
 
             //All of the impulse in the direction of the collision normal
-            Vector2 forceVectorPre = Vector2.Dot(impulse, direction) * direction * _upDown;
+            Vector2 forceVectorPre = impulse * _upDown;
             //If it's a leg, only take the horizontal component
             Vector2 forceVector = isLeg ? Vector2.Dot(forceVectorPre, Vector2.right) * Vector2.right : forceVectorPre;
 
@@ -197,10 +192,12 @@ public class PlayerPhysics : MonoBehaviour {
             }
 
             //Add the magnitude of this force to torqueAmount, which will make the part rotate. The cross product gives us the proper direction.
-            _torqueAmount += forceVector.magnitude * Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
+            _torqueAmount += (FacingRight ? 1 : -1) * forceVector.magnitude * Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
+
+            HandleTouching();
 
             //Transfer force that was removed because of a low upDown (+ a bit more) at the hinge of this part in the direction of the impulse to the parent
-            _parent?.HitCalc(bodyPart.transform.position, impulse.normalized, (1.5f - _upDown) * impulse);
+            _parent?.HitCalc(bodyPart.transform.position, direction, (1.5f - _upDown) * impulse);
         }
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
@@ -209,7 +206,7 @@ public class PlayerPhysics : MonoBehaviour {
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
-            bodyPart.transform.Rotate(Vector3.forward, partWeakness * _rotAmount / 2, Space.Self); //Rotate the part _rotAmount past where it is animated
+            bodyPart.transform.Rotate(Vector3.forward, (FacingRight ? 1 : -1) * partWeakness * _rotAmount / 2, Space.Self); //Rotate the part _rotAmount past where it is animated
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
             _rotAmount = Extensions.SharpInDamp(_rotAmount, 7 * _rotAmount / 8, 0.8f, Time.fixedDeltaTime); //and return the body part back to rest
@@ -231,15 +228,14 @@ public class PlayerPhysics : MonoBehaviour {
         }
 
         /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
-        public void HandleTouching() {
+        private void HandleTouching() {
             //TODO Something with transferring to parent part if needed
-            if(!_isTouching || !((FacingRight ? -1 : 1) * Vector3.Dot(_collisionNormal, (PartDirPost - PartDirPre).normalized) > 0.1f)) return;
             //TODO Is massMult needed here?
-            float torquePlus = (FacingRight ? 1 : -1) * -2 * 40 * _positionVector.magnitude * Vector3.Angle(PartDirPost, partDir) / 5 *
-                               Mathf.Sign(Vector3.Cross(_collisionNormal, PartDirPost).z) * _upDown * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
-            _torqueAmount += torquePlus * Time.fixedDeltaTime;
+            if(-1 * Vector3.Dot(_collisionNormal, (DirPost - DirPre).normalized) < -0.1f) return;
+
+            _torqueAmount += Time.fixedDeltaTime * -2 * _upDown * Vector3.Angle(DirPost, DirPre) *
+                             Mathf.Sign(Vector3.Cross(_collisionNormal, DirPre).z) * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
             _shouldHitRot = true;
-            _isTouching = false;
         }
     }
 
