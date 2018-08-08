@@ -10,29 +10,24 @@ public class PlayerPhysics : MonoBehaviour {
     public List<BodyPartClass> bodyParts;
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
 
-    private PlayerMovement _playerMovement; //Reference to PlayerMovement script
-
     [Tooltip("Reference to Parts script, which contains all of the player's body parts")]
     public PartsAbstract parts;
 
 
     private void Awake() {
-        //References
-        _playerMovement = GetComponent<PlayerMovement>();
-
         foreach(var part in bodyParts) part.Initialize(collToPart, bodyParts);
     }
 
     private void FixedUpdate() {
-        foreach(var part in collToPart.Values) {
-            part.FacingRight = _playerMovement.facingRight;
+        foreach(var part in bodyParts) {
+            part.FacingRight = transform.localScale.x > 0;
             part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
             if(part.visPartDir) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
         }
 
         foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
 
-        foreach(var part in collToPart.Values) {
+        foreach(var part in bodyParts) {
             part.DirPost = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
             part.HitRotation();
         }
@@ -229,11 +224,10 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
         private void HandleTouching() {
-            //TODO Something with transferring to parent part if needed
-            //TODO Is massMult needed here?
+            //TODO Is massMult needed here? partStrength?
             if(-1 * Vector3.Dot(_collisionNormal, (DirPost - DirPre).normalized) < -0.1f) return;
 
-            _torqueAmount += Time.fixedDeltaTime * -2 * _upDown * Vector3.Angle(DirPost, DirPre) *
+            _torqueAmount += (FacingRight ? -2 : 2) * Time.fixedDeltaTime * _upDown * Vector3.Angle(DirPost, DirPre) *
                              Mathf.Sign(Vector3.Cross(_collisionNormal, DirPre).z) * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
             _shouldHitRot = true;
         }
