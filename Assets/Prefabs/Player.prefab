@@ -751,7 +751,7 @@ GameObject:
   - component: {fileID: 4491547643542694}
   - component: {fileID: 212374874216663808}
   m_Layer: 11
-  m_Name: New Sprite
+  m_Name: Temp Weapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1071,7 +1071,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1863102470074760}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -20.11, y: 7.46, z: 0}
+  m_LocalPosition: {x: -20.11, y: 7.229, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4995088450010088}
@@ -2033,16 +2033,16 @@ MonoBehaviour:
     - m_Bone: {fileID: 0}
       m_BoneTransform: {fileID: 4626865947067292}
       solverPosition: {x: 0, y: 0, z: 0}
-      solverRotation: {x: 0, y: 0, z: -0.65716577, w: 0.7537461}
+      solverRotation: {x: 0, y: 0, z: -0.86053514, w: 0.5093911}
       defaultLocalRotation: {x: 0, y: 0, z: 0.9971382, w: -0.075600736}
     - m_Bone: {fileID: 0}
       m_BoneTransform: {fileID: 4291282393062650}
       solverPosition: {x: 0, y: 0, z: 0}
-      solverRotation: {x: 0, y: 0, z: 0, w: 1}
+      solverRotation: {x: 0, y: 0, z: 0.17995533, w: 0.98367476}
       defaultLocalRotation: {x: 0, y: 0, z: 0.14644325, w: 0.98921907}
     m_Weight: 1
     m_RestoreDefaultPose: 1
-    targetPosition: {x: -19.210001, y: 7.614, z: 0}
+    targetPosition: {x: -19.498001, y: 7.171, z: 0}
     flip: 0
 --- !u!114 &114137396459998478
 MonoBehaviour:
@@ -2536,6 +2536,7 @@ MonoBehaviour:
     - {fileID: 1349885878371348}
     partWeakness: 35
     isLeg: 0
+    crouchSpeed: 2
     bendLeft: []
     bendLeftAmounts: []
     bendRight: []
@@ -2548,6 +2549,7 @@ MonoBehaviour:
     - {fileID: 1057057518923330}
     partWeakness: 35
     isLeg: 0
+    crouchSpeed: 2
     bendLeft: []
     bendLeftAmounts: []
     bendRight: []
@@ -2560,6 +2562,7 @@ MonoBehaviour:
     - {fileID: 1126129936186242}
     partWeakness: 55
     isLeg: 0
+    crouchSpeed: 2
     bendLeft: []
     bendLeftAmounts: []
     bendRight: []
@@ -2572,6 +2575,7 @@ MonoBehaviour:
     - {fileID: 1835508180870504}
     partWeakness: 55
     isLeg: 0
+    crouchSpeed: 2
     bendLeft: []
     bendLeftAmounts: []
     bendRight: []
@@ -2585,6 +2589,7 @@ MonoBehaviour:
     - {fileID: 1435925686891782}
     partWeakness: 45
     isLeg: 0
+    crouchSpeed: 2
     bendLeft: []
     bendLeftAmounts: []
     bendRight: []
@@ -2598,6 +2603,7 @@ MonoBehaviour:
     - {fileID: 1900112458088244}
     partWeakness: 45
     isLeg: 0
+    crouchSpeed: 2
     bendLeft: []
     bendLeftAmounts: []
     bendRight: []
@@ -2612,6 +2618,7 @@ MonoBehaviour:
     - {fileID: 1346444268242072}
     partWeakness: 30
     isLeg: 1
+    crouchSpeed: 2
     bendLeft:
     - {fileID: 1187883556716760}
     - {fileID: 1057057518923330}
@@ -2619,17 +2626,17 @@ MonoBehaviour:
     - {fileID: 1835508180870504}
     - {fileID: 1346444268242072}
     bendLeftAmounts:
-    - 0.7
-    - 0.4
-    - 0.4
-    - 0.4
-    - 0.3
+    - 2
+    - 1.2
+    - 1.2
+    - 1.2
+    - 0.9
     bendRight:
     - {fileID: 1255023410132200}
     - {fileID: 1349885878371348}
     bendRightAmounts:
-    - 1
-    - 0.4
+    - 3
+    - 1.2
     partDir: {x: 1, y: 0}
     visPartDir: 0
   - bodyPart: {fileID: 1324330659312684}
@@ -2640,16 +2647,17 @@ MonoBehaviour:
     - {fileID: 1067482419071726}
     partWeakness: 30
     isLeg: 1
+    crouchSpeed: 2
     bendLeft:
     - {fileID: 1324330659312684}
     - {fileID: 1067482419071726}
     bendLeftAmounts:
-    - 0.7
-    - 0.3
+    - 2.1
+    - 0.9
     bendRight:
     - {fileID: 1378567283460082}
     bendRightAmounts:
-    - 1
+    - 3
     partDir: {x: 1, y: 0}
     visPartDir: 0
   parts: {fileID: 114492099688881156}
@@ -3214,7 +3222,7 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 99058371181d22c47bf67597fec9f3a0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3231,9 +3239,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: -646028971
+  m_SortingLayer: 3
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300018, guid: dd105a39e474c4706aba36b8be4febd9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

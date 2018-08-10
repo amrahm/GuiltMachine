@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using UnityEngine;
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedMember.Global
 
 namespace ExtensionMethods {
     public static class Extensions {
@@ -39,6 +41,13 @@ namespace ExtensionMethods {
 
         #endregion
 
+        /// <summary> Interpolate from current to target quickly when they are far apart, and slower when they are close </summary>
+        /// <param name="current">Current float to interpolate from </param>
+        /// <param name="target">Target value</param>
+        /// <param name="speed">How quickly to move between them</param>
+        /// <param name="factor">Scales what values are considered "far apart", from 0 to 1 probably</param>
+        /// <param name="deltaTime">Time between frames, e.g. Time.deltaTime</param>
+        /// <returns>Float between current and target</returns>
         public static float SharpInDamp(float current, float target, float speed, float factor, float deltaTime) {
             float s = speed * deltaTime;
             float v = Mathf.Pow(2, -10 * s) * Mathf.Sin((s - factor / 4) * (2 * Mathf.PI) / factor) + 1;
@@ -46,7 +55,6 @@ namespace ExtensionMethods {
         }
 
         #region Overloads
-
         public static float SharpInDamp(float current, float target, float speed, float factor) {
             return SharpInDamp(current, target, speed, factor, Time.deltaTime);
         }

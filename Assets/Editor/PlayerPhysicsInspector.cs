@@ -40,6 +40,7 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty partDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partDir));
             SerializedProperty visPartDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visPartDir));
             SerializedProperty isLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeg));
+            SerializedProperty crouchSpeed = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.crouchSpeed));
             SerializedProperty bendLeft = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeft));
             SerializedProperty bendLeftAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeftAmounts));
             SerializedProperty bendRight = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendRight));
@@ -60,6 +61,7 @@ public class PlayerPhysicsInspector : Editor {
                 EditorGUILayout.PropertyField(isLeg);
                 if(isLeg.boolValue) {
                     EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(crouchSpeed);
                     PlusMinusGameObjectList(bendLeft, i, bendLeftAmounts);
                     PlusMinusGameObjectList(bendRight, i, bendRightAmounts);
                     EditorGUI.indentLevel--;

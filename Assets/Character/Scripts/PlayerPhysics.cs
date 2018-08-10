@@ -67,16 +67,19 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
         public bool isLeg;
 
+        [Tooltip("How fast the leg should crouch from an impact")]
+        public float crouchSpeed = 2;
+
         [Tooltip("A list of all objects that should bend left when crouching, along with an amount from 0 to 1 that they should bend")]
         public List<GameObject> bendLeft = new List<GameObject>();
 
         [Tooltip("The amount that the corresponding part should rotate from 0 to 1")]
         public List<float> bendLeftAmounts = new List<float>();
 
-        [Tooltip("A list of all objects that should bend right when crouching, along with an amount from 0 to 1 that they should bend")]
+        [Tooltip("A list of all objects that should bend right when crouching, along with amount they should bend")]
         public List<GameObject> bendRight = new List<GameObject>();
 
-        [Tooltip("The amount that the corresponding part should rotate from 0 to 1")]
+        [Tooltip("The amount that the corresponding part should rotate to crouch")]
         public List<float> bendRightAmounts = new List<float>();
 
         [Tooltip("The direction, in local space, that points from the base of this body part to the tip")]
@@ -202,7 +205,7 @@ public class PlayerPhysics : MonoBehaviour {
             bodyPart.transform.Rotate(Vector3.forward, (FacingRight ? 1 : -1) * partWeakness * _rotAmount / 2, Space.Self); //Rotate the part _rotAmount past where it is animated
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
-            _rotAmount = Extensions.SharpInDamp(_rotAmount, 7 * _rotAmount / 8, 0.8f, Time.fixedDeltaTime); //and return the body part back to rest
+            _rotAmount = Extensions.SharpInDamp(_rotAmount, 7 * _rotAmount / 8, 0.8f, 0.02f, Time.fixedDeltaTime); //and return the body part back to rest
 
             _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
         }
@@ -211,13 +214,15 @@ public class PlayerPhysics : MonoBehaviour {
         private void CrouchRotation() {
             if(_crouchAmount < 0.1f && _crouchPlus < 0.1f) return;
 
-            _crouchAmount = Extensions.SharpInDamp(_crouchAmount, _crouchPlus, 1f, Time.fixedDeltaTime); //Quickly move towards crouchAmount
+            _crouchAmount = Extensions.SharpInDamp(_crouchAmount, _crouchPlus, crouchSpeed, 1, Time.fixedDeltaTime); //Quickly move towards crouchAmount
+
+            //Bend all the bendy parts
             for(int i = 0; i < bendRight.Count; i++)
                 bendRight[i].transform.Rotate(Vector3.forward, (FacingRight ? -1 : 1) * _crouchAmount * bendRightAmounts[i], Space.Self);
             for(int i = 0; i < bendLeft.Count; i++)
                 bendLeft[i].transform.Rotate(Vector3.forward, (FacingRight ? 1 : -1) * _crouchAmount * bendLeftAmounts[i], Space.Self);
 
-            _crouchPlus -= _crouchPlus * 1 * Time.fixedDeltaTime; //Over time, reduce the crouch from impact
+            _crouchPlus = Extensions.SharpInDamp(_crouchPlus, 0, crouchSpeed / 4, 1, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
         }
 
         /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
@@ -234,21 +239,11 @@ public class PlayerPhysics : MonoBehaviour {
     /// <summary> Passes info from collision events to the BodyPartClass HitCalc method </summary>
     /// <param name="collInfo">The collision info from the collision event</param>
     private void CollisionHandler(Collision2D collInfo) {
-        if(collInfo.gameObject.GetComponent<Rigidbody2D>()) {
-            foreach(ContactPoint2D c in collInfo.contacts) {
-                if(collToPart.ContainsKey(c.otherCollider)) {
-                    BodyPartClass part = collToPart[c.otherCollider];
-                    Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
-                    part.HitCalc(c.point, c.normal, force);
-                }
-            }
-        } else {
-            foreach(ContactPoint2D c in collInfo.contacts) {
-                if(collToPart.ContainsKey(c.otherCollider)) {
-                    BodyPartClass part = collToPart[c.otherCollider];
-                    Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
-                    part.HitCalc(c.point, c.normal, force);
-                }
+        foreach(ContactPoint2D c in collInfo.contacts) {
+            if(collToPart.ContainsKey(c.otherCollider)) {
+                BodyPartClass part = collToPart[c.otherCollider];
+                Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
+                part.HitCalc(c.point, c.normal, force);
             }
         }
     }
