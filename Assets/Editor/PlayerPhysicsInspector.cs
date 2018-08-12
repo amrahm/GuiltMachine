@@ -38,8 +38,11 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty colliderObjects = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.colliderObjects));
             SerializedProperty partWeakness = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partWeakness));
             SerializedProperty partDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partDir));
-            SerializedProperty visPartDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visPartDir));
+            SerializedProperty visPartDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visSettings));
             SerializedProperty isLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeg));
+            SerializedProperty foot = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.foot));
+            SerializedProperty stepVec = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepVec));
+            SerializedProperty stepVecLayerMask = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepVecLayerMask));
             SerializedProperty crouchSpeed = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.crouchSpeed));
             SerializedProperty bendLeft = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeft));
             SerializedProperty bendLeftAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeftAmounts));
@@ -61,6 +64,9 @@ public class PlayerPhysicsInspector : Editor {
                 EditorGUILayout.PropertyField(isLeg);
                 if(isLeg.boolValue) {
                     EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(foot);
+                    EditorGUILayout.PropertyField(stepVec);
+                    EditorGUILayout.PropertyField(stepVecLayerMask);
                     EditorGUILayout.PropertyField(crouchSpeed);
                     PlusMinusGameObjectList(bendLeft, i, bendLeftAmounts);
                     PlusMinusGameObjectList(bendRight, i, bendRightAmounts);

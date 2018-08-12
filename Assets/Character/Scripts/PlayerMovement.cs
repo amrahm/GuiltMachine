@@ -198,7 +198,7 @@ public class PlayerMovement : MonoBehaviour {
         _crouching = _grounded && crouching && _walkSprint < .65f;
         _anim.SetBool("Crouching", _crouching);
 
-        bool roll = wasStanding && _crouching && _walkSprint > .1f;
+        bool roll = wasStanding && _crouching && _walkSprint > .01f;
         _anim.SetBool("Roll", roll);
     }
 

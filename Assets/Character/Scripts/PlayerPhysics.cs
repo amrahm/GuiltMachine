@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ExtensionMethods;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class PlayerPhysics : MonoBehaviour {
     public List<BodyPartClass> bodyParts;
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
@@ -13,14 +15,14 @@ public class PlayerPhysics : MonoBehaviour {
 
 
     private void Awake() {
-        foreach(var part in bodyParts) part.Initialize(collToPart, bodyParts);
+        foreach(var part in bodyParts) part.Initialize(this);
     }
 
     private void FixedUpdate() {
         foreach(var part in bodyParts) {
             part.FacingRight = transform.localScale.x > 0;
             part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
-            if(part.visPartDir) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
+            if(part.visSettings) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
         }
 
         foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
@@ -67,6 +69,14 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
         public bool isLeg;
 
+        [Tooltip("The foot of the leg")] public GameObject foot;
+
+        [Tooltip("Vector that specifies length and height of steps. Should go out as far as the step will, and just above flat ground")]
+        public Vector2 stepVec;
+
+        [Tooltip("Specifies what layers to include/exclude from stepVec checks")]
+        public LayerMask stepVecLayerMask;
+
         [Tooltip("How fast the leg should crouch from an impact")]
         public float crouchSpeed = 2;
 
@@ -85,9 +95,12 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("The direction, in local space, that points from the base of this body part to the tip")]
         public Vector2 partDir = Vector2.right;
 
-        [Tooltip("Lets you see the part direction in-game for setting it properly")]
-        public bool visPartDir;
+        [Tooltip("Lets you see the setting vectors in the editor for setting them properly. White is partDir, green is stepVec.")]
+        public bool visSettings;
 
+
+        /// <summary> The root GameObject of this character </summary>
+        private Transform _root;
 
         /// <summary> The parent body part class of this body part. Can be null. </summary>
         private BodyPartClass _parent;
@@ -119,6 +132,9 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Should the hit rotation code run? </summary>
         private bool _shouldHitRot;
 
+        /// <summary> Previous horizontal distance of foot to base </summary>
+        private float _prevFootDelta;
+
         /// <summary> The rightward direction of this bodypart after rotating </summary>
         public Vector3 DirPre { get; set; }
 
@@ -134,14 +150,17 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Vector from the base to the tip of this part </summary>
         private Vector3 _topVector;
 
+        #endregion
+
+
         /// <summary> Adds all of the colliderObjects to a handy dictionary named collToPart.
         /// Also determines the length of this body part by looking at all of these colliders, thenceby setting _topVector </summary>
-        /// <param name="collToPart">The dictionary to set up</param>
-        /// <param name="bodyParts">A list of all BodyPart classes</param>
-        public void Initialize(IDictionary<Collider2D, BodyPartClass> collToPart, List<BodyPartClass> bodyParts) {
-            if(parentPart != null) _parent = bodyParts.First(part => part.bodyPart == parentPart);
-            if(isLeg) _linkedLegs = bodyParts.Where(part => part.isLeg);
-            _rb = bodyPart.GetComponentInParent<Rigidbody2D>();
+        /// <param name="p">The parent PlayerPhysics class</param>
+        public void Initialize(PlayerPhysics p) {
+            if(parentPart != null) _parent = p.bodyParts.First(part => part.bodyPart == parentPart);
+            if(isLeg) _linkedLegs = p.bodyParts.Where(part => part.isLeg);
+            _rb = p.gameObject.GetComponent<Rigidbody2D>();
+            _root = p.transform;
             Vector3 objPos = bodyPart.transform.position;
             Vector3 farPoint = objPos;
             Collider2D farColl = bodyPart.GetComponent<Collider2D>();
@@ -152,16 +171,38 @@ public class PlayerPhysics : MonoBehaviour {
                         farPoint = collider.bounds.center;
                         farColl = collider;
                     }
-                    collToPart.Add(collider, this);
+                    p.collToPart.Add(collider, this);
                 }
             }
             farPoint = Vector3.Distance(farPoint + farColl.bounds.extents, objPos) < Vector3.Distance(farPoint - farColl.bounds.extents, objPos)
                            ? bodyPart.transform.InverseTransformPoint(farPoint - farColl.bounds.extents)
                            : bodyPart.transform.InverseTransformPoint(farPoint + farColl.bounds.extents);
             _topVector = new Vector3(farPoint.x, 0);
+            if(isLeg) p.StartCoroutine(CheckStep());
         }
 
-        #endregion
+        private IEnumerator CheckStep() {
+            while(true) {
+                float delta = Vector2.Dot(bodyPart.transform.position - foot.transform.position, _root.right);
+                bool stepping = false;
+                Vector2 dir = stepVec * (FacingRight ? Vector2.one : new Vector2(-1, 1));
+                if(visSettings) Debug.DrawRay(bodyPart.transform.position, dir, Color.green);
+                if(delta - _prevFootDelta > 0.1f) {
+                    stepping = true;
+                    RaycastHit2D hit = Physics2D.Raycast(bodyPart.transform.position, dir, dir.magnitude, stepVecLayerMask);
+                    if(hit.collider != null) {
+                        if(visSettings) DebugExtension.DebugPoint(hit.point, Color.green, .2f);
+                        Debug.Log(hit.collider.gameObject.name);
+                    }
+                }
+
+                _prevFootDelta = delta;
+
+                if(stepping) yield return new WaitForFixedUpdate();
+                else yield return new WaitForSeconds(0.2f);
+            }
+            //ReSharper disable once IteratorNeverReturns
+        }
 
         /// <summary> Calculate how much rotation should be added on collision </summary>
         /// <param name="point">Point of contact</param>
@@ -178,7 +219,7 @@ public class PlayerPhysics : MonoBehaviour {
             //All of the impulse in the direction of the collision normal
             Vector2 forceVectorPre = impulse * _upDown;
             //If it's a leg, only take the horizontal component
-            Vector2 forceVector = isLeg ? Vector2.Dot(forceVectorPre, Vector2.right) * Vector2.right : forceVectorPre;
+            Vector2 forceVector = isLeg ? Vector2.Dot(forceVectorPre, _root.right) * (Vector2) _root.right : forceVectorPre;
 
             if(isLeg) { //Add crouching using the vertical component for legs
                 float verticalForce = (forceVectorPre - forceVector).y;
