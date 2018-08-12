@@ -28,6 +28,11 @@ public class PlayerPhysicsInspector : Editor {
         //Show the _parts field
         SerializedProperty parts = _getTarget.FindProperty(nameof(PlayerPhysics.parts));
         EditorGUILayout.PropertyField(parts, true);
+        SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(crouchSpeed));
+        EditorGUILayout.PropertyField(crouchSpeed);
+        SerializedProperty bendParts = _getTarget.FindProperty(nameof(bendParts));
+        SerializedProperty bendAmounts = _getTarget.FindProperty(nameof(bendAmounts));
+        PlusMinusGameObjectList(bendParts, -1, bendAmounts);
         GUILayout.Space(15);
 
         //Display our list to the inspector window
@@ -43,11 +48,6 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty foot = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.foot));
             SerializedProperty stepVec = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepVec));
             SerializedProperty stepVecLayerMask = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepVecLayerMask));
-            SerializedProperty crouchSpeed = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.crouchSpeed));
-            SerializedProperty bendLeft = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeft));
-            SerializedProperty bendLeftAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendLeftAmounts));
-            SerializedProperty bendRight = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendRight));
-            SerializedProperty bendRightAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendRightAmounts));
 
             string partName = bodyPart.objectReferenceValue == null ? "Part " + i : bodyPart.objectReferenceValue.name;
 
@@ -67,9 +67,6 @@ public class PlayerPhysicsInspector : Editor {
                     EditorGUILayout.PropertyField(foot);
                     EditorGUILayout.PropertyField(stepVec);
                     EditorGUILayout.PropertyField(stepVecLayerMask);
-                    EditorGUILayout.PropertyField(crouchSpeed);
-                    PlusMinusGameObjectList(bendLeft, i, bendLeftAmounts);
-                    PlusMinusGameObjectList(bendRight, i, bendRightAmounts);
                     EditorGUI.indentLevel--;
                 }
 
@@ -103,8 +100,9 @@ public class PlayerPhysicsInspector : Editor {
     /// <param name="list2">A second list to display right next to the first</param>
     private void PlusMinusGameObjectList(SerializedProperty list, int bodyPartClassIndex, SerializedProperty list2 = null) {
         GUILayout.BeginHorizontal();
-        list.isExpanded = EditorGUILayout.Foldout(list.isExpanded,
-            new GUIContent(list.displayName, Extensions.GetTooltip(_t.bodyParts[bodyPartClassIndex].GetType().GetField(list.name), true)), true);
+        GUIContent tooltip = bodyPartClassIndex == -1 ? new GUIContent(list.displayName, Extensions.GetTooltip(_t.GetType().GetField(list.name), true))
+                                 : new GUIContent(list.displayName, Extensions.GetTooltip(_t.bodyParts[bodyPartClassIndex].GetType().GetField(list.name), true));
+        list.isExpanded = EditorGUILayout.Foldout(list.isExpanded, tooltip, true);
         if(list.isExpanded) {
             if(list2 != null) {
                 while(list2.arraySize < list.arraySize) {
