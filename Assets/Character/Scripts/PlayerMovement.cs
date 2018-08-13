@@ -123,7 +123,7 @@ public class PlayerMovement : MonoBehaviour {
         _velForward = _rb.velocity.x;
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
         Vector3 tangent = _grounded ? Vector3.Cross(_touchingNormal, Vector3.forward) : transform.right;
-        Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
+//        Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
         Vector2 fwdVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
 
         Action<float> kick = force => {

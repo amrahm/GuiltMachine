@@ -7,8 +7,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerPhysics : MonoBehaviour {
-    public List<BodyPartClass> bodyParts;
-    public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
+    #region Variables
 
     [Tooltip("Reference to Parts script, which contains all of the player's body parts")]
     public PartsAbstract parts;
@@ -22,6 +21,13 @@ public class PlayerPhysics : MonoBehaviour {
     [Tooltip("The amount that the corresponding part should rotate from -1 to 1")]
     public List<float> bendAmounts = new List<float>();
 
+
+    /// <summary> A list of all the BodyPartClasses that make up this character </summary>
+    public List<BodyPartClass> bodyParts;
+
+    /// <summary> A dictionary mapping colliders to their corresponding BodyPartClass </summary>
+    public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
+
     /// <summary> If this is a leg, how much crouch is being added from an impact </summary>
     private float _crouchPlus;
 
@@ -31,14 +37,13 @@ public class PlayerPhysics : MonoBehaviour {
     /// <summary> Is the player facing right? </summary>
     private bool _facingRight;
 
+    #endregion
 
     private void Awake() {
         foreach(var part in bodyParts) part.Initialize(this);
     }
 
     private void FixedUpdate() {
-        _facingRight = transform.localScale.x > 0;
-
         foreach(var part in bodyParts) {
             part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
             if(part.visSettings) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
@@ -46,6 +51,7 @@ public class PlayerPhysics : MonoBehaviour {
 
         foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
 
+        _facingRight = transform.localScale.x > 0;
         CrouchRotation();
 
         foreach(var part in bodyParts) {
@@ -163,7 +169,6 @@ public class PlayerPhysics : MonoBehaviour {
 
         #endregion
 
-
         /// <summary> Adds all of the colliderObjects to a handy dictionary named collToPart.
         /// Also determines the length of this body part by looking at all of these colliders, thenceby setting _topVector </summary>
         /// <param name="playerPhysics">The parent PlayerPhysics class</param>
@@ -253,7 +258,8 @@ public class PlayerPhysics : MonoBehaviour {
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
-            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2, Space.Self); //Rotate the part _rotAmount past where it is animated
+            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
+                Space.Self); //Rotate the part _rotAmount past where it is animated
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
             _rotAmount = Extensions.SharpInDamp(_rotAmount, 7 * _rotAmount / 8, 0.8f, 0.02f, Time.fixedDeltaTime); //and return the body part back to rest
