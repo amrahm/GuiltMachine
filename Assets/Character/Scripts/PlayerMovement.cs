@@ -5,6 +5,11 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour {
     #region Variables
 
+#if UNITY_EDITOR
+    [Tooltip("Show debug visualizations, such as red line for tangent to floor and circle for setting groundCheckOffset")] [SerializeField]
+    private bool _visualizeDebug;
+#endif
+
     [Tooltip("The fastest the player can travel in the x axis")] [SerializeField]
     private float _maxSpeed = 10f;
 
@@ -83,11 +88,16 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> The normal vector to the surface the player is touching </summary>
     private Vector2 _touchingNormal;
 
+    /// <summary> The angle of the floor the player is walking on </summary>
+    private float _walkSlope;
+
     /// <summary> Reference to the player's animator component </summary>
     private Animator _anim;
 
     /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
     private PlayerParts _parts;
+
+    private PhysicsMaterial2D _footFrictionMat;
 
     #endregion
 
@@ -96,15 +106,22 @@ public class PlayerMovement : MonoBehaviour {
         _parts = GetComponent<PlayerParts>();
         _anim = GetComponent<Animator>();
         _rb = GetComponent<Rigidbody2D>();
+
+        //Instance the foot physics material so that we can adjust it without affecting other users of this script
+        var footMat = _parts.footR.GetComponent<Collider2D>().sharedMaterial;
+        _footFrictionMat = new PhysicsMaterial2D(footMat.name + " (Instance)") {friction = footMat.friction};
+        _parts.footR.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
+        _parts.footL.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
     }
 
     private void FixedUpdate() {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
         Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
                       transform.right * groundCheckOffset.x * (facingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
-        _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null &&
-                    Vector2.Angle(_touchingNormal, transform.up) < _maxWalkSlope;
-//        DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
+        _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null && _walkSlope < _maxWalkSlope;
+#if UNITY_EDITOR
+        if(_visualizeDebug) DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
+#endif
 
         _anim.SetFloat("vSpeed", _rb.velocity.y); //Set the vertical animation for moving up/down through the air
 
@@ -120,21 +137,20 @@ public class PlayerMovement : MonoBehaviour {
     /// <param name="movePressed">Whether walking input is pressed</param>
     /// <param name="sprint"> Sprinting input</param>
     public void Move(float move, bool movePressed, float sprint) {
-        _velForward = _rb.velocity.x;
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
         Vector3 tangent = _grounded ? Vector3.Cross(_touchingNormal, Vector3.forward) : transform.right;
-//        Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
+        _velForward = _rb.velocity.x;
+//        _velForward = Vector2.Dot(_rb.velocity, tangent);
+#if UNITY_EDITOR
+        if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
+#endif
         Vector2 fwdVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
+        float slopeReducer = Mathf.Lerp(1, 0, _walkSlope / _maxWalkSlope / 1.5f);
+        fwdVec *= slopeReducer; //reduce speed as slopes increase
 
-        Action<float> kick = force => {
-            //::Kick - If pressing walk from standstill, gives a kick so walking is more responsive.
-            if(move > 0 && _velForward < _maxSpeed / 3) {
-                _rb.AddForce(_rb.mass * tangent * force * 30);
-//                Debug.Log("kickf " + Time.time); //\\\\\\\\\\\\\\\\\\\\\\\\\\
-            } else if(move < 0 && _velForward > -_maxSpeed / 3) {
-                _rb.AddForce(_rb.mass * tangent * -force * 30);
-//                Debug.Log("kickb " + Time.time); //\\\\\\\\\\\\\\\\\\\\\\\\\\
-            }
+        Action<float> kick = force => { //If pressing walk from standstill, gives a kick so walking is more responsive
+            if(move > 0 && _velForward < _maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * force * 30 * slopeReducer);
+            else if(move < 0 && _velForward > -_maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * -force * 30 * slopeReducer);
         };
 
         if(_grounded) {
@@ -142,18 +158,17 @@ public class PlayerMovement : MonoBehaviour {
                               Mathf.Abs(_velForward) / _maxSpeed / 2 :
                               Mathf.Abs(_velForward) / (_maxSpeed * _sprintSpeed);
             _anim.SetFloat("Speed", _walkSprint);
+//            _anim.SetFloat("Speed", move / 2 * _sprintSpeed);
 
             if(movePressed && Mathf.Abs(_velForward) < _maxSpeed * sprintAmt) {
                 _rb.AddForce(fwdVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
-                    _parts.footL.GetComponent<Collider2D>().sharedMaterial.friction = 0;
-                    _parts.footR.GetComponent<Collider2D>().sharedMaterial.friction = 0;
+                    _footFrictionMat.friction = 0;
                     _frictionZero = true;
                 }
             } else {
                 if(_frictionZero) {
-                    _parts.footL.GetComponent<Collider2D>().sharedMaterial.friction = 1;
-                    _parts.footR.GetComponent<Collider2D>().sharedMaterial.friction = 1;
+                    _footFrictionMat.friction = 1;
                     _frictionZero = false;
                 }
                 _rb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
@@ -221,7 +236,12 @@ public class PlayerMovement : MonoBehaviour {
 
     private void OnCollisionStay2D(Collision2D collInfo) {
         _isTouching = true;
-        _touchingNormal = collInfo.contacts[0].normal;
+        foreach(var contact in collInfo.contacts) {
+            if(contact.otherCollider != _parts.footL.GetComponent<Collider2D>() && contact.otherCollider != _parts.footR.GetComponent<Collider2D>())
+                continue; //Skip non-feet
+            _touchingNormal = contact.normal;
+            if((_walkSlope = Vector2.Angle(_touchingNormal, transform.up)) < _maxWalkSlope) break; //keep looking till we find a good enough point
+        }
     }
 
     // ReSharper disable once UnusedParameter.Local

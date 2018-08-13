@@ -15,11 +15,14 @@ public class PlayerPhysics : MonoBehaviour {
     [Tooltip("How fast to crouch from an impact")]
     public float crouchSpeed = 2;
 
-    [Tooltip("A list of all objects that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
-    public List<GameObject> bendParts = new List<GameObject>();
+    [Tooltip("A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
+    public List<GameObject> nonLegBendParts = new List<GameObject>();
 
     [Tooltip("The amount that the corresponding part should rotate from -1 to 1")]
-    public List<float> bendAmounts = new List<float>();
+    public List<float> nonLegBendAmounts = new List<float>();
+
+    [Tooltip("Specifies what layers to include/exclude from stepVec checks for parts that are legs")]
+    public LayerMask stepVecLayerMask;
 
 
     /// <summary> A list of all the BodyPartClasses that make up this character </summary>
@@ -28,10 +31,10 @@ public class PlayerPhysics : MonoBehaviour {
     /// <summary> A dictionary mapping colliders to their corresponding BodyPartClass </summary>
     public Dictionary<Collider2D, BodyPartClass> collToPart = new Dictionary<Collider2D, BodyPartClass>();
 
-    /// <summary> If this is a leg, how much crouch is being added from an impact </summary>
+    /// <summary> How much crouch is being added from an impact </summary>
     private float _crouchPlus;
 
-    /// <summary> If this is a leg, how much should it crouch </summary>
+    /// <summary> How much should it crouch </summary>
     private float _crouchAmount;
 
     /// <summary> Is the player facing right? </summary>
@@ -46,7 +49,9 @@ public class PlayerPhysics : MonoBehaviour {
     private void FixedUpdate() {
         foreach(var part in bodyParts) {
             part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
+#if UNITY_EDITOR
             if(part.visSettings) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
+#endif
         }
 
         foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
@@ -85,8 +90,8 @@ public class PlayerPhysics : MonoBehaviour {
         _crouchAmount = Extensions.SharpInDamp(_crouchAmount, _crouchPlus, crouchSpeed, 1, Time.fixedDeltaTime); //Quickly move towards crouchAmount
 
         //Bend all the bendy parts
-        for(int i = 0; i < bendParts.Count; i++)
-            bendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * bendAmounts[i], Space.Self);
+        for(int i = 0; i < nonLegBendParts.Count; i++)
+            nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * nonLegBendAmounts[i], Space.Self);
 
         _crouchPlus = Extensions.SharpInDamp(_crouchPlus, 0, crouchSpeed / 4, 1, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
     }
@@ -110,19 +115,27 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
         public bool isLeg;
 
+        [Tooltip("A list of all objects that are parts of this leg that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
+        public List<GameObject> bendParts = new List<GameObject>();
+
+        [Tooltip("The amount that the corresponding part should rotate from -1 to 1")]
+        public List<float> bendAmounts = new List<float>();
+
         [Tooltip("The foot of the leg")] public GameObject foot;
+
+        [Tooltip("Is this the leg closer to the forward direction in this pair?")]
+        public bool isLeadingLeg;
 
         [Tooltip("Vector that specifies length and height of steps. Should go out as far as the step will, and just above flat ground")]
         public Vector2 stepVec;
 
-        [Tooltip("Specifies what layers to include/exclude from stepVec checks")]
-        public LayerMask stepVecLayerMask;
-
         [Tooltip("The direction, in local space, that points from the base of this body part to the tip")]
         public Vector2 partDir = Vector2.right;
 
+#if UNITY_EDITOR
         [Tooltip("Lets you see the setting vectors in the editor for setting them properly. White is partDir, green is stepVec.")]
         public bool visSettings;
+#endif
 
 
         /// <summary> The root GameObject of this character </summary>
@@ -152,8 +165,26 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Should the hit rotation code run? </summary>
         private bool _shouldHitRot;
 
+        /// <summary> Is this leg currently stepping </summary>
+        private bool _stepping;
+
+        /// <summary> How long has this been stepping? </summary>
+        private float _steppingTime;
+
         /// <summary> Previous horizontal distance of foot to base </summary>
         private float _prevFootDelta;
+
+        /// <summary> If this is a leg, how much crouch is being added from an impact </summary>
+        private float _stepCrouchPlus;
+
+        /// <summary> If this is a leg, how much should it crouch </summary>
+        private float _stepCrouchAmount;
+
+        /// <summary> If this is a leg, how much foot rotation is being added to match the surface </summary>
+        private float _footRotatePlus;
+
+        /// <summary> If this is a leg, how much should the foot rotate </summary>
+        private float _footRotateAmount;
 
         /// <summary> The rightward direction of this bodypart after rotating </summary>
         public Vector3 DirPre { get; set; }
@@ -177,6 +208,9 @@ public class PlayerPhysics : MonoBehaviour {
             if(parentPart != null) _parent = _pp.bodyParts.First(part => part.bodyPart == parentPart);
             _rb = _pp.gameObject.GetComponent<Rigidbody2D>();
             _root = _pp.transform;
+            _pp.nonLegBendParts.AddRange(bendParts);
+            _pp.nonLegBendAmounts.AddRange(bendAmounts);
+
             Vector3 objPos = bodyPart.transform.position;
             Vector3 farPoint = objPos;
             Collider2D farColl = bodyPart.GetComponent<Collider2D>();
@@ -200,24 +234,58 @@ public class PlayerPhysics : MonoBehaviour {
         private IEnumerator CheckStep() {
             while(true) {
                 float delta = Vector2.Dot(bodyPart.transform.position - foot.transform.position, _root.right);
-                bool stepping = false;
                 Vector2 dir = stepVec * (_pp._facingRight ? Vector2.one : new Vector2(-1, 1));
+#if UNITY_EDITOR
                 if(visSettings) Debug.DrawRay(bodyPart.transform.position, dir, Color.green);
-                if(delta - _prevFootDelta > 0.1f) {
-                    stepping = true;
-                    RaycastHit2D hit = Physics2D.Raycast(bodyPart.transform.position, dir, dir.magnitude, stepVecLayerMask);
-                    if(hit.collider != null) {
-                        if(visSettings) DebugExtension.DebugPoint(hit.point, Color.green, .2f);
-                        Debug.Log(hit.collider.gameObject.name);
+#endif
+
+                if(delta - _prevFootDelta < -0.1f || _steppingTime > 1f) _stepping = false;
+                RaycastHit2D hit = Physics2D.Raycast(bodyPart.transform.position, dir, dir.magnitude, _pp.stepVecLayerMask);
+                if(hit.collider != null) {
+#if UNITY_EDITOR
+                    if(visSettings) {
+                        DebugExtension.DebugPoint(hit.point, Color.green, .2f);
+                        Debug.DrawRay(hit.point, hit.normal, Color.red);
+                        Debug.DrawRay(_root.position, _root.up, Color.blue);
+                    }
+#endif
+                    float angle = Vector2.SignedAngle(hit.normal, _root.up) * (_pp._facingRight ? -1 : 1);
+                    const float maxWalkSlope = 50; //FIXME magic number (50). Get maxWalkSlope from movement script
+                    if((delta - _prevFootDelta > 0.01f || _stepping || (angle > 0 ? isLeadingLeg : !isLeadingLeg)) && Mathf.Abs(angle) < maxWalkSlope) {
+                        _stepping = true;
+                        _stepCrouchPlus =  Mathf.Abs(angle) * (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
+                        _footRotatePlus = angle;
                     }
                 }
 
                 _prevFootDelta = delta;
 
-                if(stepping) yield return new WaitForFixedUpdate();
-                else yield return new WaitForSeconds(0.2f);
+                if(_stepping) {
+                    yield return new WaitForFixedUpdate();
+                    _steppingTime += Time.fixedDeltaTime;
+                } else yield return new WaitForSeconds(0.1f);
             }
             //ReSharper disable once IteratorNeverReturns
+        }
+
+        /// <summary> Handles contracting legs and body when character hits the ground </summary>
+        private void StepCrouchRotation() {
+            if(_stepCrouchAmount < 0.1f && _stepCrouchPlus < 0.1f) {
+                _footRotateAmount = 0;
+                return;
+            }
+
+            _stepCrouchAmount = Extensions.SharpInDamp(_stepCrouchAmount, _stepCrouchPlus, _pp.crouchSpeed / 2, 1, Time.fixedDeltaTime); //Quickly move towards _stepCrouchPlus
+            _footRotateAmount = Extensions.SharpInDamp(_footRotateAmount, _footRotatePlus, _pp.crouchSpeed / 4, 1, Time.fixedDeltaTime); //Quickly move towards _footRotatePlus
+
+            //Bend all the bendy parts
+            for(int i = 0; i < bendParts.Count; i++)
+                bendParts[i].transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * _stepCrouchAmount * bendAmounts[i], Space.Self);
+
+            foot.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * _footRotateAmount, Space.Self);
+
+            _stepCrouchPlus = Extensions.SharpInDamp(_stepCrouchPlus, 0, _pp.crouchSpeed, 1, Time.fixedDeltaTime); //Over time, reduce the crouch
+            _footRotatePlus = Extensions.SharpInDamp(_footRotatePlus, 0, _pp.crouchSpeed, 1, Time.fixedDeltaTime); //Over time, reduce the rotate
         }
 
         /// <summary> Calculate how much rotation should be added on collision </summary>
@@ -255,6 +323,7 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
         public void HitRotation() {
+            if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation();
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
@@ -281,7 +350,7 @@ public class PlayerPhysics : MonoBehaviour {
     /// <summary> Passes info from collision events to the BodyPartClass HitCalc method </summary>
     /// <param name="collInfo">The collision info from the collision event</param>
     private void CollisionHandler(Collision2D collInfo) {
-        foreach(ContactPoint2D c in collInfo.contacts) {
+        foreach(var c in collInfo.contacts) {
             if(collToPart.ContainsKey(c.otherCollider)) {
                 BodyPartClass part = collToPart[c.otherCollider];
                 Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;

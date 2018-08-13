@@ -28,11 +28,13 @@ public class PlayerPhysicsInspector : Editor {
         //Show the _parts field
         SerializedProperty parts = _getTarget.FindProperty(nameof(PlayerPhysics.parts));
         EditorGUILayout.PropertyField(parts, true);
-        SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(crouchSpeed));
+        SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(PlayerPhysics.crouchSpeed));
         EditorGUILayout.PropertyField(crouchSpeed);
-        SerializedProperty bendParts = _getTarget.FindProperty(nameof(bendParts));
-        SerializedProperty bendAmounts = _getTarget.FindProperty(nameof(bendAmounts));
-        PlusMinusGameObjectList(bendParts, -1, bendAmounts);
+        SerializedProperty nonLegBendParts = _getTarget.FindProperty(nameof(PlayerPhysics.nonLegBendParts));
+        SerializedProperty nonLegBendAmounts = _getTarget.FindProperty(nameof(PlayerPhysics.nonLegBendAmounts));
+        PlusMinusGameObjectList(nonLegBendParts, -1, nonLegBendAmounts);
+        SerializedProperty stepVecLayerMask = _getTarget.FindProperty(nameof(PlayerPhysics.stepVecLayerMask));
+        EditorGUILayout.PropertyField(stepVecLayerMask);
         GUILayout.Space(15);
 
         //Display our list to the inspector window
@@ -45,9 +47,11 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty partDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partDir));
             SerializedProperty visPartDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visSettings));
             SerializedProperty isLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeg));
+            SerializedProperty bendParts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendParts));
+            SerializedProperty bendAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendAmounts));
             SerializedProperty foot = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.foot));
+            SerializedProperty isLeadingLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeadingLeg));
             SerializedProperty stepVec = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepVec));
-            SerializedProperty stepVecLayerMask = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepVecLayerMask));
 
             string partName = bodyPart.objectReferenceValue == null ? "Part " + i : bodyPart.objectReferenceValue.name;
 
@@ -64,9 +68,10 @@ public class PlayerPhysicsInspector : Editor {
                 EditorGUILayout.PropertyField(isLeg);
                 if(isLeg.boolValue) {
                     EditorGUI.indentLevel++;
+                    PlusMinusGameObjectList(bendParts, i, bendAmounts);
                     EditorGUILayout.PropertyField(foot);
+                    EditorGUILayout.PropertyField(isLeadingLeg);
                     EditorGUILayout.PropertyField(stepVec);
-                    EditorGUILayout.PropertyField(stepVecLayerMask);
                     EditorGUI.indentLevel--;
                 }
 
@@ -129,10 +134,10 @@ public class PlayerPhysicsInspector : Editor {
 
             for(int a = 0; a < list.arraySize; a++) {
                 GUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(a), new GUIContent(""));
+                EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(a), GUIContent.none);
                 if(list2 != null) {
-                    GUILayout.Space(-45);
-                    EditorGUILayout.PropertyField(list2.GetArrayElementAtIndex(a), new GUIContent(""), GUILayout.MaxWidth(100));
+                    GUILayout.Space(-EditorGUI.indentLevel * 10);
+                    EditorGUILayout.PropertyField(list2.GetArrayElementAtIndex(a), GUIContent.none, GUILayout.Width(100));
                     GUILayout.Space(5);
                 }
 
