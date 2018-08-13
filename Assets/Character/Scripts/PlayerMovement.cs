@@ -20,6 +20,9 @@ public class PlayerMovement : MonoBehaviour {
     [Tooltip("Sprint multiplier for when running")] [SerializeField]
     private float _sprintSpeed = 2;
 
+    [Tooltip("The greatest slope that the character can walk up")] [SerializeField]
+    private float _maxWalkSlope = 50;
+
     [Tooltip("Vertical speed of a jump")] [SerializeField]
     private float _jumpSpeed = 5;
 
@@ -99,14 +102,15 @@ public class PlayerMovement : MonoBehaviour {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
         Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
                       transform.right * groundCheckOffset.x * (facingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
-        _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null;
+        _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null &&
+                    Vector2.Angle(_touchingNormal, transform.up) < _maxWalkSlope;
 //        DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
 
         _anim.SetFloat("vSpeed", _rb.velocity.y); //Set the vertical animation for moving up/down through the air
 
         if(_grounded) {
             //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
-            _rb.transform.position += new Vector3(0, (_parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos)/2);
+            _rb.transform.position += new Vector3(0, (_parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos) / 2);
             _lastFootPos = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
         }
     }
@@ -118,15 +122,17 @@ public class PlayerMovement : MonoBehaviour {
     public void Move(float move, bool movePressed, float sprint) {
         _velForward = _rb.velocity.x;
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
-        Vector2 fwdVec = _rb.mass * transform.right * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
+        Vector3 tangent = _grounded ? Vector3.Cross(_touchingNormal, Vector3.forward) : transform.right;
+        Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
+        Vector2 fwdVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
 
         Action<float> kick = force => {
             //::Kick - If pressing walk from standstill, gives a kick so walking is more responsive.
             if(move > 0 && _velForward < _maxSpeed / 3) {
-                _rb.AddForce(_rb.mass * transform.right * force * 30);
+                _rb.AddForce(_rb.mass * tangent * force * 30);
 //                Debug.Log("kickf " + Time.time); //\\\\\\\\\\\\\\\\\\\\\\\\\\
             } else if(move < 0 && _velForward > -_maxSpeed / 3) {
-                _rb.AddForce(_rb.mass * transform.right * -force * 30);
+                _rb.AddForce(_rb.mass * tangent * -force * 30);
 //                Debug.Log("kickb " + Time.time); //\\\\\\\\\\\\\\\\\\\\\\\\\\
             }
         };
