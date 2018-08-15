@@ -55,9 +55,6 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> Whether or not the player is grounded </summary>
     private bool _grounded;
 
-    /// <summary> Player's horizontal velocity </summary>
-    private float _velForward;
-
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
     private float _walkSprint;
 
@@ -71,7 +68,7 @@ public class PlayerMovement : MonoBehaviour {
     private Rigidbody2D _rb;
 
     /// <summary> Which way the player is currently facing </summary>
-    [NonSerialized] public bool facingRight = true;
+    private bool _facingRight = true;
 
     /// <summary> Used to zero out friction when moving. True if the Player's feet have no friction. </summary>
     private bool _frictionZero;
@@ -117,7 +114,7 @@ public class PlayerMovement : MonoBehaviour {
     private void FixedUpdate() {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
         Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
-                      transform.right * groundCheckOffset.x * (facingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
+                      transform.right * groundCheckOffset.x * (_facingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
         _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null && _walkSlope < _maxWalkSlope;
 #if UNITY_EDITOR
         if(_visualizeDebug) DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
@@ -139,28 +136,26 @@ public class PlayerMovement : MonoBehaviour {
     public void Move(float move, bool movePressed, float sprint) {
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
         Vector3 tangent = _grounded ? Vector3.Cross(_touchingNormal, Vector3.forward) : transform.right;
-        _velForward = _rb.velocity.x;
-//        _velForward = Vector2.Dot(_rb.velocity, tangent);
+        float velForward = _rb.velocity.x;
+        float velTangent = Vector2.Dot(_rb.velocity, tangent);
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
 #endif
         Vector2 fwdVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
-        float slopeReducer = Mathf.Lerp(1, 0, _walkSlope / _maxWalkSlope / 1.5f);
+        float slopeReducer = Mathf.Lerp(1, .6f, _walkSlope / _maxWalkSlope);
         fwdVec *= slopeReducer; //reduce speed as slopes increase
 
         Action<float> kick = force => { //If pressing walk from standstill, gives a kick so walking is more responsive
-            if(move > 0 && _velForward < _maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * force * 30 * slopeReducer);
-            else if(move < 0 && _velForward > -_maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * -force * 30 * slopeReducer);
+            if(move > 0 && velForward < _maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * force * 30 * slopeReducer);
+            else if(move < 0 && velForward > -_maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * -force * 30 * slopeReducer);
         };
 
         if(_grounded) {
-            _walkSprint = Mathf.Abs(_velForward) <= _maxSpeed + 1f ?
-                              Mathf.Abs(_velForward) / _maxSpeed / 2 :
-                              Mathf.Abs(_velForward) / (_maxSpeed * _sprintSpeed);
-            _anim.SetFloat("Speed", _walkSprint);
-//            _anim.SetFloat("Speed", move / 2 * _sprintSpeed);
+            _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ? Mathf.Abs(velTangent) / _maxSpeed / 2 : Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
+            _anim.SetFloat("Speed", Extensions.SharpInDamp(_anim.GetFloat("Speed"), _walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
+//            _anim.SetFloat("Speed", Mathf.Abs(move / 2 * _sprintSpeed));
 
-            if(movePressed && Mathf.Abs(_velForward) < _maxSpeed * sprintAmt) {
+            if(movePressed && Mathf.Abs(velForward) < _maxSpeed * sprintAmt) {
                 _rb.AddForce(fwdVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
                     _footFrictionMat.friction = 0;
@@ -171,22 +166,22 @@ public class PlayerMovement : MonoBehaviour {
                     _footFrictionMat.friction = 1;
                     _frictionZero = false;
                 }
-                _rb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
+                _rb.velocity -= (Vector2) transform.right * velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
             }
 
             kick(_kick);
 
-            if(move > 0 && !facingRight || move < 0 && facingRight) Flip();
+            if(move > 0 && !_facingRight || move < 0 && _facingRight) Flip();
         } else { //Not grounded
             //Make sure the player isn't trying to move into a wall or something, since otherwise they'll stick to it
             if(!_isTouching || Vector2.Dot(_touchingNormal, fwdVec.normalized) > .5) {
                 fwdVec *= _airControl;
                 kick(_kickAir);
-                if(movePressed && (move > 0 && _velForward < _maxSpeed * sprintAmt || move < 0 && _velForward > -_maxSpeed * sprintAmt)) {
+                if(movePressed && (move > 0 && velForward < _maxSpeed * sprintAmt || move < 0 && velForward > -_maxSpeed * sprintAmt)) {
                     _rb.AddForce(fwdVec, ForceMode2D.Impulse);
                 }
             }
-            _rb.velocity -= (Vector2) transform.right * _velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
+            _rb.velocity -= (Vector2) transform.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
             _anim.SetFloat("Speed", Extensions.SharpInDamp(_anim.GetFloat("Speed"), 0, 1));
         }
     }
@@ -226,12 +221,10 @@ public class PlayerMovement : MonoBehaviour {
 
     ///<summary> Flip the player around the y axis </summary>
     private void Flip() {
-        facingRight = !facingRight; //Switch the way the player is labelled as facing.
+        _facingRight = !_facingRight; //Switch the way the player is labelled as facing.
 
         //Multiply the player's x local scale by -1.
-        Vector3 theScale = transform.localScale;
-        theScale.x *= -1;
-        transform.localScale = theScale;
+        transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
     }
 
     private void OnCollisionStay2D(Collision2D collInfo) {

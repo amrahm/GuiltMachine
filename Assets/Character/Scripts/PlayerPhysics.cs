@@ -76,7 +76,7 @@ public class PlayerPhysics : MonoBehaviour {
 #endif
 
         //Reset the local positions cause sometimes they get moved
-        obj.transform.localPosition = parts.PartsToLPositions[obj];
+//        obj.transform.localPosition = parts.PartsToLPositions[obj]; //Doesn't seem to be needed anymore
 
         //Match the animation rotation
         obj.transform.rotation = target.transform.rotation;
