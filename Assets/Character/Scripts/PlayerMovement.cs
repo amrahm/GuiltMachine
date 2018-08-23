@@ -6,6 +6,7 @@ public class PlayerMovement : MovementAbstract {
     #region Variables
 
     public override bool FacingRight { get; set; } = true;
+    public override LayerMask WhatIsGround { get; set; }
     public override bool Grounded { get; set; }
     public override Vector2 MoveVec { get; set; }
     public override float MaxWalkSlope { get; set; }
@@ -54,8 +55,21 @@ public class PlayerMovement : MovementAbstract {
     [Tooltip("A mask determining what is ground to the character")] [SerializeField]
     private LayerMask _whatIsGround;
 
-    [Tooltip("How far below the feet should be considered still touching the ground. Z gives the radius")]
-    public Vector3 groundCheckOffset;
+    [Tooltip("Offset for the right foot ground check raycast")]
+    public Vector2 groundCheckOffsetR;
+
+    [Tooltip("Offset for the right foot ground check raycast")]
+    public Vector2 groundCheckOffsetR2;
+
+    [Tooltip("Offset for the left foot ground check raycast")]
+    public Vector2 groundCheckOffsetL;
+
+    [Tooltip("Offset for the left foot ground check raycast")]
+    public Vector2 groundCheckOffsetL2;
+
+    [Tooltip("How long is the ground check raycast")]
+    public float groundCheckDistance;
+
 
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
     private float _walkSprint;
@@ -95,13 +109,16 @@ public class PlayerMovement : MovementAbstract {
 
     /// <summary> Tthe physics material on the foot colliders </summary>
     private PhysicsMaterial2D _footFrictionMat;
-    
+
     /// <summary> The speed parameter in the animator </summary>
     private int _speedAnim;
+
     /// <summary> The vertical speed parameter in the animator </summary>
     private int _vSpeedAnim;
+
     /// <summary> The crouching parameter in the animator </summary>
     private int _crouchingAnim;
+
     /// <summary> The roll parameter in the animator </summary>
     private int _rollAnim;
 
@@ -124,16 +141,33 @@ public class PlayerMovement : MovementAbstract {
         _crouchingAnim = Animator.StringToHash("Crouching");
         _rollAnim = Animator.StringToHash("Roll");
 
+        WhatIsGround = _whatIsGround;
         MaxWalkSlope = _maxWalkSlope;
     }
 
     private void FixedUpdate() {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
-        Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
-                      transform.right * groundCheckOffset.x * (FacingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
-        Grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null && _walkSlope < _maxWalkSlope;
+        RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -transform.up, groundCheckDistance, _whatIsGround);
+        if(rightHit.collider == null)
+            rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -transform.up, groundCheckDistance, _whatIsGround);
+        RaycastHit2D leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -transform.up, groundCheckDistance, _whatIsGround);
+        if(leftHit.collider == null)
+            leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -transform.up, groundCheckDistance, _whatIsGround);
+        float rightAngle = Vector2.Angle(rightHit.normal, transform.up);
+        float leftAngle = Vector2.Angle(leftHit.normal, transform.up);
+
+        bool rightGreater = rightAngle > leftAngle;
+        _touchingNormal = rightGreater ? rightHit.normal : leftHit.normal;
+        _walkSlope = rightGreater ? rightAngle : leftAngle;
+
+        Grounded = (rightHit.collider != null || leftHit.collider != null) && _walkSlope < _maxWalkSlope;
 #if UNITY_EDITOR
-        if(_visualizeDebug) DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
+        if(_visualizeDebug) {
+            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -transform.up * groundCheckDistance);
+            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -transform.up * groundCheckDistance);
+            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -transform.up * groundCheckDistance);
+            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -transform.up * groundCheckDistance);
+        }
 #endif
 
         _anim.SetFloat(_vSpeedAnim, _rb.velocity.y); //Set the vertical animation for moving up/down through the air
@@ -168,7 +202,7 @@ public class PlayerMovement : MovementAbstract {
 
         if(Grounded) {
             _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ? Mathf.Abs(velTangent) / _maxSpeed / 2 : Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
-            _walkSprint = (_walkSprint + Mathf.Abs(move/ 2 * _sprintSpeed * slopeReducer)) / 2; //avg it with intention
+            _walkSprint = (_walkSprint + Mathf.Abs(move / 2 * _sprintSpeed * slopeReducer)) / 2; //avg it with intention
             _anim.SetFloat(_speedAnim, _anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
 //            _anim.SetFloat("Speed", Mathf.Abs(move / 2 * _sprintSpeed));
 
@@ -244,19 +278,13 @@ public class PlayerMovement : MovementAbstract {
         transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
     }
 
-    private void OnCollisionStay2D(Collision2D collInfo) {
+    // ReSharper disable once UnusedParameter.Local
+    private void OnCollisionEnter2D(Collision2D collInfo) {
         _isTouching = true;
-        foreach(var contact in collInfo.contacts) {
-            if(contact.otherCollider != _parts.footL.GetComponent<Collider2D>() && contact.otherCollider != _parts.footR.GetComponent<Collider2D>())
-                continue; //Skip non-feet
-            _touchingNormal = contact.normal;
-            if((_walkSlope = Vector2.Angle(_touchingNormal, transform.up)) < _maxWalkSlope) break; //keep looking till we find a good enough point
-        }
     }
 
     // ReSharper disable once UnusedParameter.Local
     private void OnCollisionExit2D(Collision2D collInfo) {
         _isTouching = false;
     }
-
 }

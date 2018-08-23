@@ -37,8 +37,6 @@ public class PlayerPhysicsInspector : Editor {
         SerializedProperty nonLegBendParts = _getTarget.FindProperty(nameof(PlayerPhysics.nonLegBendParts));
         SerializedProperty nonLegBendAmounts = _getTarget.FindProperty(nameof(PlayerPhysics.nonLegBendAmounts));
         PlusMinusGameObjectList(nonLegBendParts, -1, nonLegBendAmounts);
-        SerializedProperty stepVecLayerMask = _getTarget.FindProperty(nameof(PlayerPhysics.stepVecLayerMask));
-        EditorGUILayout.PropertyField(stepVecLayerMask);
         GUILayout.Space(15);
 
         //Display our list to the inspector window

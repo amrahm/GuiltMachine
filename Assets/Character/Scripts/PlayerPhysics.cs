@@ -24,9 +24,6 @@ public class PlayerPhysics : MonoBehaviour {
     [Tooltip("The amount that the corresponding part should rotate from -1 to 1")]
     public float[] nonLegBendAmounts;
 
-    [Tooltip("Specifies what layers to include/exclude from stepVec checks for parts that are legs")]
-    public LayerMask stepVecLayerMask;
-
 
     /// <summary> A list of all the BodyPartClasses that make up this character </summary>
     public BodyPartClass[] bodyParts;
@@ -274,7 +271,7 @@ public class PlayerPhysics : MonoBehaviour {
 #endif
 
                     if(delta - _prevFootDelta < -0.1f || fastCheckTime > 1f) fastCheck = false;
-                    RaycastHit2D angleHit = Physics2D.Raycast(angleStart, angDir, angDir.magnitude, _pp.stepVecLayerMask);
+                    RaycastHit2D angleHit = Physics2D.Raycast(angleStart, angDir, angDir.magnitude, _pp.movement.WhatIsGround);
                     if(angleHit.collider != null) {
 #if UNITY_EDITOR
                         if(visSettings) {
@@ -293,13 +290,13 @@ public class PlayerPhysics : MonoBehaviour {
                     }
 
                     if(delta - _prevFootDelta > steppingThreshold) {
-                        RaycastHit2D heightHit = Physics2D.Raycast(heightStart, heightDir, heightDir.magnitude, _pp.stepVecLayerMask);
-                        RaycastHit2D maxHeightHit = Physics2D.Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp.stepVecLayerMask);
+                        RaycastHit2D heightHit = Physics2D.Raycast(heightStart, heightDir, heightDir.magnitude, _pp.movement.WhatIsGround);
+                        RaycastHit2D maxHeightHit = Physics2D.Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp.movement.WhatIsGround);
                         if(heightHit.collider != null && maxHeightHit.collider == null) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
-                            RaycastHit2D topHit = Physics2D.Raycast(topStart, _root.up, maxStepHeight.x, _pp.stepVecLayerMask);
+                            RaycastHit2D topHit = Physics2D.Raycast(topStart, _root.up, maxStepHeight.x, _pp.movement.WhatIsGround);
 
                             if(topHit.collider != null)
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
