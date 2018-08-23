@@ -2,8 +2,11 @@
 using ExtensionMethods;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour {
+public class PlayerMovement : MovementAbstract {
     #region Variables
+
+    public override bool FacingRight { get; set; } = true;
+    public override Vector2 MoveVec { get; set; }
 
 #if UNITY_EDITOR
     [Tooltip("Show debug visualizations, such as red line for tangent to floor and circle for setting groundCheckOffset")] [SerializeField]
@@ -67,9 +70,6 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> Rigidbody component of the gameObject </summary>
     private Rigidbody2D _rb;
 
-    /// <summary> Which way the player is currently facing </summary>
-    private bool _facingRight = true;
-
     /// <summary> Used to zero out friction when moving. True if the Player's feet have no friction. </summary>
     private bool _frictionZero;
 
@@ -94,7 +94,17 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
     private PlayerParts _parts;
 
+    /// <summary> Tthe physics material on the foot colliders </summary>
     private PhysicsMaterial2D _footFrictionMat;
+    
+    /// <summary> The speed parameter in the animator </summary>
+    private int _speedAnim;
+    /// <summary> The vertical speed parameter in the animator </summary>
+    private int _vSpeedAnim;
+    /// <summary> The crouching parameter in the animator </summary>
+    private int _crouchingAnim;
+    /// <summary> The roll parameter in the animator </summary>
+    private int _rollAnim;
 
     #endregion
 
@@ -109,18 +119,23 @@ public class PlayerMovement : MonoBehaviour {
         _footFrictionMat = new PhysicsMaterial2D(footMat.name + " (Instance)") {friction = footMat.friction};
         _parts.footR.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
         _parts.footL.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
+
+        _speedAnim = Animator.StringToHash("Speed");
+        _vSpeedAnim = Animator.StringToHash("vSpeed");
+        _crouchingAnim = Animator.StringToHash("Crouching");
+        _rollAnim = Animator.StringToHash("Roll");
     }
 
     private void FixedUpdate() {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
         Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
-                      transform.right * groundCheckOffset.x * (_facingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
+                      transform.right * groundCheckOffset.x * (FacingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
         _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null && _walkSlope < _maxWalkSlope;
 #if UNITY_EDITOR
         if(_visualizeDebug) DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
 #endif
 
-        _anim.SetFloat("vSpeed", _rb.velocity.y); //Set the vertical animation for moving up/down through the air
+        _anim.SetFloat(_vSpeedAnim, _rb.velocity.y); //Set the vertical animation for moving up/down through the air
 
         if(_grounded) {
             //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
@@ -141,9 +156,9 @@ public class PlayerMovement : MonoBehaviour {
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
 #endif
-        Vector2 fwdVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
+        MoveVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
         float slopeReducer = Mathf.Lerp(1, .6f, _walkSlope / _maxWalkSlope);
-        fwdVec *= slopeReducer; //reduce speed as slopes increase
+        MoveVec *= slopeReducer; //reduce speed as slopes increase
 
         Action<float> kick = force => { //If pressing walk from standstill, gives a kick so walking is more responsive
             if(move > 0 && velForward < _maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * force * 30 * slopeReducer);
@@ -152,11 +167,11 @@ public class PlayerMovement : MonoBehaviour {
 
         if(_grounded) {
             _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ? Mathf.Abs(velTangent) / _maxSpeed / 2 : Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
-            _anim.SetFloat("Speed", Extensions.SharpInDamp(_anim.GetFloat("Speed"), _walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
+            _anim.SetFloat(_speedAnim, _anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
 //            _anim.SetFloat("Speed", Mathf.Abs(move / 2 * _sprintSpeed));
 
             if(movePressed && Mathf.Abs(velForward) < _maxSpeed * sprintAmt) {
-                _rb.AddForce(fwdVec, ForceMode2D.Impulse);
+                _rb.AddForce(MoveVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
                     _footFrictionMat.friction = 0;
                     _frictionZero = true;
@@ -171,18 +186,18 @@ public class PlayerMovement : MonoBehaviour {
 
             kick(_kick);
 
-            if(move > 0 && !_facingRight || move < 0 && _facingRight) Flip();
+            if(move > 0 && !FacingRight || move < 0 && FacingRight) Flip();
         } else { //Not grounded
             //Make sure the player isn't trying to move into a wall or something, since otherwise they'll stick to it
-            if(!_isTouching || Vector2.Dot(_touchingNormal, fwdVec.normalized) > .5) {
-                fwdVec *= _airControl;
+            if(!_isTouching || Vector2.Dot(_touchingNormal, MoveVec.normalized) > .5) {
+                MoveVec *= _airControl;
                 kick(_kickAir);
                 if(movePressed && (move > 0 && velForward < _maxSpeed * sprintAmt || move < 0 && velForward > -_maxSpeed * sprintAmt)) {
-                    _rb.AddForce(fwdVec, ForceMode2D.Impulse);
+                    _rb.AddForce(MoveVec, ForceMode2D.Impulse);
                 }
             }
             _rb.velocity -= (Vector2) transform.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
-            _anim.SetFloat("Speed", Extensions.SharpInDamp(_anim.GetFloat("Speed"), 0, 1));
+            _anim.SetFloat(_speedAnim, _anim.GetFloat(_speedAnim).SharpInDamp(0, 1));
         }
     }
 
@@ -212,16 +227,16 @@ public class PlayerMovement : MonoBehaviour {
     public void Crouch(bool crouching) {
         bool wasStanding = !_crouching;
         _crouching = _grounded && crouching && _walkSprint < .65f;
-        _anim.SetBool("Crouching", _crouching);
+        _anim.SetBool(_crouchingAnim, _crouching);
 
         bool roll = wasStanding && _crouching && _walkSprint > .01f;
-        _anim.SetBool("Roll", roll);
+        _anim.SetBool(_rollAnim, roll);
     }
 
 
     ///<summary> Flip the player around the y axis </summary>
     private void Flip() {
-        _facingRight = !_facingRight; //Switch the way the player is labelled as facing.
+        FacingRight = !FacingRight; //Switch the way the player is labelled as facing.
 
         //Multiply the player's x local scale by -1.
         transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
@@ -241,4 +256,5 @@ public class PlayerMovement : MonoBehaviour {
     private void OnCollisionExit2D(Collision2D collInfo) {
         _isTouching = false;
     }
+
 }

@@ -1,4 +1,6 @@
-﻿using ExtensionMethods;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ExtensionMethods;
 using UnityEditor;
 using UnityEngine;
 using static PlayerPhysics;
@@ -26,6 +28,8 @@ public class PlayerPhysicsInspector : Editor {
         GUI.enabled = true;
 
         //Show the _parts field
+        SerializedProperty movement = _getTarget.FindProperty(nameof(PlayerPhysics.movement));
+        EditorGUILayout.PropertyField(movement, true);
         SerializedProperty parts = _getTarget.FindProperty(nameof(PlayerPhysics.parts));
         EditorGUILayout.PropertyField(parts, true);
         SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(PlayerPhysics.crouchSpeed));
@@ -45,13 +49,16 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty colliderObjects = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.colliderObjects));
             SerializedProperty partWeakness = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partWeakness));
             SerializedProperty partDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partDir));
-            SerializedProperty visPartDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visSettings));
+            SerializedProperty visSettings = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visSettings));
             SerializedProperty isLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeg));
             SerializedProperty bendParts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendParts));
             SerializedProperty bendAmounts = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.bendAmounts));
             SerializedProperty foot = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.foot));
-            SerializedProperty isLeadingLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeadingLeg));
             SerializedProperty stepVec = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepVec));
+            SerializedProperty isLeadingLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeadingLeg));
+            SerializedProperty maxStepHeight = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.maxStepHeight));
+            SerializedProperty footStepHeight = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.footStepHeight));
+            SerializedProperty steppingThreshold = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.steppingThreshold));
 
             string partName = bodyPart.objectReferenceValue == null ? "Part " + i : bodyPart.objectReferenceValue.name;
 
@@ -64,14 +71,23 @@ public class PlayerPhysicsInspector : Editor {
                 PlusMinusGameObjectList(colliderObjects, i);
                 EditorGUILayout.PropertyField(partWeakness);
                 EditorGUILayout.PropertyField(partDir);
-                EditorGUILayout.PropertyField(visPartDir);
                 EditorGUILayout.PropertyField(isLeg);
                 if(isLeg.boolValue) {
                     EditorGUI.indentLevel++;
                     PlusMinusGameObjectList(bendParts, i, bendAmounts);
                     EditorGUILayout.PropertyField(foot);
-                    EditorGUILayout.PropertyField(isLeadingLeg);
                     EditorGUILayout.PropertyField(stepVec);
+                    EditorGUILayout.PropertyField(isLeadingLeg);
+
+                    if(isLeadingLeg.boolValue) {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(maxStepHeight);
+                        EditorGUILayout.PropertyField(footStepHeight);
+                        EditorGUILayout.PropertyField(steppingThreshold);
+                        EditorGUI.indentLevel--;
+                    }
+
+                    EditorGUILayout.PropertyField(visSettings);
                     EditorGUI.indentLevel--;
                 }
 
@@ -90,7 +106,9 @@ public class PlayerPhysicsInspector : Editor {
 
         EditorGUILayout.Space();
         if(GUILayout.Button("Add New Body Part")) {
-            _t.bodyParts.Add(new BodyPartClass());
+            List<BodyPartClass> temp = _t.bodyParts.ToList();
+            temp.Add(new BodyPartClass());
+            _t.bodyParts = temp.ToArray();
             _getTarget.Update();
             _bodyParts.GetArrayElementAtIndex(_bodyParts.arraySize - 1).FindPropertyRelative(nameof(BodyPartClass.bodyPart)).isExpanded = true;
         }
@@ -105,8 +123,8 @@ public class PlayerPhysicsInspector : Editor {
     /// <param name="list2">A second list to display right next to the first</param>
     private void PlusMinusGameObjectList(SerializedProperty list, int bodyPartClassIndex, SerializedProperty list2 = null) {
         GUILayout.BeginHorizontal();
-        GUIContent tooltip = bodyPartClassIndex == -1 ? new GUIContent(list.displayName, Extensions.GetTooltip(_t.GetType().GetField(list.name), true))
-                                 : new GUIContent(list.displayName, Extensions.GetTooltip(_t.bodyParts[bodyPartClassIndex].GetType().GetField(list.name), true));
+        GUIContent tooltip = bodyPartClassIndex == -1 ? new GUIContent(list.displayName, HelperMethods.GetTooltip(_t.GetType().GetField(list.name), true))
+                                 : new GUIContent(list.displayName, HelperMethods.GetTooltip(_t.bodyParts[bodyPartClassIndex].GetType().GetField(list.name), true));
         list.isExpanded = EditorGUILayout.Foldout(list.isExpanded, tooltip, true);
         if(list.isExpanded) {
             if(list2 != null) {

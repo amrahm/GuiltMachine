@@ -834,7 +834,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1452549614925878}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 1.5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4578425236658512}
@@ -989,7 +989,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1432982216666822}
-  m_LocalRotation: {x: 0, y: 0, z: 0.17995772, w: 0.98367435}
+  m_LocalRotation: {x: 0, y: 0, z: 0.17995948, w: 0.98367405}
   m_LocalPosition: {x: 0.2691397, y: 0.00000005960462, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -1201,7 +1201,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1595522989313082}
-  m_LocalRotation: {x: 0, y: 0, z: -0.86053574, w: 0.50939006}
+  m_LocalRotation: {x: 0, y: 0, z: -0.86053604, w: 0.5093896}
   m_LocalPosition: {x: 0.31893867, y: -0.14507096, z: 0}
   m_LocalScale: {x: 1.0000005, y: 1.0000005, z: 1}
   m_Children:
@@ -1309,7 +1309,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1060764860505484}
-  m_LocalRotation: {x: -0, y: -0, z: -0.08687046, w: 0.99621964}
+  m_LocalRotation: {x: -0, y: -0, z: -0.086871676, w: 0.9962195}
   m_LocalPosition: {x: 0.20078073, y: -0.000000040978193, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -1822,16 +1822,16 @@ MonoBehaviour:
     - m_Bone: {fileID: 0}
       m_BoneTransform: {fileID: 4626865947067292}
       solverPosition: {x: 0, y: 0, z: 0}
-      solverRotation: {x: 0, y: 0, z: -0.86053574, w: 0.50939006}
+      solverRotation: {x: 0, y: 0, z: -0.86053604, w: 0.5093896}
       defaultLocalRotation: {x: 0, y: 0, z: 0.9971382, w: -0.075600736}
     - m_Bone: {fileID: 0}
       m_BoneTransform: {fileID: 4291282393062650}
       solverPosition: {x: 0, y: 0, z: 0}
-      solverRotation: {x: 0, y: 0, z: 0.17995772, w: 0.98367435}
+      solverRotation: {x: 0, y: 0, z: 0.17995948, w: 0.98367405}
       defaultLocalRotation: {x: 0, y: 0, z: 0.14644325, w: 0.98921907}
     m_Weight: 1
     m_RestoreDefaultPose: 1
-    targetPosition: {x: 0.61199963, y: -0.058, z: 0}
+    targetPosition: {x: 2.1119995, y: -0.058, z: 0}
     flip: 0
 --- !u!114 &114137396459998478
 MonoBehaviour:
@@ -1966,7 +1966,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Color: {r: 1, g: 1, b: 1, a: 0.493}
-  m_Length: 0.26913977
+  m_Length: 0.26913974
   m_Child: {fileID: 0}
   m_ChildTransform: {fileID: 4291282393062650}
   m_AttachedIK: {fileID: 114110224114597834}
@@ -2320,6 +2320,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e88e73697190b0d44bb55af04cb4613c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movement: {fileID: 114494707407574642}
   parts: {fileID: 114492099688881156}
   crouchSpeed: 2
   nonLegBendParts:
@@ -2346,6 +2347,9 @@ MonoBehaviour:
     bendAmounts: []
     foot: {fileID: 0}
     isLeadingLeg: 0
+    maxStepHeight: {x: 0, y: 0}
+    footStepHeight: {x: 0, y: 0}
+    steppingThreshold: 0
     stepVec: {x: 0, y: 0}
     partDir: {x: 1, y: 0}
     visSettings: 0
@@ -2359,6 +2363,9 @@ MonoBehaviour:
     bendAmounts: []
     foot: {fileID: 0}
     isLeadingLeg: 0
+    maxStepHeight: {x: 0, y: 0}
+    footStepHeight: {x: 0, y: 0}
+    steppingThreshold: 0
     stepVec: {x: 0, y: 0}
     partDir: {x: 1, y: 0}
     visSettings: 0
@@ -2372,6 +2379,9 @@ MonoBehaviour:
     bendAmounts: []
     foot: {fileID: 0}
     isLeadingLeg: 0
+    maxStepHeight: {x: 0, y: 0}
+    footStepHeight: {x: 0, y: 0}
+    steppingThreshold: 0
     stepVec: {x: 0, y: 0}
     partDir: {x: 1, y: 0}
     visSettings: 0
@@ -2385,6 +2395,9 @@ MonoBehaviour:
     bendAmounts: []
     foot: {fileID: 0}
     isLeadingLeg: 0
+    maxStepHeight: {x: 0, y: 0}
+    footStepHeight: {x: 0, y: 0}
+    steppingThreshold: 0
     stepVec: {x: 0, y: 0}
     partDir: {x: 1, y: 0}
     visSettings: 0
@@ -2399,6 +2412,9 @@ MonoBehaviour:
     bendAmounts: []
     foot: {fileID: 0}
     isLeadingLeg: 0
+    maxStepHeight: {x: 0, y: 0}
+    footStepHeight: {x: 0, y: 0}
+    steppingThreshold: 0
     stepVec: {x: 0, y: 0}
     partDir: {x: 1, y: 0}
     visSettings: 0
@@ -2413,6 +2429,9 @@ MonoBehaviour:
     bendAmounts: []
     foot: {fileID: 0}
     isLeadingLeg: 0
+    maxStepHeight: {x: 0, y: 0}
+    footStepHeight: {x: 0, y: 0}
+    steppingThreshold: 0
     stepVec: {x: 0, y: 0}
     partDir: {x: 1, y: 0}
     visSettings: 0
@@ -2434,7 +2453,10 @@ MonoBehaviour:
     - 0.9
     foot: {fileID: 1346444268242072}
     isLeadingLeg: 0
-    stepVec: {x: 0.5, y: -1}
+    maxStepHeight: {x: 0, y: 0}
+    footStepHeight: {x: 0, y: 0}
+    steppingThreshold: 0
+    stepVec: {x: 0, y: -1}
     partDir: {x: 1, y: 0}
     visSettings: 0
   - bodyPart: {fileID: 1324330659312684}
@@ -2455,7 +2477,10 @@ MonoBehaviour:
     - 0.9
     foot: {fileID: 1067482419071726}
     isLeadingLeg: 1
-    stepVec: {x: 0.5, y: -1}
+    maxStepHeight: {x: -0.2, y: 5}
+    footStepHeight: {x: -0.48, y: 5}
+    steppingThreshold: 0
+    stepVec: {x: 0, y: -1}
     partDir: {x: 1, y: 0}
     visSettings: 0
 --- !u!114 &114709981622584914
@@ -2470,7 +2495,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Color: {r: 1, g: 1, b: 1, a: 0.493}
-  m_Length: 0.20078091
+  m_Length: 0.20078097
   m_Child: {fileID: 0}
   m_ChildTransform: {fileID: 4854049795468588}
   m_AttachedIK: {fileID: 114110224114597834}
@@ -2502,7 +2527,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Color: {r: 1, g: 1, b: 1, a: 0.493}
-  m_Length: 0.2502875
+  m_Length: 0.25028753
   m_Child: {fileID: 0}
   m_ChildTransform: {fileID: 4392849158270628}
   m_AttachedIK: {fileID: 0}
