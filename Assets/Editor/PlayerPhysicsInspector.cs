@@ -58,6 +58,7 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty isLeadingLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeadingLeg));
             SerializedProperty maxStepHeight = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.maxStepHeight));
             SerializedProperty footStepHeight = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.footStepHeight));
+            SerializedProperty stepHeightMult = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.stepHeightMult));
             SerializedProperty steppingThreshold = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.steppingThreshold));
 
             string partName = bodyPart.objectReferenceValue == null ? "Part " + i : bodyPart.objectReferenceValue.name;
@@ -78,14 +79,10 @@ public class PlayerPhysicsInspector : Editor {
                     EditorGUILayout.PropertyField(foot);
                     EditorGUILayout.PropertyField(stepVec);
                     EditorGUILayout.PropertyField(isLeadingLeg);
-
-                    if(isLeadingLeg.boolValue) {
-                        EditorGUI.indentLevel++;
-                        EditorGUILayout.PropertyField(maxStepHeight);
-                        EditorGUILayout.PropertyField(footStepHeight);
-                        EditorGUILayout.PropertyField(steppingThreshold);
-                        EditorGUI.indentLevel--;
-                    }
+                    EditorGUILayout.PropertyField(maxStepHeight);
+                    EditorGUILayout.PropertyField(footStepHeight);
+                    EditorGUILayout.PropertyField(stepHeightMult);
+                    EditorGUILayout.PropertyField(steppingThreshold);
 
                     EditorGUILayout.PropertyField(visSettings);
                     EditorGUI.indentLevel--;

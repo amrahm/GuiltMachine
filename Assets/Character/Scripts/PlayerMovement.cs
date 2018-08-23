@@ -6,7 +6,9 @@ public class PlayerMovement : MovementAbstract {
     #region Variables
 
     public override bool FacingRight { get; set; } = true;
+    public override bool Grounded { get; set; }
     public override Vector2 MoveVec { get; set; }
+    public override float MaxWalkSlope { get; set; }
 
 #if UNITY_EDITOR
     [Tooltip("Show debug visualizations, such as red line for tangent to floor and circle for setting groundCheckOffset")] [SerializeField]
@@ -54,9 +56,6 @@ public class PlayerMovement : MovementAbstract {
 
     [Tooltip("How far below the feet should be considered still touching the ground. Z gives the radius")]
     public Vector3 groundCheckOffset;
-
-    /// <summary> Whether or not the player is grounded </summary>
-    private bool _grounded;
 
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
     private float _walkSprint;
@@ -124,20 +123,22 @@ public class PlayerMovement : MovementAbstract {
         _vSpeedAnim = Animator.StringToHash("vSpeed");
         _crouchingAnim = Animator.StringToHash("Crouching");
         _rollAnim = Animator.StringToHash("Roll");
+
+        MaxWalkSlope = _maxWalkSlope;
     }
 
     private void FixedUpdate() {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
         Vector3 pos = (_parts.footR.transform.position + _parts.footL.transform.position) / 2 +
                       transform.right * groundCheckOffset.x * (FacingRight ? 1 : -1) + transform.up * groundCheckOffset.y;
-        _grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null && _walkSlope < _maxWalkSlope;
+        Grounded = Physics2D.OverlapCircle(pos, groundCheckOffset.z, _whatIsGround) != null && _walkSlope < _maxWalkSlope;
 #if UNITY_EDITOR
         if(_visualizeDebug) DebugExtension.DebugCircle(pos, Vector3.forward, groundCheckOffset.z);
 #endif
 
         _anim.SetFloat(_vSpeedAnim, _rb.velocity.y); //Set the vertical animation for moving up/down through the air
 
-        if(_grounded) {
+        if(Grounded) {
             //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
             _rb.transform.position += new Vector3(0, (_parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos) / 2);
             _lastFootPos = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
@@ -150,7 +151,7 @@ public class PlayerMovement : MovementAbstract {
     /// <param name="sprint"> Sprinting input</param>
     public void Move(float move, bool movePressed, float sprint) {
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
-        Vector3 tangent = _grounded ? Vector3.Cross(_touchingNormal, Vector3.forward) : transform.right;
+        Vector3 tangent = Grounded ? Vector3.Cross(_touchingNormal, Vector3.forward) : transform.right;
         float velForward = _rb.velocity.x;
         float velTangent = Vector2.Dot(_rb.velocity, tangent);
 #if UNITY_EDITOR
@@ -165,8 +166,9 @@ public class PlayerMovement : MovementAbstract {
             else if(move < 0 && velForward > -_maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * -force * 30 * slopeReducer);
         };
 
-        if(_grounded) {
+        if(Grounded) {
             _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ? Mathf.Abs(velTangent) / _maxSpeed / 2 : Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
+            _walkSprint = (_walkSprint + Mathf.Abs(move/ 2 * _sprintSpeed * slopeReducer)) / 2; //avg it with intention
             _anim.SetFloat(_speedAnim, _anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
 //            _anim.SetFloat("Speed", Mathf.Abs(move / 2 * _sprintSpeed));
 
@@ -204,7 +206,7 @@ public class PlayerMovement : MovementAbstract {
     /// <summary> Handles player jumping </summary>
     /// <param name="jump">Is jump input pressed</param>
     public void Jump(bool jump) {
-        if(_grounded && jump && !_jumpStarted) {
+        if(Grounded && jump && !_jumpStarted) {
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true;
             _rb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
@@ -217,7 +219,7 @@ public class PlayerMovement : MovementAbstract {
             _rb.gravityScale = 1f;
             _jumpFuelLeft = 0;
         }
-        if(_grounded && !jump) {
+        if(Grounded && !jump) {
             _jumpStarted = false;
         }
     }
@@ -226,7 +228,7 @@ public class PlayerMovement : MovementAbstract {
     /// <param name="crouching">Is down input pressed</param>
     public void Crouch(bool crouching) {
         bool wasStanding = !_crouching;
-        _crouching = _grounded && crouching && _walkSprint < .65f;
+        _crouching = Grounded && crouching && _walkSprint < .65f;
         _anim.SetBool(_crouchingAnim, _crouching);
 
         bool roll = wasStanding && _crouching && _walkSprint > .01f;

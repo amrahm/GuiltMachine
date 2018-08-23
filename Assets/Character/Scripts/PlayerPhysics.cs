@@ -135,6 +135,9 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("How far below the part should be checked for obstacles, and how far out to check")]
         public Vector2 footStepHeight;
 
+        [Tooltip("How high to lift foot to step over obstacles")]
+        public float stepHeightMult;
+
         [Tooltip("Specifies how forward a foot needs to be moving to be considered stepping for the foot step checks")]
         public float steppingThreshold;
 
@@ -180,8 +183,11 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> Previous horizontal distance of foot to base </summary>
         private float _prevFootDelta;
 
-        /// <summary> If this is a leg, how much crouch is being added from an impact </summary>
-        private float _stepCrouchPlus;
+        /// <summary> If this is a leg, how much crouch is being added from angle of floor being walked on </summary>
+        private float _stepCrouchAnglePlus;
+
+        /// <summary> If this is a leg, how much crouch is being added from height of floor being walked on </summary>
+        private float _stepCrouchHeightPlus;
 
         /// <summary> If this is a leg, how much should it crouch </summary>
         private float _stepCrouchAmount;
@@ -244,70 +250,75 @@ public class PlayerPhysics : MonoBehaviour {
         private IEnumerator CheckStep() {
             bool fastCheck = true;
             float fastCheckTime = 0;
+            float maxWalkSlope = _pp.movement.MaxWalkSlope;
 
             while(true) {
-                float delta = Vector2.Dot(bodyPart.transform.position - foot.transform.position, _root.right);
+                if(_pp.movement.Grounded) {
+                    float delta = Vector2.Dot(bodyPart.transform.position - foot.transform.position, _root.right);
 
-                Vector2 flip = _pp._facingRight ? Vector2.one : new Vector2(-1, 1);
-                Vector2 angDir = stepVec * flip;
-                Vector2 angleStart = (Vector2) bodyPart.transform.position + _rb.velocity / 10;
-                Vector2 heightStart = bodyPart.transform.position + _root.up * footStepHeight.x;
-                Vector2 heightDir = _root.right * flip * footStepHeight.y * _pp.movement.MoveVec.magnitude;
-                Vector2 maxHeightStart = bodyPart.transform.position + _root.up * maxStepHeight.x;
-                Vector2 maxHeightDir = _root.right * flip * maxStepHeight.y * _pp.movement.MoveVec.magnitude;
-#if UNITY_EDITOR
-                if(visSettings) {
-                    Debug.DrawRay(angleStart, angDir, Color.green);
-                    if(isLeadingLeg) {
-                        Debug.DrawRay(heightStart, heightDir, Color.cyan);
-                        Debug.DrawRay(maxHeightStart, maxHeightDir, Color.cyan);
-                    }
-                }
-#endif
-
-                if(delta - _prevFootDelta < -0.1f || fastCheckTime > 1f) fastCheck = false;
-                RaycastHit2D angleHit = Physics2D.Raycast(angleStart, angDir, angDir.magnitude, _pp.stepVecLayerMask);
-                if(angleHit.collider != null) {
+                    Vector2 flip = _pp._facingRight ? Vector2.one : new Vector2(-1, 1);
+                    Vector2 angDir = stepVec * flip;
+                    Vector2 angleStart = (Vector2) bodyPart.transform.position + _rb.velocity / 10;
+                    Vector2 heightStart = bodyPart.transform.position + _root.up * footStepHeight.x;
+                    Vector2 heightDir = _root.right * flip * footStepHeight.y * _pp.movement.MoveVec.magnitude;
+                    Vector2 maxHeightStart = bodyPart.transform.position + _root.up * maxStepHeight.x;
+                    Vector2 maxHeightDir = _root.right * flip * maxStepHeight.y * _pp.movement.MoveVec.magnitude;
 #if UNITY_EDITOR
                     if(visSettings) {
-                        DebugExtension.DebugPoint(angleHit.point, Color.green, .2f);
-                        Debug.DrawRay(angleHit.point, angleHit.normal, Color.red);
-                        Debug.DrawRay(_root.position, _root.up, Color.blue);
+                        Debug.DrawRay(angleStart, angDir, Color.green);
+//                        if(isLeadingLeg) {
+                        Debug.DrawRay(heightStart, heightDir, Color.cyan);
+                        Debug.DrawRay(maxHeightStart, maxHeightDir, Color.cyan);
+//                        }
                     }
 #endif
-                    float angle = Vector2.SignedAngle(angleHit.normal, _root.up) * (_pp._facingRight ? -1 : 1);
-                    const float maxWalkSlope = 50; //FIXME magic number (50). Get maxWalkSlope from movement script
-                    if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) && Mathf.Abs(angle) < maxWalkSlope) {
-                        fastCheck = true;
-//                        _stepCrouchPlus =  _topVector.magnitude - Vector2.Distance(hit.point, bodyPart.transform.position);
-                        _stepCrouchPlus = Mathf.Abs(angle) * (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
-                        _footRotatePlus = angle;
-                    }
-                }
 
-                if(isLeadingLeg && delta - _prevFootDelta > steppingThreshold) {
-                    RaycastHit2D heightHit = Physics2D.Raycast(heightStart, heightDir, heightDir.magnitude, _pp.stepVecLayerMask);
-                    RaycastHit2D maxHeightHit = Physics2D.Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp.stepVecLayerMask);
-                    if(heightHit.collider != null && maxHeightHit.collider == null) {
-                        fastCheck = true;
-
-                        Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
-                        RaycastHit2D topHit = Physics2D.Raycast(topStart, _root.up, maxStepHeight.x, _pp.stepVecLayerMask);
-
-                        if(topHit.collider != null) _stepCrouchPlus = (topHit.point - heightStart).magnitude * 80; //FIXME Maybe shouldn't override angle thing. Also magic number
-
+                    if(delta - _prevFootDelta < -0.1f || fastCheckTime > 1f) fastCheck = false;
+                    RaycastHit2D angleHit = Physics2D.Raycast(angleStart, angDir, angDir.magnitude, _pp.stepVecLayerMask);
+                    if(angleHit.collider != null) {
 #if UNITY_EDITOR
                         if(visSettings) {
-                            DebugExtension.DebugPoint(topStart, Color.yellow, .2f);
-                            Debug.DrawRay(topStart, _root.up * maxStepHeight.x, Color.magenta);
-                            if(topHit.collider != null) DebugExtension.DebugPoint(topHit.point, Color.magenta, .2f);
+                            DebugExtension.DebugPoint(angleHit.point, Color.green, .2f);
+                            Debug.DrawRay(angleHit.point, angleHit.normal, Color.red);
+                            Debug.DrawRay(_root.position, _root.up, Color.blue);
                         }
 #endif
+                        float angle = Vector2.SignedAngle(angleHit.normal, _root.up) * (_pp._facingRight ? -1 : 1);
+                        if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) && Mathf.Abs(angle) < maxWalkSlope) {
+                            fastCheck = true;
+                            //                        _stepCrouchPlus =  _topVector.magnitude - Vector2.Distance(hit.point, bodyPart.transform.position);
+                            _stepCrouchAnglePlus = Mathf.Abs(angle) * (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
+                            _footRotatePlus = angle;
+                        }
                     }
+
+                    if(delta - _prevFootDelta > steppingThreshold) {
+                        RaycastHit2D heightHit = Physics2D.Raycast(heightStart, heightDir, heightDir.magnitude, _pp.stepVecLayerMask);
+                        RaycastHit2D maxHeightHit = Physics2D.Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp.stepVecLayerMask);
+                        if(heightHit.collider != null && maxHeightHit.collider == null) {
+                            fastCheck = true;
+
+                            Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
+                            RaycastHit2D topHit = Physics2D.Raycast(topStart, _root.up, maxStepHeight.x, _pp.stepVecLayerMask);
+
+                            if(topHit.collider != null)
+                                _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
+
+#if UNITY_EDITOR
+                            if(visSettings) {
+                                DebugExtension.DebugPoint(topStart, Color.yellow, .2f);
+                                Debug.DrawRay(topStart, _root.up * maxStepHeight.x, Color.magenta);
+                                if(topHit.collider != null) DebugExtension.DebugPoint(topHit.point, Color.magenta, .2f);
+                            }
+#endif
+                        }
+                    }
+
+
+                    _prevFootDelta = delta;
+                } else {
+                    fastCheck = false;
                 }
-
-
-                _prevFootDelta = delta;
 
                 if(fastCheck) {
                     yield return new WaitForFixedUpdate();
@@ -319,13 +330,14 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> Handles contracting legs and body when character hits the ground </summary>
         private void StepCrouchRotation() {
-            if(_stepCrouchAmount < 0.1f && _stepCrouchPlus < 0.1f) {
+            if(_stepCrouchAmount < 0.1f && _stepCrouchAnglePlus < 0.1f && _stepCrouchHeightPlus < 0.1f) {
                 _footRotateAmount = 0;
                 return;
             }
 
-            _stepCrouchAmount = _stepCrouchAmount.SharpInDamp(_stepCrouchPlus, _pp.crouchSpeed, 1, Time.fixedDeltaTime); //Quickly move towards _stepCrouchPlus
-            _footRotateAmount = _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, 1, Time.fixedDeltaTime); //Quickly move towards _footRotatePlus
+
+            _stepCrouchAmount = _stepCrouchAmount.SharpInDamp(_stepCrouchAnglePlus + _stepCrouchHeightPlus, _pp.crouchSpeed, 1, Time.fixedDeltaTime);
+            _footRotateAmount = _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, 1, Time.fixedDeltaTime);
 
             //Bend all the bendy parts
             for(int i = 0; i < bendParts.Length; i++)
@@ -333,8 +345,9 @@ public class PlayerPhysics : MonoBehaviour {
 
             foot.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * _footRotateAmount, Space.Self);
 
-            _stepCrouchPlus = _stepCrouchPlus/1.1f; //Over time, reduce the crouch
-            _footRotatePlus = _footRotatePlus/2f; //Over time, reduce the rotate
+            _stepCrouchHeightPlus = _stepCrouchHeightPlus / 1.1f; //Over time, reduce the crouch
+            _stepCrouchAnglePlus = _stepCrouchAnglePlus / 1.5f; //Over time, reduce the crouch
+            _footRotatePlus = _footRotatePlus / 2f; //Over time, reduce the rotate
         }
 
         /// <summary> Calculate how much rotation should be added on collision </summary>
