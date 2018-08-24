@@ -254,39 +254,23 @@ public class PlayerPhysics : MonoBehaviour {
                     float delta = Vector2.Dot(bodyPart.transform.position - foot.transform.position, _root.right);
 
                     Vector2 flip = _pp._facingRight ? Vector2.one : new Vector2(-1, 1);
-                    Vector2 angDir = stepVec * flip;
-                    Vector2 angleStart = (Vector2) bodyPart.transform.position + _rb.velocity / 10;
                     Vector2 heightStart = bodyPart.transform.position + _root.up * footStepHeight.x;
                     Vector2 heightDir = _root.right * flip * footStepHeight.y * _pp.movement.MoveVec.magnitude;
                     Vector2 maxHeightStart = bodyPart.transform.position + _root.up * maxStepHeight.x;
                     Vector2 maxHeightDir = _root.right * flip * maxStepHeight.y * _pp.movement.MoveVec.magnitude;
 #if UNITY_EDITOR
                     if(visSettings) {
-                        Debug.DrawRay(angleStart, angDir, Color.green);
-//                        if(isLeadingLeg) {
                         Debug.DrawRay(heightStart, heightDir, Color.cyan);
                         Debug.DrawRay(maxHeightStart, maxHeightDir, Color.cyan);
-//                        }
                     }
 #endif
 
                     if(delta - _prevFootDelta < -0.1f || fastCheckTime > 1f) fastCheck = false;
-                    RaycastHit2D angleHit = Physics2D.Raycast(angleStart, angDir, angDir.magnitude, _pp.movement.WhatIsGround);
-                    if(angleHit.collider != null) {
-#if UNITY_EDITOR
-                        if(visSettings) {
-                            DebugExtension.DebugPoint(angleHit.point, Color.green, .2f);
-                            Debug.DrawRay(angleHit.point, angleHit.normal, Color.red);
-                            Debug.DrawRay(_root.position, _root.up, Color.blue);
-                        }
-#endif
-                        float angle = Vector2.SignedAngle(angleHit.normal, _root.up) * (_pp._facingRight ? -1 : 1);
-                        if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) && Mathf.Abs(angle) < maxWalkSlope) {
-                            fastCheck = true;
-                            //                        _stepCrouchPlus =  _topVector.magnitude - Vector2.Distance(hit.point, bodyPart.transform.position);
-                            _stepCrouchAnglePlus = Mathf.Abs(angle) * (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
-                            _footRotatePlus = angle;
-                        }
+                    float angle = Vector2.SignedAngle(_pp.movement.GroundNormal, _root.up) * (_pp._facingRight ? -1 : 1);
+                    if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) && Mathf.Abs(angle) < maxWalkSlope) {
+                        fastCheck = true;
+                        _stepCrouchAnglePlus = Mathf.Abs(angle) * (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
+                        _footRotatePlus = angle;
                     }
 
                     if(delta - _prevFootDelta > steppingThreshold) {

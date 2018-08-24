@@ -13,7 +13,13 @@ public abstract class MovementAbstract : MonoBehaviour {
     /// <summary> The direction that the character wants to move </summary>
     public abstract Vector2 MoveVec { get; set; }
     
-    /// <summary> The direction that the character wants to move </summary>
+    /// <summary> The max slope the character can walk up </summary>
     public abstract float MaxWalkSlope { get; set; }
+
+    /// <summary> The slope the character is walking on </summary>
+    public abstract float WalkSlope { get; set; }
+
+    /// <summary> The normal of the ground the character is walking on </summary>
+    public abstract Vector2 GroundNormal { get; set; }
 
 }

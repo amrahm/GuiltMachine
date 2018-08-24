@@ -10,6 +10,8 @@ public class PlayerMovement : MovementAbstract {
     public override bool Grounded { get; set; }
     public override Vector2 MoveVec { get; set; }
     public override float MaxWalkSlope { get; set; }
+    public override float WalkSlope { get; set; }
+    public override Vector2 GroundNormal { get; set; }
 
 #if UNITY_EDITOR
     [Tooltip("Show debug visualizations, such as red line for tangent to floor and circle for setting groundCheckOffset")] [SerializeField]
@@ -95,12 +97,6 @@ public class PlayerMovement : MovementAbstract {
     /// <summary> Whether or not the player is touching something </summary>
     private bool _isTouching;
 
-    /// <summary> The normal vector to the surface the player is touching </summary>
-    private Vector2 _touchingNormal;
-
-    /// <summary> The angle of the floor the player is walking on </summary>
-    private float _walkSlope;
-
     /// <summary> Reference to the player's animator component </summary>
     private Animator _anim;
 
@@ -156,11 +152,11 @@ public class PlayerMovement : MovementAbstract {
         float rightAngle = Vector2.Angle(rightHit.normal, transform.up);
         float leftAngle = Vector2.Angle(leftHit.normal, transform.up);
 
-        bool rightGreater = rightAngle > leftAngle;
-        _touchingNormal = rightGreater ? rightHit.normal : leftHit.normal;
-        _walkSlope = rightGreater ? rightAngle : leftAngle;
+        bool rightGreater = rightAngle > leftAngle && rightAngle < _maxWalkSlope || leftAngle > _maxWalkSlope; //pick the larger angle that is still within bounds
+        GroundNormal = rightGreater ? rightHit.normal : leftHit.normal;
+        WalkSlope = rightGreater ? rightAngle : leftAngle;
 
-        Grounded = (rightHit.collider != null || leftHit.collider != null) && _walkSlope < _maxWalkSlope;
+        Grounded = (rightHit.collider != null || leftHit.collider != null) && WalkSlope < _maxWalkSlope;
 #if UNITY_EDITOR
         if(_visualizeDebug) {
             Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -transform.up * groundCheckDistance);
@@ -185,14 +181,14 @@ public class PlayerMovement : MovementAbstract {
     /// <param name="sprint"> Sprinting input</param>
     public void Move(float move, bool movePressed, float sprint) {
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
-        Vector3 tangent = Grounded ? Vector3.Cross(_touchingNormal, Vector3.forward) : transform.right;
+        Vector2 tangent = Grounded ? Vector3.Cross(GroundNormal, Vector3.forward) : transform.right;
         float velForward = _rb.velocity.x;
         float velTangent = Vector2.Dot(_rb.velocity, tangent);
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
 #endif
         MoveVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
-        float slopeReducer = Mathf.Lerp(1, .6f, _walkSlope / _maxWalkSlope);
+        float slopeReducer = Mathf.Lerp(1, .6f, WalkSlope / _maxWalkSlope);
         MoveVec *= slopeReducer; //reduce speed as slopes increase
 
         Action<float> kick = force => { //If pressing walk from standstill, gives a kick so walking is more responsive
@@ -225,7 +221,7 @@ public class PlayerMovement : MovementAbstract {
             if(move > 0 && !FacingRight || move < 0 && FacingRight) Flip();
         } else { //Not grounded
             //Make sure the player isn't trying to move into a wall or something, since otherwise they'll stick to it
-            if(!_isTouching || Vector2.Dot(_touchingNormal, MoveVec.normalized) > .5) {
+            if(!_isTouching) {
                 MoveVec *= _airControl;
                 kick(_kickAir);
                 if(movePressed && (move > 0 && velForward < _maxSpeed * sprintAmt || move < 0 && velForward > -_maxSpeed * sprintAmt)) {
