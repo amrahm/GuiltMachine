@@ -46,6 +46,8 @@ public class PlayerPhysicsInspector : Editor {
             SerializedProperty parentPart = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.parentPart));
             SerializedProperty colliderObjects = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.colliderObjects));
             SerializedProperty partWeakness = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partWeakness));
+            SerializedProperty lowerLimit = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.lowerLimit));
+            SerializedProperty upperLimit = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.upperLimit));
             SerializedProperty partDir = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.partDir));
             SerializedProperty visSettings = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.visSettings));
             SerializedProperty isLeg = bodyPartClassRef.FindPropertyRelative(nameof(BodyPartClass.isLeg));
@@ -69,6 +71,8 @@ public class PlayerPhysicsInspector : Editor {
                 EditorGUILayout.PropertyField(parentPart);
                 PlusMinusGameObjectList(colliderObjects, i);
                 EditorGUILayout.PropertyField(partWeakness);
+                EditorGUILayout.PropertyField(lowerLimit);
+                EditorGUILayout.PropertyField(upperLimit);
                 EditorGUILayout.PropertyField(partDir);
                 EditorGUILayout.PropertyField(isLeg);
                 if(isLeg.boolValue) {

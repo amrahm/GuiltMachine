@@ -112,6 +112,12 @@ public class PlayerPhysics : MonoBehaviour {
         [Tooltip("How intensely this part reacts to impacts")]
         public float partWeakness = 65;
 
+        [Tooltip("The farthest back this part should rotate. Must be less than and within 360 of upper limit, and between -360 and 720.")]
+        public float lowerLimit = -180;
+
+        [Tooltip("The farthest forward this part should rotate. Must be more than and within 360 of lower limit, and between -360 and 720.")]
+        public float upperLimit = 180;
+
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
         public bool isLeg;
 
@@ -164,9 +170,6 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> A vector from the base position of this body part to the point of the collision </summary>
         private Vector3 _positionVector;
-
-        /// <summary> The normal vector of the collision </summary>
-        private Vector2 _collisionNormal;
 
         /// <summary> How much this part is rotating beyond normal </summary>
         private float _rotAmount;
@@ -242,8 +245,20 @@ public class PlayerPhysics : MonoBehaviour {
                            : bodyPart.transform.InverseTransformPoint(farPoint + farColl.bounds.extents);
             _topVector = new Vector3(farPoint.x, 0);
             if(isLeg) _pp.StartCoroutine(CheckStep());
+
+            if(lowerLimit < -360) {
+                float old = lowerLimit;
+                lowerLimit = lowerLimit % 360;
+                upperLimit += lowerLimit - old;
+            }
+            if(upperLimit > 720) {
+                float old = upperLimit;
+                upperLimit = upperLimit % 360;
+                lowerLimit += upperLimit - old;
+            }
         }
 
+        /// <summary> Checks which foot is moving forward and adjusts it based on where it will end up </summary>
         private IEnumerator CheckStep() {
             bool fastCheck = true;
             float fastCheckTime = 0;
@@ -260,8 +275,8 @@ public class PlayerPhysics : MonoBehaviour {
                     Vector2 maxHeightDir = _root.right * flip * maxStepHeight.y * _pp.movement.MoveVec.magnitude;
 #if UNITY_EDITOR
                     if(visSettings) {
-                        Debug.DrawRay(heightStart, heightDir, Color.cyan);
-                        Debug.DrawRay(maxHeightStart, maxHeightDir, Color.cyan);
+                        Debug.DrawRay(heightStart, heightDir, isLeadingLeg ? Color.cyan : new Color(0f, 1f, 0.72f));
+                        Debug.DrawRay(maxHeightStart, maxHeightDir, isLeadingLeg ? new Color(0f, 0.86f, 0.86f) : new Color(0f, 0.92f, 0.66f));
                     }
 #endif
 
@@ -333,11 +348,10 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> Calculate how much rotation should be added on collision </summary>
         /// <param name="point">Point of contact</param>
-        /// <param name="direction">Direction of contact</param>
+        /// <param name="collisionNormal">Direction of contact</param>
         /// <param name="impulse">Impluse of the collision</param>
-        public void HitCalc(Vector3 point, Vector2 direction, Vector2 impulse) {
+        public void HitCalc(Vector3 point, Vector2 collisionNormal, Vector2 impulse) {
             _shouldHitRot = true; //enable HitRot() to apply rotation
-            _collisionNormal = direction;
             _positionVector = point - bodyPart.transform.position; //A vector to the position of the hit
 
             Vector3 toTop = bodyPart.transform.TransformPoint(_topVector) - bodyPart.transform.position; //A vector to the top of this part
@@ -355,18 +369,36 @@ public class PlayerPhysics : MonoBehaviour {
                 }
             }
 
-            //Add the magnitude of this force to torqueAmount, which will make the part rotate. The cross product gives us the proper direction.
-            _torqueAmount += (_pp._facingRight ? 1 : -1) * forceVector.magnitude * Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
+            float rotCorrected = bodyPart.transform.localEulerAngles.z;
+            if(lowerLimit < 0 && rotCorrected > upperLimit) rotCorrected -= 360;
+            else if(upperLimit > 360 && rotCorrected < lowerLimit) rotCorrected += 360;
 
-            HandleTouching();
+            if(rotCorrected > lowerLimit && rotCorrected < upperLimit) {
+                //Add the magnitude of this force to torqueAmount, which will make the part rotate. The cross product gives us the proper direction.
+                _torqueAmount += (_pp._facingRight ? 1 : -1) * forceVector.magnitude * Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
 
-            //Transfer force that was removed because of a low upDown (+ a bit more) at the hinge of this part in the direction of the impulse to the parent
-            _parent?.HitCalc(bodyPart.transform.position, direction, (1.5f - _upDown) * impulse);
+                HandleTouching(collisionNormal);
+
+                //Transfer force that was removed because of a low upDown (+ a bit more) at the hinge of this part in the direction of the impulse to the parent
+                _parent?.HitCalc(bodyPart.transform.position, collisionNormal, (1.5f - _upDown) * impulse);
+            } else {
+//                Debug.Log($"{bodyPart.name}  :::  {bodyPart.transform.localEulerAngles.z} :: {rotCorrected}");
+                _parent?.HitCalc(bodyPart.transform.position, collisionNormal, 1.5f * impulse);
+            }
+        }
+
+        /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
+        private void HandleTouching(Vector2 collisionNormal) {
+            //TODO Is massMult needed here? partStrength?
+            if(Vector3.Dot(collisionNormal, (DirPre - DirPost).normalized) < -0.1f) return;
+
+            _torqueAmount += (_pp._facingRight ? -2 : 2) * Time.fixedDeltaTime * _upDown * Vector3.Angle(DirPost, DirPre) *
+                             Mathf.Sign(Vector3.Cross(collisionNormal, DirPre).z) * (isLeg ? Vector2.Dot(collisionNormal, Vector2.right) : 1);
         }
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
         public void HitRotation() {
-            if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation();
+            if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation(); //TODO remove the if statement
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
@@ -377,16 +409,6 @@ public class PlayerPhysics : MonoBehaviour {
             _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, 0.02f, Time.fixedDeltaTime); //and return the body part back to rest
 
             _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
-        }
-
-        /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
-        private void HandleTouching() {
-            //TODO Is massMult needed here? partStrength?
-            if(-1 * Vector3.Dot(_collisionNormal, (DirPost - DirPre).normalized) < -0.1f) return;
-
-            _torqueAmount += (_pp._facingRight ? -2 : 2) * Time.fixedDeltaTime * _upDown * Vector3.Angle(DirPost, DirPre) *
-                             Mathf.Sign(Vector3.Cross(_collisionNormal, DirPre).z) * (isLeg ? Vector2.Dot(_collisionNormal, Vector2.right) : 1);
-            _shouldHitRot = true;
         }
     }
 

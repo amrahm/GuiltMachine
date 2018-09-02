@@ -152,11 +152,14 @@ public class PlayerMovement : MovementAbstract {
         float rightAngle = Vector2.Angle(rightHit.normal, transform.up);
         float leftAngle = Vector2.Angle(leftHit.normal, transform.up);
 
-        bool rightGreater = rightAngle > leftAngle && rightAngle < _maxWalkSlope || leftAngle > _maxWalkSlope; //pick the larger angle that is still within bounds
-        GroundNormal = rightGreater ? rightHit.normal : leftHit.normal;
+        //pick the larger angle that is still within bounds
+        bool rightGreater = rightAngle > leftAngle && rightAngle < _maxWalkSlope || leftAngle > _maxWalkSlope;
+        GroundNormal = rightGreater && rightHit.collider != null ? rightHit.normal :
+                       leftHit.collider != null ? leftHit.normal : (Vector2) transform.up;
         WalkSlope = rightGreater ? rightAngle : leftAngle;
 
         Grounded = (rightHit.collider != null || leftHit.collider != null) && WalkSlope < _maxWalkSlope;
+
 #if UNITY_EDITOR
         if(_visualizeDebug) {
             Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -transform.up * groundCheckDistance);

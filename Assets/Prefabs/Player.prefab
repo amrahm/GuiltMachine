@@ -1046,14 +1046,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1126129936186242}
-  m_LocalRotation: {x: -0, y: -0, z: 0.99540377, w: 0.095767155}
+  m_LocalRotation: {x: 0, y: 0, z: 0.9969112, w: 0.07853742}
   m_LocalPosition: {x: 0.300061, y: 0.16292574, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4656629877904514}
   m_Father: {fileID: 4338735068817742}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -567.29297}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 170.991}
 --- !u!4 &4389039017078550
 Transform:
   m_ObjectHideFlags: 1
@@ -1732,7 +1732,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Color: {r: 1, g: 1, b: 1, a: 0.493}
-  m_Length: 0.2549799
+  m_Length: 0.25498012
   m_Child: {fileID: 0}
   m_ChildTransform: {fileID: 4453958698042404}
   m_AttachedIK: {fileID: 0}
@@ -1982,7 +1982,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Color: {r: 1, g: 1, b: 1, a: 0.493}
-  m_Length: 0.23194726
+  m_Length: 0.2319474
   m_Child: {fileID: 0}
   m_ChildTransform: {fileID: 4656629877904514}
   m_AttachedIK: {fileID: 0}
@@ -2343,6 +2343,8 @@ MonoBehaviour:
     colliderObjects:
     - {fileID: 1349885878371348}
     partWeakness: 35
+    lowerLimit: -90
+    upperLimit: 45
     isLeg: 0
     bendParts: []
     bendAmounts: []
@@ -2360,6 +2362,8 @@ MonoBehaviour:
     colliderObjects:
     - {fileID: 1057057518923330}
     partWeakness: 35
+    lowerLimit: -90
+    upperLimit: 60
     isLeg: 0
     bendParts: []
     bendAmounts: []
@@ -2376,7 +2380,9 @@ MonoBehaviour:
     parentPart: {fileID: 1349885878371348}
     colliderObjects:
     - {fileID: 1126129936186242}
-    partWeakness: 55
+    partWeakness: 40
+    lowerLimit: 70
+    upperLimit: 355
     isLeg: 0
     bendParts: []
     bendAmounts: []
@@ -2393,7 +2399,9 @@ MonoBehaviour:
     parentPart: {fileID: 1349885878371348}
     colliderObjects:
     - {fileID: 1835508180870504}
-    partWeakness: 55
+    partWeakness: 40
+    lowerLimit: 90
+    upperLimit: 375
     isLeg: 0
     bendParts: []
     bendAmounts: []
@@ -2412,6 +2420,8 @@ MonoBehaviour:
     - {fileID: 1174598012253806}
     - {fileID: 1435925686891782}
     partWeakness: 45
+    lowerLimit: 0
+    upperLimit: 145
     isLeg: 0
     bendParts: []
     bendAmounts: []
@@ -2430,6 +2440,8 @@ MonoBehaviour:
     - {fileID: 1345188116409558}
     - {fileID: 1900112458088244}
     partWeakness: 45
+    lowerLimit: 0
+    upperLimit: 145
     isLeg: 0
     bendParts: []
     bendAmounts: []
@@ -2449,6 +2461,8 @@ MonoBehaviour:
     - {fileID: 1255023410132200}
     - {fileID: 1346444268242072}
     partWeakness: 30
+    lowerLimit: 130
+    upperLimit: 280
     isLeg: 1
     bendParts:
     - {fileID: 1187883556716760}
@@ -2460,7 +2474,7 @@ MonoBehaviour:
     - 0.9
     foot: {fileID: 1346444268242072}
     isLeadingLeg: 0
-    maxStepHeight: {x: -0.2, y: 0.05}
+    maxStepHeight: {x: -0.2, y: 0.09}
     footStepHeight: {x: -0.48, y: 0.12}
     stepHeightMult: 80
     steppingThreshold: 0.1
@@ -2474,6 +2488,8 @@ MonoBehaviour:
     - {fileID: 1378567283460082}
     - {fileID: 1067482419071726}
     partWeakness: 30
+    lowerLimit: 130
+    upperLimit: 280
     isLeg: 1
     bendParts:
     - {fileID: 1324330659312684}
@@ -2485,7 +2501,7 @@ MonoBehaviour:
     - 0.9
     foot: {fileID: 1067482419071726}
     isLeadingLeg: 1
-    maxStepHeight: {x: -0.2, y: 0.03}
+    maxStepHeight: {x: -0.2, y: 0.05}
     footStepHeight: {x: -0.48, y: 0.07}
     stepHeightMult: 60
     steppingThreshold: -0.5
