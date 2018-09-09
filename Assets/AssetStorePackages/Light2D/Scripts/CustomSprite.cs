@@ -65,6 +65,8 @@ namespace Light2D {
                 meshFilter = gameObject.AddComponent<MeshFilter>();
 
 #if UNITY_EDITOR
+            if(material == null) material = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
+#else
             if(material == null) material = Resources.GetBuiltinResource<Material>("Sprites-Default.mat");
 #endif
 
