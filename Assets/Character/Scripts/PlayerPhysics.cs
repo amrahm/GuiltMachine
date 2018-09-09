@@ -42,6 +42,24 @@ public class PlayerPhysics : MonoBehaviour {
 
     #endregion
 
+    /// <summary> A modification to the amount a single body part reacts to physics </summary>
+    public struct PlayerPhysicsMod {
+        /// <summary> A collider on the body part to suppress the physics of </summary>
+        public Collider2D collider;
+        /// <summary> Amout to suppress physics, from 0 to 1. 1 will suppress entirely. </summary>
+        public float dampPercent;
+        /// <summary> How long to maintain this suppression </summary>
+        public float duration;
+
+    }
+
+    public void SuppressPhysics(List<PlayerPhysicsMod> mods) {
+        foreach(var mod in mods) {
+            BodyPartClass part = collToPart[mod.collider];
+
+        }
+    }
+
     private void Awake() {
         foreach(var part in bodyParts) part.Initialize(this);
     }
