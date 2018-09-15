@@ -40,5 +40,6 @@ public class GameMaster : MonoBehaviour {
     public static void KillEnemy(Enemy enemy)
     {
         Destroy(enemy.gameObject);
+        Debug.Log("Destroyed " + enemy.gameObject.name + " from the scene.");
     }
 }
