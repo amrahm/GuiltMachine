@@ -51,7 +51,7 @@ namespace Light2D {
         public bool RendererEnabled { get; private set; }
 
         /// <summary> Is that sprite is staticaly batched? </summary>
-        public bool IsPartOfStaticBatch => meshRenderer.isPartOfStaticBatch;
+        public bool IsPartOfStaticBatch => meshRenderer != null && meshRenderer.isPartOfStaticBatch;
 
         protected virtual void OnEnable() {
             colors = new Color[4];
@@ -88,6 +88,12 @@ namespace Light2D {
             UpdateMeshData(true);
 
             RendererEnabled = meshRenderer.enabled;
+#if UNITY_EDITOR
+            if(!Application.isPlaying) {
+                DestroyImmediate(meshRenderer);
+                DestroyImmediate(meshFilter);
+            }
+#endif
         }
 
         protected virtual void Start() {
