@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace Light2D {
+    /// <inheritdoc />
     /// <summary>
     ///     Custom sprite wich uses MeshFilter and MeshRenderer to render.
     ///     Main improvement from Unity SpriteRenderer is that you can access and modify mesh.
@@ -14,29 +16,25 @@ namespace Light2D {
         private const string GeneratedMaterialName = "Generated Material (DONT change it)";
         private const string GeneratedMeshName = "Generated Mesh (DONT change it)";
         public static Dictionary<MaterialKey, MaterialValue> materialMap = new Dictionary<MaterialKey, MaterialValue>();
+        private Color _oldColor;
+        private Material _oldMaterial;
+        private MaterialKey _oldMaterialKey;
+        private Sprite _oldSprite;
+
+        /// <summary> Vertex color of mesh. </summary>
+        public Color color = Color.white;
 
         // mesh data
         protected Color[] colors;
 
         protected bool isMeshDirty;
-        protected Mesh mesh;
-        protected MeshFilter meshFilter;
-        protected MeshRenderer meshRenderer;
-        private Color _oldColor;
-        private Material _oldMaterial;
-        private MaterialKey _oldMaterialKey;
-        private Sprite _oldSprite;
-        protected Vector4[] tangents;
-        protected int[] triangles;
-        protected Vector2[] uv0;
-        protected Vector2[] uv1;
-        protected Vector3[] vertices;
-
-        /// <summary> Vertex color of mesh. </summary>
-        public Color color = Color.white;
 
         /// <summary> Material to be used. </summary>
         public Material material;
+
+        protected Mesh mesh;
+        protected MeshFilter meshFilter;
+        protected MeshRenderer meshRenderer;
 
         /// <summary> Sorting order of MeshRenderer. </summary>
         public int sortingOrder;
@@ -44,10 +42,16 @@ namespace Light2D {
         /// <summary> Sprite from which mesh will be generated. </summary>
         public Sprite sprite;
 
+        protected Vector4[] tangents;
+        protected int[] triangles;
+        protected Vector2[] uv0;
+        protected Vector2[] uv1;
+        protected Vector3[] vertices;
+
         public bool RendererEnabled { get; private set; }
 
         /// <summary> Is that sprite is staticaly batched? </summary>
-        public bool IsPartOfStaticBatch { get { return meshRenderer.isPartOfStaticBatch; } }
+        public bool IsPartOfStaticBatch => meshRenderer.isPartOfStaticBatch;
 
         protected virtual void OnEnable() {
             colors = new Color[4];
@@ -63,9 +67,11 @@ namespace Light2D {
 
             if(meshFilter == null)
                 meshFilter = gameObject.AddComponent<MeshFilter>();
+            if(meshRenderer.sharedMaterials.Length > 1)
+                meshRenderer.sharedMaterials = new[] {meshRenderer.sharedMaterials[0]};
 
 #if UNITY_EDITOR
-            if(material == null) material = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
+            if(material == null) material = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
 #else
             if(material == null) material = Resources.GetBuiltinResource<Material>("Sprites-Default.mat");
 #endif
@@ -293,8 +299,6 @@ namespace Light2D {
         ///     Used as a key to material map.
         /// </summary>
         public class MaterialKey : IEquatable<MaterialKey> {
-            private static readonly IEqualityComparer<MaterialKey> TextureMaterialComparerInstance = new TextureMaterialEqualityComparer();
-
             /// <summary>
             ///     Non instantiated material.
             /// </summary>
@@ -310,9 +314,7 @@ namespace Light2D {
                 this.texture = texture;
             }
 
-            public static IEqualityComparer<MaterialKey> TextureMaterialComparer {
-                get { return TextureMaterialComparerInstance; }
-            }
+            public static IEqualityComparer<MaterialKey> TextureMaterialComparer { get; } = new TextureMaterialEqualityComparer();
 
             public bool Equals(MaterialKey other) {
                 if(ReferenceEquals(null, other)) return false;

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 
 namespace Light2D {
+    /// <inheritdoc />
     /// <summary>
     ///     Main script for lights. Should be attached to camera.
     ///     Handles lighting operation like camera setup, shader setup, merging cameras output together, blurring and some
@@ -215,13 +216,12 @@ namespace Light2D {
 
             lightCamera.orthographic = _camera.orthographic;
 
-            if(enableNormalMapping) {
+            if(enableNormalMapping)
                 _lightSourcesTexture = new RenderTexture(_camera.pixelWidth, _camera.pixelHeight,
                     0, _texFormat) {filterMode = FilterMode.Point};
-            } else {
+            else
                 _lightSourcesTexture = new RenderTexture(_smallLightTextureSize.x, _smallLightTextureSize.y,
                     0, _texFormat) {filterMode = lightTexturesFilterMode};
-            }
 
             _obstaclesTexture = new RenderTexture(_extendedLightTextureSize.x, _extendedLightTextureSize.y,
                 0, _texFormat);
@@ -365,9 +365,8 @@ namespace Light2D {
         private void RenderNormalBuffer() {
             if(!enableNormalMapping) return;
 
-            if(_normalMapBuffer == null) {
+            if(_normalMapBuffer == null)
                 _normalMapBuffer = new RenderTexture(_camera.pixelWidth, _camera.pixelHeight, 0, RenderTextureFormat.ARGB32) {filterMode = FilterMode.Point};
-            }
 
             if(_normalMapRenderShader == null)
                 _normalMapRenderShader = Shader.Find("Light2D/Internal/Normal Map Drawer");
@@ -399,9 +398,8 @@ namespace Light2D {
             ConfigLightCamera(false);
 
             if(enableNormalMapping) {
-                if(_singleLightSourceTexture == null) {
+                if(_singleLightSourceTexture == null)
                     _singleLightSourceTexture = new RenderTexture(_smallLightTextureSize.x, _smallLightTextureSize.y, 0, _texFormat) {filterMode = lightTexturesFilterMode};
-                }
 
                 if(_normalMappedLightMaterial == null) {
                     _normalMappedLightMaterial = new Material(Shader.Find("Light2D/Internal/Normal Mapped Light"));
@@ -423,7 +421,7 @@ namespace Light2D {
                 Graphics.SetRenderTarget(oldRt);
 
                 _lightSpritesCache.Clear();
-                foreach(LightSprite lightSprite in LightSprite.AllLightSprites)
+                foreach(LightSprite lightSprite in LightSprite.allLightSprites)
                     if(lightSprite.RendererEnabled &&
                        GeometryUtility.TestPlanesAABB(cameraPlanes, lightSprite.Renderer.bounds))
                         _lightSpritesCache.Add(lightSprite);

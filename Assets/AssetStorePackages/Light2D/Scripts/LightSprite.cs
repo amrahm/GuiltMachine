@@ -15,7 +15,7 @@ namespace Light2D {
             Line
         }
 
-        public static List<LightSprite> AllLightSprites = new List<LightSprite>();
+        public static List<LightSprite> allLightSprites = new List<LightSprite>();
         private Matrix4x4 _modelMatrix;
         private Vector3 _oldLightOrigin;
         private LightShape _oldLightShape;
@@ -26,11 +26,11 @@ namespace Light2D {
 
         protected override void OnEnable() {
             base.OnEnable();
-            AllLightSprites.Add(this);
+            allLightSprites.Add(this);
         }
 
         private void OnDisable() {
-            AllLightSprites.Remove(this);
+            allLightSprites.Remove(this);
         }
 
         /// <summary>
@@ -145,14 +145,14 @@ namespace Light2D {
 //            GL.End();
         }
 
-        public void DrawLightNormalsNow(Material material) {
+        public void DrawLightNormalsNow(Material mat) {
             Vector2 size = sprite.bounds.size;
             Vector2 center = _modelMatrix.MultiplyPoint3x4(((Vector2) LightOrigin).Mul(size));
             Vector4 lightPos = new Vector4(center.x, center.y, LightOrigin.z);
 
-            material.SetVector("_LightPos", lightPos);
+            mat.SetVector("_LightPos", lightPos);
 
-            if(!material.SetPass(0))
+            if(!mat.SetPass(0))
                 return;
 
             Vector3 v1 = _modelMatrix.MultiplyPoint3x4(vertices[0]);
