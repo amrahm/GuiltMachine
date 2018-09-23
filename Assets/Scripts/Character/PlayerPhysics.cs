@@ -46,18 +46,32 @@ public class PlayerPhysics : MonoBehaviour {
     public struct PlayerPhysicsMod {
         /// <summary> A collider on the body part to suppress the physics of </summary>
         public Collider2D collider;
-        /// <summary> Amout to suppress physics, from 0 to 1. 1 will suppress entirely. </summary>
+
+        /// <summary> Amount to suppress physics, from 0 to 1. 1 will suppress entirely. </summary>
         public float dampPercent;
+
         /// <summary> How long to maintain this suppression </summary>
         public float duration;
 
+        public PlayerPhysicsMod(Collider2D collider, float dampPercent, float duration) {
+            this.collider = collider;
+            this.dampPercent = dampPercent;
+            this.duration = duration;
+        }
     }
 
     public void SuppressPhysics(List<PlayerPhysicsMod> mods) {
         foreach(var mod in mods) {
             BodyPartClass part = collToPart[mod.collider];
-
+            part.SuppressAmount = mod.dampPercent;
         }
+        if(_actuallySuppressPhysics == null)
+            _actuallySuppressPhysics = StartCoroutine(ActuallySuppressPhysics());
+    }
+
+    private Coroutine _actuallySuppressPhysics;
+    private IEnumerator ActuallySuppressPhysics() {
+        yield return null;
     }
 
     private void Awake() {
@@ -188,6 +202,9 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> A vector from the base position of this body part to the point of the collision </summary>
         private Vector3 _positionVector;
+
+        /// <summary> Value from 0 to 1 signifying how much this part ignores physics </summary>
+        public float SuppressAmount { get; set; }
 
         /// <summary> How much this part is rotating beyond normal </summary>
         private float _rotAmount;
