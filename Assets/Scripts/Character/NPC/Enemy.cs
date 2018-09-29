@@ -33,7 +33,7 @@ public class Enemy : MonoBehaviour
     {
         stats.Init();
 
-        if (statusIndicator == null)
+        if (statusIndicator != null)
         {
             statusIndicator.SetHealth(stats.curHealth, stats.maxHealth);
         }

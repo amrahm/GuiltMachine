@@ -1945,8 +1945,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerStats:
-    health: 100
     maxHealth: 100
+    maxGuilt: 100
+  playerStatusIndicator: {fileID: 0}
 --- !u!114 &114240850222426538
 MonoBehaviour:
   m_ObjectHideFlags: 1
