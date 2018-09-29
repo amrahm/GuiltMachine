@@ -72,7 +72,7 @@ public class Player : MonoBehaviour {
         }
     }
 
-    void DamagePlayer(int damage)
+    public void DamagePlayer(int damage)
     {
         playerStats.curHealth -= damage;
         if (playerStats.curHealth <= 0)
@@ -84,19 +84,19 @@ public class Player : MonoBehaviour {
 
     }
 
-    void HealPlayer(int healing)
+    public void HealPlayer(int healing)
     {
         playerStats.curHealth += healing;
         playerStatusIndicator.SetHealth(playerStats.curHealth, playerStats.maxHealth);
     }
 
-    void IncreaseGuilt(int guilt)
+    public void IncreaseGuilt(int guilt)
     {
         playerStats.curGuilt += guilt;
         playerStatusIndicator.SetGuilt(playerStats.curGuilt, playerStats.maxGuilt);
     }
 
-    void DecreaseGuilt(int guilt)
+    public void DecreaseGuilt(int guilt)
     {
         playerStats.curGuilt -= guilt;
         playerStatusIndicator.SetGuilt(playerStats.curGuilt, playerStats.maxGuilt);
