@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour {
+    [Tooltip("If God Mode on, player cannot take damage.")]
+    public bool godMode = false;
 
     [System.Serializable]
 	public class PlayerStats
@@ -74,6 +76,11 @@ public class Player : MonoBehaviour {
 
     public void DamagePlayer(int damage)
     {
+        // Player is invincible
+        if (godMode)
+        {
+            return;
+        }
         playerStats.curHealth -= damage;
         if (playerStats.curHealth <= 0)
         {

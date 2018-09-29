@@ -50,6 +50,7 @@ public class Enemy : MonoBehaviour
             if (!exploded)
             {
                 // Enemy self-destructs and causes damage to player
+                // Comment out line below if you do not want enemy to self-destruct
                 DamageEnemy(100);
                 Player player = collision.gameObject.GetComponent<Player>();
                 player.DamagePlayer(34);
