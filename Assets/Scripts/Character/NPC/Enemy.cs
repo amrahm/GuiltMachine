@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-
     public Transform DeathExplosionPrefab;
     private bool exploded = false;
+    GameMaster gm;
 
     [System.Serializable]
     public class EnemyStats
@@ -35,6 +35,7 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         stats.Init();
+        gm = FindObjectOfType<GameMaster>();
 
         if (statusIndicator != null)
         {
@@ -67,7 +68,7 @@ public class Enemy : MonoBehaviour
     void DeathEffect(Vector3 deathPos)
     {
         // Audio to play on death
-        //GetComponent<AudioSource>().Play();
+        gm.PlayExplosion();
 
         Transform deathParticle = (Transform)Instantiate(DeathExplosionPrefab, deathPos, Quaternion.identity);
         // Destroy particle system after 1 second

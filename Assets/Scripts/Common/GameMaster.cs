@@ -42,4 +42,9 @@ public class GameMaster : MonoBehaviour {
         Destroy(enemy.gameObject);
         Debug.Log("Destroyed " + enemy.gameObject.name + " from the scene.");
     }
+
+    public void PlayExplosion()
+    {
+        GetComponent<AudioSource>().Play();
+    }
 }
