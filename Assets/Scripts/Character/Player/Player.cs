@@ -7,23 +7,98 @@ public class Player : MonoBehaviour {
     [System.Serializable]
 	public class PlayerStats
     {
-        public float health = 100f;
-        public float maxHealth = 100f;
+        public int maxHealth = 100;
+
+        private int _curHealth;
+        public int curHealth
+        {
+            get { return _curHealth; }
+            set { _curHealth = (int)Mathf.Clamp(value, 0f, maxHealth); }
+        }
+
+        public int maxGuilt = 100;
+
+        private int _curGuilt;
+        public int curGuilt
+        {
+            get { return _curGuilt; }
+            set { _curGuilt = (int)Mathf.Clamp(value, 0f, maxGuilt);  }
+        }
+
+        public void Init()
+        {
+            curHealth = maxHealth;
+            curGuilt = maxGuilt/2;
+        }
     }
 
     public PlayerStats playerStats = new PlayerStats();
 
-    void DamagePlayer(float damage)
+    [SerializeField]
+    private PlayerStatusIndicator playerStatusIndicator;
+
+    void Start()
     {
-        playerStats.health -= damage;
-        if (playerStats.health <= 0)
+        playerStats.Init();
+
+        if (playerStatusIndicator != null)
         {
-            GameMaster.KillPlayer(this);
+            playerStatusIndicator.SetHealth(playerStats.curHealth, playerStats.maxHealth);
+            playerStatusIndicator.SetGuilt(playerStats.curGuilt, playerStats.maxGuilt);
+        }
+        else
+        {
+            Debug.Log("No player status indicator linked to player script.");
         }
     }
 
-    void HealPlayer(float healing)
+    void Update()
     {
-        playerStats.health = Mathf.Min(playerStats.maxHealth, playerStats.health + healing);
+        if (Input.GetKeyDown("n"))
+        {
+            DamagePlayer(5);
+        }
+        if (Input.GetKeyDown("m"))
+        {
+            HealPlayer(7);
+        }
+        if (Input.GetKeyDown("v"))
+        {
+            IncreaseGuilt(5);
+        }
+        if (Input.GetKeyDown("b"))
+        {
+            DecreaseGuilt(7);
+        }
+    }
+
+    void DamagePlayer(int damage)
+    {
+        playerStats.curHealth -= damage;
+        if (playerStats.curHealth <= 0)
+        {
+            GameMaster.KillPlayer(this);
+        }
+
+        playerStatusIndicator.SetHealth(playerStats.curHealth, playerStats.maxHealth);
+
+    }
+
+    void HealPlayer(int healing)
+    {
+        playerStats.curHealth += healing;
+        playerStatusIndicator.SetHealth(playerStats.curHealth, playerStats.maxHealth);
+    }
+
+    void IncreaseGuilt(int guilt)
+    {
+        playerStats.curGuilt += guilt;
+        playerStatusIndicator.SetGuilt(playerStats.curGuilt, playerStats.maxGuilt);
+    }
+
+    void DecreaseGuilt(int guilt)
+    {
+        playerStats.curGuilt -= guilt;
+        playerStatusIndicator.SetGuilt(playerStats.curGuilt, playerStats.maxGuilt);
     }
 }
