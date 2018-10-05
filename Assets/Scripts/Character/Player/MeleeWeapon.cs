@@ -11,16 +11,19 @@ public class MeleeWeapon : MonoBehaviour {
     [Tooltip("Forcemode: Force or Impulse")]
     public ForceMode2D forceMode = ForceMode2D.Force;
 
-    private bool isAttacking = false;
+    // Tracks enemies that have been attacked to prevent multiple attacks
+    // on same enemy within one weapon swing
+    private HashSet<GameObject> enemies = new HashSet<GameObject>();
     
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Enemy" && !isAttacking)
+        if (collision.gameObject.tag == "Enemy" && !enemies.Contains(collision.gameObject))
         {
-            isAttacking = true;
+
+            enemies.Add(collision.gameObject);
             StartCoroutine(HitEnemy(collision));
         }
-    }
+    }   
 
     IEnumerator HitEnemy(Collider2D collision)
     {
@@ -34,6 +37,7 @@ public class MeleeWeapon : MonoBehaviour {
         Vector2 forceToApply = facingRight ? Vector2.right : Vector2.left;
         enemyRigidbody.AddForce(forceToApply * knockback, forceMode);
         yield return new WaitForSeconds(attackDelay);
-        isAttacking = false;
+        // Clear the enemies set to allow enemies to be attacked again
+        enemies.Clear();
     }
 }
