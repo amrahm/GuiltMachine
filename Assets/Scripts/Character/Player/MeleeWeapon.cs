@@ -38,6 +38,6 @@ public class MeleeWeapon : MonoBehaviour {
         enemyRigidbody.AddForce(forceToApply * knockback, forceMode);
         yield return new WaitForSeconds(attackDelay);
         // Clear the enemies set to allow enemies to be attacked again
-        enemies.Clear();
+        enemies.Remove(collision.gameObject);
     }
 }
