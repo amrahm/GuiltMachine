@@ -665,11 +665,9 @@ GameObject:
   - component: {fileID: 95315968990367418}
   - component: {fileID: 50557953761667310}
   - component: {fileID: 114003604137503590}
-  - component: {fileID: 114494707407574642}
   - component: {fileID: 114710826764753096}
   - component: {fileID: 114709241277285052}
   - component: {fileID: 114492099688881156}
-  - component: {fileID: 114238460798103254}
   m_Layer: 13
   m_Name: Player
   m_TagString: Player
@@ -1752,6 +1750,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f3fe75704f05a946a3eb8fecee225cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  characterStats: {fileID: 11400000, guid: a61ff7c0023ceee408cb98860f4eaafc, type: 2}
+  movement: {fileID: 11400000, guid: 3f6646bd855a0354f953ee5565cc8a11, type: 2}
+  control: {fileID: 11400000, guid: 05bfd3849e010914986c32b1318a562b, type: 2}
+  godMode: 0
+  _playerStatusIndicator: {fileID: 0}
 --- !u!114 &114025017909783086
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1934,22 +1937,6 @@ MonoBehaviour:
   m_Child: {fileID: 0}
   m_ChildTransform: {fileID: 0}
   m_AttachedIK: {fileID: 0}
---- !u!114 &114238460798103254
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1863102470074760}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 192588df0273e154eb366948523d3c8f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  godMode: 0
-  playerStats:
-    maxHealth: 100
-    maxGuilt: 100
-  playerStatusIndicator: {fileID: 0}
 --- !u!114 &114240850222426538
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2130,38 +2117,6 @@ MonoBehaviour:
   thighLTarget: {fileID: 1238314393116976}
   shinLTarget: {fileID: 1286330420093492}
   footLTarget: {fileID: 1534681873548620}
---- !u!114 &114494707407574642
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1863102470074760}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 984cc4b28b28d2547bb4bcce0a85a586, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _visualizeDebug: 0
-  _maxSpeed: 6
-  _acceleration: 13
-  _kick: 2
-  _groundSlowdownMultiplier: 5
-  _sprintSpeed: 1.5
-  _maxWalkSlope: 50
-  _jumpSpeed: 4
-  _jumpFuel: 150
-  _jumpFuelForce: 18
-  _airControl: 1
-  _airSlowdownMultiplier: 1
-  _kickAir: 1
-  _whatIsGround:
-    serializedVersion: 2
-    m_Bits: 20481
-  groundCheckOffsetR: {x: 0, y: 0}
-  groundCheckOffsetR2: {x: 0.15, y: 0}
-  groundCheckOffsetL: {x: 0, y: 0}
-  groundCheckOffsetL2: {x: 0.15, y: 0}
-  groundCheckDistance: 0.15
 --- !u!114 &114514372537222238
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2389,8 +2344,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e88e73697190b0d44bb55af04cb4613c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movement: {fileID: 114494707407574642}
-  parts: {fileID: 114492099688881156}
   crouchSpeed: 2
   nonLegBendParts:
   - {fileID: 1057057518923330}

@@ -43,26 +43,23 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.tag == "Player")
+    void OnCollisionEnter2D(Collision2D collision) {
+        IDamageable damageable = collision.gameObject.GetComponent<IDamageable>();
+        if (damageable != null)
         {
             // exploded flag prevents multiple damaging collisions to player
             if (!exploded)
             {
+                Vector2 point = collision.GetContact(0).point;
+                var relativeVelocity = collision.GetContact(0).relativeVelocity;
+                damageable.DamageMe(point, relativeVelocity, 50, 34);
+                
                 // Enemy self-destructs and causes damage to player
                 // Comment out line below if you do not want enemy to self-destruct
                 DamageEnemy(100);
-                Player player = collision.gameObject.GetComponent<Player>();
-                player.DamagePlayer(34);
                 exploded = true;
             }
         }
-    }
-
-    void Update()
-    {
-        
     }
 
     void DeathEffect(Vector3 deathPos)

@@ -27,11 +27,6 @@ public class PlayerPhysicsInspector : Editor {
         EditorGUILayout.PropertyField(prop, true);
         GUI.enabled = true;
 
-        //Show the _parts field
-        SerializedProperty movement = _getTarget.FindProperty(nameof(PlayerPhysics.movement));
-        EditorGUILayout.PropertyField(movement, true);
-        SerializedProperty parts = _getTarget.FindProperty(nameof(PlayerPhysics.parts));
-        EditorGUILayout.PropertyField(parts, true);
         SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(PlayerPhysics.crouchSpeed));
         EditorGUILayout.PropertyField(crouchSpeed);
         SerializedProperty nonLegBendParts = _getTarget.FindProperty(nameof(PlayerPhysics.nonLegBendParts));

@@ -32,10 +32,10 @@ public class GameMaster : MonoBehaviour {
         Destroy(clone.gameObject, 3f);
     }
 
-    public static void KillPlayer(Player player)
-    {
-        Destroy(player.gameObject);
-    }
+//    public static void KillPlayer(Player player)
+//    {
+//        Destroy(player.gameObject);
+//    }
 
     public static void KillEnemy(Enemy enemy)
     {

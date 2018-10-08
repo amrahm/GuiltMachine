@@ -6,15 +6,10 @@ using ExtensionMethods;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(CharacterMasterAbstract))]
+[RequireComponent(typeof(PartsAbstract))]
 public class PlayerPhysics : MonoBehaviour {
     #region Variables
-
-    [Tooltip("Reference to Movement script, which controls the character's movement")]
-    public MovementAbstract movement;
-
-    [Tooltip("Reference to Parts script, which contains references to all of the character's body parts")]
-    public PartsAbstract parts;
-
     [Tooltip("How fast to crouch from an impact")]
     public float crouchSpeed = 2;
 
@@ -39,6 +34,14 @@ public class PlayerPhysics : MonoBehaviour {
 
     /// <summary> Is the player facing right? </summary>
     private bool _facingRight;
+
+    
+
+    /// <summary> Reference to Movement script, which controls the character's movement")] </summary>
+    private MovementAbstract _movement;
+
+    /// <summary> Reference to Parts script, which contains references to all of the character's body parts")] </summary>
+    private PartsAbstract _parts;
 
     #endregion
 
@@ -74,7 +77,9 @@ public class PlayerPhysics : MonoBehaviour {
         yield return null;
     }
 
-    private void Awake() {
+    private void Start() {
+        _movement = GetComponent<CharacterMasterAbstract>().movement;
+        _parts = GetComponent<PartsAbstract>();
         foreach(var part in bodyParts) part.Initialize(this);
     }
 
@@ -86,9 +91,9 @@ public class PlayerPhysics : MonoBehaviour {
 #endif
         }
 
-        foreach(var part in parts.PartsToTargets.Keys) RotateTo(part, parts.PartsToTargets[part]);
+        foreach(var part in _parts.PartsToTargets.Keys) RotateTo(part, _parts.PartsToTargets[part]);
 
-        _facingRight = movement.FacingRight;
+        _facingRight = _movement.facingRight;
         CrouchRotation();
 
         foreach(var part in bodyParts) {
@@ -103,8 +108,8 @@ public class PlayerPhysics : MonoBehaviour {
     private void RotateTo(GameObject obj, GameObject target) {
 #if DEBUG || UNITY_EDITOR
         //Log any errors, since this shouldn't happen
-        if(!parts.PartsToLPositions.ContainsKey(obj))
-            Debug.LogError($"Trying to rotate {obj.name}, but it wasn't found in{nameof(PlayerParts)}.{nameof(PlayerParts.PartsToLPositions)}");
+        if(!_parts.PartsToLPositions.ContainsKey(obj))
+            Debug.LogError($"Trying to rotate {obj.name}, but it wasn't found in{nameof(HumanoidParts)}.{nameof(HumanoidParts.PartsToLPositions)}");
 #endif
 
         //Reset the local positions cause sometimes they get moved
@@ -297,17 +302,17 @@ public class PlayerPhysics : MonoBehaviour {
         private IEnumerator CheckStep() {
             bool fastCheck = true;
             float fastCheckTime = 0;
-            float maxWalkSlope = _pp.movement.MaxWalkSlope;
+            float maxWalkSlope = _pp._movement.maxWalkSlope;
 
             while(true) {
-                if(_pp.movement.Grounded) {
+                if(_pp._movement.grounded) {
                     float delta = Vector2.Dot(bodyPart.transform.position - foot.transform.position, _root.right);
 
                     Vector2 flip = _pp._facingRight ? Vector2.one : new Vector2(-1, 1);
                     Vector2 heightStart = bodyPart.transform.position + _root.up * footStepHeight.x;
-                    Vector2 heightDir = _root.right * flip * footStepHeight.y * _pp.movement.MoveVec.magnitude;
+                    Vector2 heightDir = _root.right * flip * footStepHeight.y * _pp._movement.moveVec.magnitude;
                     Vector2 maxHeightStart = bodyPart.transform.position + _root.up * maxStepHeight.x;
-                    Vector2 maxHeightDir = _root.right * flip * maxStepHeight.y * _pp.movement.MoveVec.magnitude;
+                    Vector2 maxHeightDir = _root.right * flip * maxStepHeight.y * _pp._movement.moveVec.magnitude;
 #if UNITY_EDITOR
                     if(visSettings) {
                         Debug.DrawRay(heightStart, heightDir, isLeadingLeg ? Color.cyan : new Color(0f, 1f, 0.72f));
@@ -316,7 +321,7 @@ public class PlayerPhysics : MonoBehaviour {
 #endif
 
                     if(delta - _prevFootDelta < -0.1f || fastCheckTime > 1f) fastCheck = false;
-                    float angle = Vector2.SignedAngle(_pp.movement.GroundNormal, _root.up) * (_pp._facingRight ? -1 : 1);
+                    float angle = Vector2.SignedAngle(_pp._movement.groundNormal, _root.up) * (_pp._facingRight ? -1 : 1);
                     if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) && Mathf.Abs(angle) < maxWalkSlope) {
                         fastCheck = true;
                         _stepCrouchAnglePlus = Mathf.Abs(angle) * (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
@@ -324,13 +329,13 @@ public class PlayerPhysics : MonoBehaviour {
                     }
 
                     if(delta - _prevFootDelta > steppingThreshold) {
-                        RaycastHit2D heightHit = Physics2D.Raycast(heightStart, heightDir, heightDir.magnitude, _pp.movement.WhatIsGround);
-                        RaycastHit2D maxHeightHit = Physics2D.Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp.movement.WhatIsGround);
+                        RaycastHit2D heightHit = Physics2D.Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
+                        RaycastHit2D maxHeightHit = Physics2D.Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp._movement.whatIsGround);
                         if(heightHit.collider != null && maxHeightHit.collider == null) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
-                            RaycastHit2D topHit = Physics2D.Raycast(topStart, _root.up, maxStepHeight.x, _pp.movement.WhatIsGround);
+                            RaycastHit2D topHit = Physics2D.Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
 
                             if(topHit.collider != null)
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
@@ -448,7 +453,6 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     /// <summary> Passes info from collision events to the BodyPartClass HitCalc method </summary>
-    /// <param name="collInfo">The collision info from the collision event</param>
     private void CollisionHandler(Collision2D collInfo) {
         foreach(var c in collInfo.contacts) {
             if(collToPart.ContainsKey(c.otherCollider)) {
