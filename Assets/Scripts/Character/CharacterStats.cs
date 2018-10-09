@@ -11,7 +11,7 @@ public class CharacterStats : ScriptableObject {
     public int maxHealth = 100;
 
     private int _curHealth;
-    public int CurHealth
+    private int CurHealth
     {
         get { return _curHealth; }
         set { _curHealth = (int)Mathf.Clamp(value, 0f, maxHealth); }
@@ -20,7 +20,7 @@ public class CharacterStats : ScriptableObject {
     public int maxGuilt = 100;
 
     private int _curGuilt;
-    public int CurGuilt
+    private int CurGuilt
     {
         get { return _curGuilt; }
         set { _curGuilt = (int)Mathf.Clamp(value, 0f, maxGuilt);  }
@@ -37,19 +37,12 @@ public class CharacterStats : ScriptableObject {
 
     public void DamagePlayer(int damage)
     {
-        // Player is invincible
-//        if (godMode)
-//        {
-//            return;
-//        }
         CurHealth -= damage;
         if (CurHealth <= 0)
         {
 //            GameMaster.KillPlayer(this);
         }
         HealthChanged?.Invoke(CurHealth, maxHealth);
-//        _playerStatusIndicator?.SetHealth(CurHealth, maxHealth); //TODO Events
-
     }
 
     public void HealPlayer(int healing)

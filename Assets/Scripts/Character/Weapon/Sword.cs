@@ -51,6 +51,7 @@ public class Sword : WeaponAbstract {
 
     private void Start() {
         anim = holder.gameObject.GetComponent<Animator>();
+        movement = holder.gameObject.GetComponent<MovementAbstract>();
 
         _jabArmRightAnim = Animator.StringToHash("JabArmRight");
         _swingArmRightAnim = Animator.StringToHash("SwingArmRight");
@@ -101,11 +102,13 @@ public class Sword : WeaponAbstract {
             if(other.attachedRigidbody) force -= other.attachedRigidbody.velocity;
             force = _mass * force; //Kinetic Energy = mv^2, but that was too much so just doing mv lol
 
-            Transform tf = thisColl.attachedRigidbody.transform;
-            force += (Vector2) tf.right * _knockback * (tf.localScale.x < 0 ? -1 : 1); //FIXME leads to weird things if e.g. rolling to hit enemy behind you
-            print($"{point}, {force}, {_damage}");
+            //add knockback in the direction of the swing
+            force += (Vector2)transform.right * _knockback * (movement.facingRight ? 1 : -1);
 
-            damageable.DamageMe(point, force, _damage);
+            //don't damage if we hit their weapon, otherwise, damage scaled based on relative velocity
+            int damage = other.isTrigger ? 0 : (int) (_damage * force.magnitude / _knockback);
+//            print($"{point}, {force}, {damage}");
+            damageable.DamageMe(point, force, damage, other);
         }
     }
 }

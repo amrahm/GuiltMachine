@@ -3,18 +3,18 @@ using System.Linq;
 using ExtensionMethods;
 using UnityEditor;
 using UnityEngine;
-using static PlayerPhysics;
+using static CharacterPhysics;
 
-[CustomEditor(typeof(PlayerPhysics))]
-public class PlayerPhysicsInspector : Editor {
-    private PlayerPhysics _t;
+[CustomEditor(typeof(CharacterPhysics))]
+public class CharacterPhysicsInspector : Editor {
+    private CharacterPhysics _t;
     private SerializedObject _getTarget;
     private SerializedProperty _bodyParts;
 
     private void OnEnable() {
-        _t = (PlayerPhysics) target;
+        _t = (CharacterPhysics) target;
         _getTarget = new SerializedObject(_t);
-        _bodyParts = _getTarget.FindProperty(nameof(PlayerPhysics.bodyParts)); // Find the List in our script and create a refrence of it
+        _bodyParts = _getTarget.FindProperty(nameof(CharacterPhysics.bodyParts)); // Find the List in our script and create a refrence of it
     }
 
     public override void OnInspectorGUI() {
@@ -27,10 +27,10 @@ public class PlayerPhysicsInspector : Editor {
         EditorGUILayout.PropertyField(prop, true);
         GUI.enabled = true;
 
-        SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(PlayerPhysics.crouchSpeed));
+        SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(CharacterPhysics.crouchSpeed));
         EditorGUILayout.PropertyField(crouchSpeed);
-        SerializedProperty nonLegBendParts = _getTarget.FindProperty(nameof(PlayerPhysics.nonLegBendParts));
-        SerializedProperty nonLegBendAmounts = _getTarget.FindProperty(nameof(PlayerPhysics.nonLegBendAmounts));
+        SerializedProperty nonLegBendParts = _getTarget.FindProperty(nameof(CharacterPhysics.nonLegBendParts));
+        SerializedProperty nonLegBendAmounts = _getTarget.FindProperty(nameof(CharacterPhysics.nonLegBendAmounts));
         PlusMinusGameObjectList(nonLegBendParts, -1, nonLegBendAmounts);
         GUILayout.Space(15);
 

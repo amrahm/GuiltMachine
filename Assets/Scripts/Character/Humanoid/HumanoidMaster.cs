@@ -1,40 +1,12 @@
-﻿using JetBrains.Annotations;
-using UnityEngine;
+﻿using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(PlayerPhysics))]
+[RequireComponent(typeof(CharacterPhysics))]
 public class HumanoidMaster : CharacterMasterAbstract {
-    [Tooltip("If God Mode on, character cannot take damage.")]
-    public bool godMode;
+    private CharacterPhysics _characterPhysics;
 
-    [SerializeField] [CanBeNull] private PlayerStatusIndicator _playerStatusIndicator;
-
-    private void Awake() {
-        //References
-        characterStats = Instantiate(characterStats); //create local instance that can be modified
-        control = Instantiate(control); //create local instance that can be modified
-
-        if(_playerStatusIndicator != null) characterStats.HealthChanged += _playerStatusIndicator.SetHealth;
-        if(_playerStatusIndicator != null) characterStats.GuiltChanged += _playerStatusIndicator.SetGuilt;
-        characterStats.Initialize();
-
-        if(weapon != null) weapon.holder = this;
-    }
-
-    private void OnEnable() {
-        if(_playerStatusIndicator != null) {
-            characterStats.HealthChanged -= _playerStatusIndicator.SetHealth; //Prevent adding it twice
-            characterStats.HealthChanged += _playerStatusIndicator.SetHealth;
-        }
-        if(_playerStatusIndicator != null) {
-            characterStats.GuiltChanged -= _playerStatusIndicator.SetGuilt; //Prevent adding it twice
-            characterStats.GuiltChanged += _playerStatusIndicator.SetGuilt;
-        }
-    }
-
-    private void OnDisable() {
-        if(_playerStatusIndicator != null) characterStats.HealthChanged -= _playerStatusIndicator.SetHealth;
-        if(_playerStatusIndicator != null) characterStats.GuiltChanged -= _playerStatusIndicator.SetGuilt;
+    protected override void Awake() {
+        base.Awake();
+        _characterPhysics = GetComponent<CharacterPhysics>();
     }
 
     private void Update() {
@@ -47,9 +19,8 @@ public class HumanoidMaster : CharacterMasterAbstract {
         if(Input.GetKey("b")) characterStats.IncreaseGuilt(10);
     }
 
-    public override void DamageMe(Vector2 point, Vector2 force, int damage) {
-        //TODO
-        characterStats.DamagePlayer(damage);
-        //TODO playerphysics.addForceAt or whatever
+    public override void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {
+        if (!godMode) characterStats.DamagePlayer(damage);
+        _characterPhysics.AddForceAt(point, force, hitCollider);
     }
 }

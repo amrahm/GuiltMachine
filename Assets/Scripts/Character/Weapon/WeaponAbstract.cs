@@ -7,6 +7,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
 
     [NonSerialized] public CharacterMasterAbstract holder;
     protected Animator anim;
+    protected MovementAbstract movement;
 
     public abstract void Attack(float horizontal, float vertical, bool hPressed, bool vPressed);
     public abstract void ReceiveAnimationEvent(AnimationEventObject e, float duration);

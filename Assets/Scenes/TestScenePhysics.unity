@@ -6996,7 +6996,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1863102470074760, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
@@ -11369,7 +11369,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 114003604137503590, guid: 493daf1007e02224d9b85b86c2eb7288,
         type: 2}
-      propertyPath: _playerStatusIndicator
+      propertyPath: _statusIndicator
       value: 
       objectReference: {fileID: 1719713410}
     m_RemovedComponents: []
@@ -25118,10 +25118,6 @@ Prefab:
     - target: {fileID: 4337011823225440, guid: 1b82f01fb7a3f874ca4bfa06b42c2680, type: 2}
       propertyPath: m_RootOrder
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1747037995242274, guid: 1b82f01fb7a3f874ca4bfa06b42c2680, type: 2}
-      propertyPath: m_Name
-      value: Main Camera
       objectReference: {fileID: 0}
     - target: {fileID: 114274067218304600, guid: 1b82f01fb7a3f874ca4bfa06b42c2680,
         type: 2}

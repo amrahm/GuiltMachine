@@ -1,14 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
     public Transform DeathExplosionPrefab;
-    private bool exploded = false;
+    private bool exploded;
     GameMaster gm;
 
-    [System.Serializable]
+    [Serializable]
     public class EnemyStats
     {
         public int maxHealth = 100;
@@ -52,7 +51,7 @@ public class Enemy : MonoBehaviour
             {
                 Vector2 point = collision.GetContact(0).point;
                 var relativeVelocity = collision.GetContact(0).relativeVelocity;
-                damageable.DamageMe(point, relativeVelocity, 34);
+                damageable.DamageMe(point, -relativeVelocity*15, 34, collision.collider);
                 
                 // Enemy self-destructs and causes damage to player
                 // Comment out line below if you do not want enemy to self-destruct
@@ -62,12 +61,12 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    void DeathEffect(Vector3 deathPos)
+    private void DeathEffect(Vector3 deathPos)
     {
         // Audio to play on death
         gm.PlayExplosion();
 
-        Transform deathParticle = (Transform)Instantiate(DeathExplosionPrefab, deathPos, Quaternion.identity);
+        Transform deathParticle = Instantiate(DeathExplosionPrefab, deathPos, Quaternion.identity);
         // Destroy particle system after 1 second
         Destroy(deathParticle.gameObject, 1f);
 
@@ -80,7 +79,7 @@ public class Enemy : MonoBehaviour
         stats.curHealth -= damage;
         if (stats.curHealth <= 0)
         {
-            DeathEffect(this.transform.position);
+            DeathEffect(transform.position);
             GameMaster.KillEnemy(this);
         }
 

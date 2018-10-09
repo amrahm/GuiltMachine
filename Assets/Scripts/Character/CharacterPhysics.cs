@@ -6,8 +6,9 @@ using ExtensionMethods;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class PlayerPhysics : MonoBehaviour {
+public class CharacterPhysics : MonoBehaviour {
     #region Variables
+
     [Tooltip("How fast to crouch from an impact")]
     public float crouchSpeed = 2;
 
@@ -33,18 +34,20 @@ public class PlayerPhysics : MonoBehaviour {
     /// <summary> Is the player facing right? </summary>
     private bool _facingRight;
 
-    
 
-    /// <summary> Reference to Movement script, which controls the character's movement")] </summary>
+    /// <summary> Reference to Movement script, which controls the character's movement </summary>
     private MovementAbstract _movement;
 
-    /// <summary> Reference to Parts script, which contains references to all of the character's body parts")] </summary>
+    /// <summary> Reference to Parts script, which contains references to all of the character's body parts </summary>
     private PartsAbstract _parts;
+
+    /// <summary> Reference to character's rigidbody </summary>
+    private Rigidbody2D _rb;
 
     #endregion
 
     /// <summary> A modification to the amount a single body part reacts to physics </summary>
-    public struct PlayerPhysicsMod {
+    public struct CharacterPhysicsMod {
         /// <summary> A collider on the body part to suppress the physics of </summary>
         public Collider2D collider;
 
@@ -54,7 +57,7 @@ public class PlayerPhysics : MonoBehaviour {
         /// <summary> How long to maintain this suppression </summary>
         public float duration;
 
-        public PlayerPhysicsMod(Collider2D collider, float dampPercent, float duration) {
+        public CharacterPhysicsMod(Collider2D collider, float dampPercent, float duration) {
             this.collider = collider;
             this.dampPercent = dampPercent;
             this.duration = duration;
@@ -63,7 +66,7 @@ public class PlayerPhysics : MonoBehaviour {
 
     /// <summary> Partially/completely suppress the physics system for a list of parts </summary>
     /// <param name="mods">List of PlayerPhysicsMods, which specify the part, extent, and duration of suppression</param>
-    public void SuppressPhysics(List<PlayerPhysicsMod> mods) {
+    public void SuppressPhysics(List<CharacterPhysicsMod> mods) {
         foreach(var mod in mods) {
             BodyPartClass part = collToPart[mod.collider];
             part.SuppressAmount = mod.dampPercent;
@@ -73,6 +76,7 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private Coroutine _actuallySuppressPhysics;
+
     private IEnumerator ActuallySuppressPhysics() {
         yield return null;
     }
@@ -80,6 +84,7 @@ public class PlayerPhysics : MonoBehaviour {
     private void Start() {
         _movement = GetComponent<MovementAbstract>();
         _parts = GetComponent<PartsAbstract>();
+        _rb = GetComponent<Rigidbody2D>();
         foreach(var part in bodyParts) part.Initialize(this);
     }
 
@@ -194,7 +199,7 @@ public class PlayerPhysics : MonoBehaviour {
 
 
         /// <summary> The root GameObject of this character </summary>
-        private PlayerPhysics _pp;
+        private CharacterPhysics _pp;
 
         /// <summary> The root GameObject of this character </summary>
         private Transform _root;
@@ -254,9 +259,9 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> Adds all of the colliderObjects to a handy dictionary named collToPart.
         /// Also determines the length of this body part by looking at all of these colliders, thenceby setting _topVector </summary>
-        /// <param name="playerPhysics">The parent PlayerPhysics class</param>
-        public void Initialize(PlayerPhysics playerPhysics) {
-            _pp = playerPhysics;
+        /// <param name="characterPhysics">The parent CharacterPhysics class</param>
+        internal void Initialize(CharacterPhysics characterPhysics) {
+            _pp = characterPhysics;
             if(parentPart != null) _parent = _pp.bodyParts.First(part => part.bodyPart == parentPart);
             _rb = _pp.gameObject.GetComponent<Rigidbody2D>();
             _root = _pp.transform;
@@ -390,7 +395,7 @@ public class PlayerPhysics : MonoBehaviour {
         /// <param name="point">Point of contact</param>
         /// <param name="collisionNormal">Direction of contact</param>
         /// <param name="impulse">Impluse of the collision</param>
-        public void HitCalc(Vector3 point, Vector2 collisionNormal, Vector2 impulse) {
+        internal void HitCalc(Vector3 point, Vector2 collisionNormal, Vector2 impulse) {
             _shouldHitRot = true; //enable HitRot() to apply rotation
             _positionVector = point - bodyPart.transform.position; //A vector to the position of the hit
 
@@ -437,7 +442,7 @@ public class PlayerPhysics : MonoBehaviour {
         }
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
-        public void HitRotation() {
+        internal void HitRotation() {
             if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation(); //TODO remove the if statement
             if(!_shouldHitRot) return;
 
@@ -461,6 +466,16 @@ public class PlayerPhysics : MonoBehaviour {
                 part.HitCalc(c.point, c.normal, force);
             }
         }
+    }
+
+    public void AddForceAt(Vector2 point, Vector2 force, Collider2D hitCollider) {
+        if(!hitCollider.isTrigger) _rb.AddForceAtPosition(force * 7, point, ForceMode2D.Impulse);
+        BodyPartClass part = null;
+        while(part == null) {
+            if(collToPart.ContainsKey(hitCollider)) part = collToPart[hitCollider];
+            else hitCollider = hitCollider.transform.parent.GetComponent<Collider2D>();
+        }
+        part.HitCalc(point, -force, force);
     }
 
     private void OnCollisionEnter2D(Collision2D collInfo) {
