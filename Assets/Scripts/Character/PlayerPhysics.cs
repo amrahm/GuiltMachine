@@ -6,8 +6,6 @@ using ExtensionMethods;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(CharacterMasterAbstract))]
-[RequireComponent(typeof(PartsAbstract))]
 public class PlayerPhysics : MonoBehaviour {
     #region Variables
     [Tooltip("How fast to crouch from an impact")]
@@ -63,6 +61,8 @@ public class PlayerPhysics : MonoBehaviour {
         }
     }
 
+    /// <summary> Partially/completely suppress the physics system for a list of parts </summary>
+    /// <param name="mods">List of PlayerPhysicsMods, which specify the part, extent, and duration of suppression</param>
     public void SuppressPhysics(List<PlayerPhysicsMod> mods) {
         foreach(var mod in mods) {
             BodyPartClass part = collToPart[mod.collider];
@@ -78,7 +78,7 @@ public class PlayerPhysics : MonoBehaviour {
     }
 
     private void Start() {
-        _movement = GetComponent<CharacterMasterAbstract>().movement;
+        _movement = GetComponent<MovementAbstract>();
         _parts = GetComponent<PartsAbstract>();
         foreach(var part in bodyParts) part.Initialize(this);
     }

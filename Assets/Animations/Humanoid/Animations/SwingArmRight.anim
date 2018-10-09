@@ -233,15 +233,15 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.26666668
         value: {x: 0, y: 0, z: -769.926}
-        inSlope: {x: 0, y: 0, z: 121.44105}
-        outSlope: {x: 0, y: 0, z: 121.44105}
+        inSlope: {x: 0, y: 0, z: 121.40992}
+        outSlope: {x: 0, y: 0, z: 121.40992}
         tangentMode: 0
         weightedMode: 0
         inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
         outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
       - serializedVersion: 3
         time: 0.28333333
-        value: {x: 0, y: 0, z: -767.514}
+        value: {x: 0, y: 0, z: -767.515}
         inSlope: {x: 0, y: 0, z: 128.61147}
         outSlope: {x: 0, y: 0, z: 128.61147}
         tangentMode: 0
@@ -681,15 +681,15 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.26666668
         value: {x: 0, y: 0, z: 11.178}
-        inSlope: {x: 0, y: 0, z: -317.88004}
-        outSlope: {x: 0, y: 0, z: -317.88004}
+        inSlope: {x: 0, y: 0, z: -317.82}
+        outSlope: {x: 0, y: 0, z: -317.82}
         tangentMode: 0
         weightedMode: 0
         inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
         outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
       - serializedVersion: 3
         time: 0.28333333
-        value: {x: 0, y: 0, z: 5.078}
+        value: {x: 0, y: 0, z: 5.0800004}
         inSlope: {x: 0, y: 0, z: -335.34003}
         outSlope: {x: 0, y: 0, z: -335.34003}
         tangentMode: 0
@@ -707,7 +707,7 @@ AnimationClip:
         outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
       - serializedVersion: 3
         time: 0.31666666
-        value: {x: 0, y: 0, z: 5.339}
+        value: {x: 0, y: 0, z: 5.3380003}
         inSlope: {x: 0, y: 0, z: 501.81006}
         outSlope: {x: 0, y: 0, z: 501.81006}
         tangentMode: 0
@@ -717,8 +717,8 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.33333334
         value: {x: 0, y: 0, z: 16.727001}
-        inSlope: {x: 0, y: 0, z: 621.57}
-        outSlope: {x: 0, y: 0, z: 621.57}
+        inSlope: {x: 0, y: 0, z: 621.6001}
+        outSlope: {x: 0, y: 0, z: 621.6001}
         tangentMode: 0
         weightedMode: 0
         inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
@@ -2759,15 +2759,15 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.26666668
         value: -769.926
-        inSlope: 121.44105
-        outSlope: 121.44105
+        inSlope: 121.40992
+        outSlope: 121.40992
         tangentMode: 136
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 0.28333333
-        value: -767.514
+        value: -767.515
         inSlope: 128.61147
         outSlope: 128.61147
         tangentMode: 136
@@ -4112,15 +4112,15 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.26666668
         value: 11.178
-        inSlope: -317.88004
-        outSlope: -317.88004
+        inSlope: -317.82
+        outSlope: -317.82
         tangentMode: 136
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 0.28333333
-        value: 5.078
+        value: 5.0800004
         inSlope: -335.34003
         outSlope: -335.34003
         tangentMode: 136
@@ -4138,7 +4138,7 @@ AnimationClip:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 0.31666666
-        value: 5.339
+        value: 5.3380003
         inSlope: 501.81006
         outSlope: 501.81006
         tangentMode: 136
@@ -4148,8 +4148,8 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.33333334
         value: 16.727001
-        inSlope: 621.57
-        outSlope: 621.57
+        inSlope: 621.6001
+        outSlope: 621.6001
         tangentMode: 136
         weightedMode: 0
         inWeight: 0.33333334
@@ -5890,4 +5890,28 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_GenerateMotionCurves: 0
-  m_Events: []
+  m_Events:
+  - time: 0
+    functionName: HandleEventWithDuration
+    data: 
+    objectReferenceParameter: {fileID: 11400000, guid: 4aadeb1e4190d49408d114193661a820,
+      type: 2}
+    floatParameter: 0.13333334
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.35
+    functionName: HandleEvent
+    data: 
+    objectReferenceParameter: {fileID: 11400000, guid: 14c37f0c48e177e4ea309dd02490f1a1,
+      type: 2}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.51666665
+    functionName: HandleEventWithDuration
+    data: 
+    objectReferenceParameter: {fileID: 11400000, guid: b93c50c5f43974e419b425c273e75dbc,
+      type: 2}
+    floatParameter: 0.26666668
+    intParameter: 0
+    messageOptions: 0

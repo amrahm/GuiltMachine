@@ -2,10 +2,11 @@
 
 [CreateAssetMenu(menuName = "ScriptableObjects/NpcGroundHumanoidControl")]
 public class NpcGroundHumanoidControl : CharacterControlAbstract {
+    public bool inert;
     private float _nextUpdate;
     public override void UpdateInput() {
         //TODO Add some actual AI lol
-        if(Time.time < _nextUpdate) return;
+        if(inert || Time.time < _nextUpdate) return;
         _nextUpdate = Time.time + 1; //Update once every second
 
         //Movement

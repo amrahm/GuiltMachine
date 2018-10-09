@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 212522248447657562}
   - component: {fileID: 70023392966884944}
   - component: {fileID: 114234354033526090}
+  - component: {fileID: 114782131370789682}
   m_Layer: 0
   m_Name: SwordTemp
   m_TagString: Untagged
@@ -72,6 +73,17 @@ MonoBehaviour:
   knockback: 500
   attackDelay: 0.2
   forceMode: 0
+--- !u!114 &114782131370789682
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1735059564621952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02c676bb8bfc8124693d980acd43be3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!212 &212522248447657562
 SpriteRenderer:
   m_ObjectHideFlags: 1

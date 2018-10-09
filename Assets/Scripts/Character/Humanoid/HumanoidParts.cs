@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class HumanoidParts : PartsAbstract {
     //A container for all the human part gameobjects so they don't have to be reassigned in a bunch of different scripts
@@ -14,9 +13,6 @@ public class HumanoidParts : PartsAbstract {
     public GameObject upperArmLTarget, lowerArmLTarget, handLTarget;
     public GameObject thighRTarget, shinRTarget, footRTarget;
     public GameObject thighLTarget, shinLTarget, footLTarget;
-
-    public override Dictionary<GameObject, Vector3> PartsToLPositions { get; } = new Dictionary<GameObject, Vector3>();
-    public override Dictionary<GameObject, GameObject> PartsToTargets { get; } = new Dictionary<GameObject, GameObject>();
 
     private void Awake() {
         PartsToLPositions.Add(hips, hips.transform.localPosition);

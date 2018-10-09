@@ -1,8 +1,13 @@
-﻿using JetBrains.Annotations;
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(menuName="ScriptableObjects/CharacterStats")]
 public class CharacterStats : ScriptableObject {
+    public delegate void HealthAction(int current, int max);
+    public event HealthAction HealthChanged;
+    
+    public delegate void GuiltAction(int current, int max);
+    public event GuiltAction GuiltChanged;
+
     public int maxHealth = 100;
 
     private int _curHealth;
@@ -22,16 +27,12 @@ public class CharacterStats : ScriptableObject {
     }
 
 
-    public void Initialize(PlayerStatusIndicator playerStatusIndicator)
+    public void Initialize()
     {
-        if(playerStatusIndicator != null) {
-            playerStatusIndicator.SetHealth(CurHealth, maxHealth);//TODO Events
-            playerStatusIndicator.SetGuilt(CurGuilt, maxGuilt);
-        } else {
-            Debug.Log("No player status indicator linked to player script.");
-        }
         CurHealth = maxHealth;
         CurGuilt = maxGuilt/2;
+        HealthChanged?.Invoke(CurHealth, maxHealth);
+        GuiltChanged?.Invoke(CurGuilt, maxGuilt);
     }
 
     public void DamagePlayer(int damage)
@@ -46,7 +47,7 @@ public class CharacterStats : ScriptableObject {
         {
 //            GameMaster.KillPlayer(this);
         }
-
+        HealthChanged?.Invoke(CurHealth, maxHealth);
 //        _playerStatusIndicator?.SetHealth(CurHealth, maxHealth); //TODO Events
 
     }
@@ -54,18 +55,18 @@ public class CharacterStats : ScriptableObject {
     public void HealPlayer(int healing)
     {
         CurHealth += healing;
-//        _playerStatusIndicator?.SetHealth(CurHealth, maxHealth);
+        HealthChanged?.Invoke(CurHealth, maxHealth);
     }
 
     public void IncreaseGuilt(int guilt)
     {
         CurGuilt += guilt;
-//        _playerStatusIndicator?.SetGuilt(CurGuilt, maxGuilt);
+        GuiltChanged?.Invoke(CurGuilt, maxGuilt);
     }
 
     public void DecreaseGuilt(int guilt)
     {
         CurGuilt -= guilt;
-//        _playerStatusIndicator?.SetGuilt(CurGuilt, maxGuilt);
+        GuiltChanged?.Invoke(CurGuilt, maxGuilt);
     }
 }

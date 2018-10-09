@@ -52,7 +52,7 @@ public class Enemy : MonoBehaviour
             {
                 Vector2 point = collision.GetContact(0).point;
                 var relativeVelocity = collision.GetContact(0).relativeVelocity;
-                damageable.DamageMe(point, relativeVelocity, 50, 34);
+                damageable.DamageMe(point, relativeVelocity, 34);
                 
                 // Enemy self-destructs and causes damage to player
                 // Comment out line below if you do not want enemy to self-destruct

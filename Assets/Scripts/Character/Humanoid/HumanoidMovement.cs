@@ -2,7 +2,9 @@
 using ExtensionMethods;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "ScriptableObjects/HumanoidMovement")]
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(HumanoidParts))]
+[RequireComponent(typeof(CharacterMasterAbstract))]
 public class HumanoidMovement : MovementAbstract {
     #region Variables
 
@@ -93,6 +95,9 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
     private HumanoidParts _parts;
 
+    /// <summary> Reference to Control script, which gives input to this script </summary>
+    private CharacterControlAbstract _control;
+
     /// <summary> Tthe physics material on the foot colliders </summary>
     private PhysicsMaterial2D _footFrictionMat;
 
@@ -110,13 +115,15 @@ public class HumanoidMovement : MovementAbstract {
 
     #endregion
 
-    public override void Initialize(PartsAbstract parts, Animator anim, Rigidbody2D rb, Transform tf) {
+    private void Start() {
         //Setting up references.
-        _parts = parts as HumanoidParts;
-        System.Diagnostics.Debug.Assert(_parts != null, $"Can't make {nameof(HumanoidMovement)} with a {nameof(parts)} type that is not {nameof(HumanoidParts)}");
-        _anim = anim;
-        _rb = rb;
-        _tf = tf;
+        _parts = GetComponent<HumanoidParts>();
+        _anim = GetComponent<Animator>();
+        _rb = GetComponent<Rigidbody2D>();
+        _tf = transform;
+        _control = GetComponent<CharacterMasterAbstract>().control;
+
+        whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
 
         //Instance the foot physics material so that we can adjust it without affecting other users of this script
         var footMat = _parts.footR.GetComponent<Collider2D>().sharedMaterial;
@@ -130,14 +137,15 @@ public class HumanoidMovement : MovementAbstract {
         _rollAnim = Animator.StringToHash("Roll");
     }
 
-    public override void MoveHorizontal(float horizontal, bool hPressed, float sprint) { Move(horizontal, hPressed, sprint); }
-
-    public override void MoveVertical(float vertical, bool upPressed, bool downPressed) {
-        Jump(upPressed);
-        Crouch(downPressed);
+    private void FixedUpdate() {
+        UpdateGrounded();
+        Move(_control.moveHorizontal, _control.hPressed, _control.sprint);
+        Jump(_control.upPressed);
+        Crouch(_control.downPressed);
     }
 
-    public override void UpdateGrounded() {
+    /// <summary> Update whether or not this character is touching the ground </summary>
+    private void UpdateGrounded() {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
         RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -_tf.up, groundCheckDistance, whatIsGround);
         if(rightHit.collider == null)
@@ -178,7 +186,7 @@ public class HumanoidMovement : MovementAbstract {
     /// <param name="move">Walking input</param>
     /// <param name="movePressed">Whether walking input is pressed</param>
     /// <param name="sprint"> Sprinting input</param>
-    public void Move(float move, bool movePressed, float sprint) {
+    private void Move(float move, bool movePressed, float sprint) {
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
         Vector2 tangent = grounded ? Vector3.Cross(groundNormal, Vector3.forward) : _tf.right;
         float velForward = _rb.velocity.x;
@@ -234,7 +242,7 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> Handles player jumping </summary>
     /// <param name="jump">Is jump input pressed</param>
-    public void Jump(bool jump) {
+    private void Jump(bool jump) {
         if(grounded && jump && !_jumpStarted) {
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true;
@@ -255,7 +263,7 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> Handles player crouching </summary>
     /// <param name="crouching">Is down input pressed</param>
-    public void Crouch(bool crouching) {
+    private void Crouch(bool crouching) {
         bool wasStanding = !_crouching;
         _crouching = grounded && crouching && _walkSprint < .65f;
         _anim.SetBool(_crouchingAnim, _crouching);
