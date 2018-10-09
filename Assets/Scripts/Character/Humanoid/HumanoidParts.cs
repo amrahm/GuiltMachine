@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class HumanoidParts : PartsAbstract {
     //A container for all the human part gameobjects so they don't have to be reassigned in a bunch of different scripts
@@ -15,36 +17,31 @@ public class HumanoidParts : PartsAbstract {
     public GameObject thighLTarget, shinLTarget, footLTarget;
 
     private void Awake() {
-        PartsToLPositions.Add(hips, hips.transform.localPosition);
-        PartsToLPositions.Add(torso, torso.transform.localPosition);
-        PartsToLPositions.Add(head, head.transform.localPosition);
-        PartsToLPositions.Add(upperArmR, upperArmR.transform.localPosition);
-        PartsToLPositions.Add(lowerArmR, lowerArmR.transform.localPosition);
-        PartsToLPositions.Add(handR, handR.transform.localPosition);
-        PartsToLPositions.Add(upperArmL, upperArmL.transform.localPosition);
-        PartsToLPositions.Add(lowerArmL, lowerArmL.transform.localPosition);
-        PartsToLPositions.Add(handL, handL.transform.localPosition);
-        PartsToLPositions.Add(thighR, thighR.transform.localPosition);
-        PartsToLPositions.Add(shinR, shinR.transform.localPosition);
-        PartsToLPositions.Add(footR, footR.transform.localPosition);
-        PartsToLPositions.Add(thighL, thighL.transform.localPosition);
-        PartsToLPositions.Add(shinL, shinL.transform.localPosition);
-        PartsToLPositions.Add(footL, footL.transform.localPosition);
+        List<GameObject> partsTemp = new List<GameObject>();
+        List<GameObject> targetsTemp = new List<GameObject>();
 
-        PartsToTargets.Add(hips, hipsTarget);
-        PartsToTargets.Add(torso, torsoTarget);
-        PartsToTargets.Add(head, headTarget);
-        PartsToTargets.Add(upperArmR, upperArmRTarget);
-        PartsToTargets.Add(lowerArmR, lowerArmRTarget);
-        PartsToTargets.Add(handR, handRTarget);
-        PartsToTargets.Add(upperArmL, upperArmLTarget);
-        PartsToTargets.Add(lowerArmL, lowerArmLTarget);
-        PartsToTargets.Add(handL, handLTarget);
-        PartsToTargets.Add(thighR, thighRTarget);
-        PartsToTargets.Add(shinR, shinRTarget);
-        PartsToTargets.Add(footR, footRTarget);
-        PartsToTargets.Add(thighL, thighLTarget);
-        PartsToTargets.Add(shinL, shinLTarget);
-        PartsToTargets.Add(footL, footLTarget);
+        Action<GameObject, GameObject> addToLists = (part, target) => {
+            partsTemp.Add(part);
+            targetsTemp.Add(target);
+        };
+
+        addToLists(hips, hipsTarget);
+        addToLists(torso, torsoTarget);
+        addToLists(head, headTarget);
+        addToLists(upperArmR, upperArmRTarget);
+        addToLists(lowerArmR, lowerArmRTarget);
+        addToLists(handR, handRTarget);
+        addToLists(upperArmL, upperArmLTarget);
+        addToLists(lowerArmL, lowerArmLTarget);
+        addToLists(handL, handLTarget);
+        addToLists(thighR, thighRTarget);
+        addToLists(shinR, shinRTarget);
+        addToLists(footR, footRTarget);
+        addToLists(thighL, thighLTarget);
+        addToLists(shinL, shinLTarget);
+        addToLists(footL, footLTarget);
+
+        parts = partsTemp.ToArray();
+        targets = targetsTemp.ToArray();
     }
 }

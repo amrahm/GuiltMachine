@@ -90,40 +90,25 @@ public class CharacterPhysics : MonoBehaviour {
 
     private void FixedUpdate() {
         foreach(var part in bodyParts) {
-            part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
+            part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir);
 #if UNITY_EDITOR
             if(part.visSettings) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
 #endif
         }
 
-        foreach(var part in _parts.PartsToTargets.Keys) RotateTo(part, _parts.PartsToTargets[part]);
+        for(int i = 0; i < _parts.parts.Length; i++) {
+            //Rotate actual part to animated target
+            _parts.parts[i].transform.rotation = _parts.targets[i].transform.rotation;
+        }
 
         _facingRight = _movement.facingRight;
         CrouchRotation();
 
         foreach(var part in bodyParts) {
-            part.DirPost = part.bodyPart.transform.TransformDirection(part.partDir.normalized);
+            part.DirPost = part.bodyPart.transform.TransformDirection(part.partDir);
             part.HitRotation();
         }
     }
-
-    /// <summary> Rotates the non-animated skeleton to the animated skeleton </summary>
-    /// <param name="obj">part from the non-animated skeleton</param>
-    /// <param name="target">part from the animated skeleton</param>
-    private void RotateTo(GameObject obj, GameObject target) {
-#if DEBUG || UNITY_EDITOR
-        //Log any errors, since this shouldn't happen
-        if(!_parts.PartsToLPositions.ContainsKey(obj))
-            Debug.LogError($"Trying to rotate {obj.name}, but it wasn't found in{nameof(HumanoidParts)}.{nameof(HumanoidParts.PartsToLPositions)}");
-#endif
-
-        //Reset the local positions cause sometimes they get moved
-//        obj.transform.localPosition = parts.PartsToLPositions[obj]; //Doesn't seem to be needed anymore
-
-        //Match the animation rotation
-        obj.transform.rotation = target.transform.rotation;
-    }
-
 
     /// <summary> Handles contracting legs and body when character hits the ground </summary>
     private void CrouchRotation() {
