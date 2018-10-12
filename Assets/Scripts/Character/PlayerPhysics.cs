@@ -46,32 +46,18 @@ public class PlayerPhysics : MonoBehaviour {
     public struct PlayerPhysicsMod {
         /// <summary> A collider on the body part to suppress the physics of </summary>
         public Collider2D collider;
-
-        /// <summary> Amount to suppress physics, from 0 to 1. 1 will suppress entirely. </summary>
+        /// <summary> Amout to suppress physics, from 0 to 1. 1 will suppress entirely. </summary>
         public float dampPercent;
-
         /// <summary> How long to maintain this suppression </summary>
         public float duration;
 
-        public PlayerPhysicsMod(Collider2D collider, float dampPercent, float duration) {
-            this.collider = collider;
-            this.dampPercent = dampPercent;
-            this.duration = duration;
-        }
     }
 
     public void SuppressPhysics(List<PlayerPhysicsMod> mods) {
         foreach(var mod in mods) {
             BodyPartClass part = collToPart[mod.collider];
-            part.SuppressAmount = mod.dampPercent;
-        }
-        if(_actuallySuppressPhysics == null)
-            _actuallySuppressPhysics = StartCoroutine(ActuallySuppressPhysics());
-    }
 
-    private Coroutine _actuallySuppressPhysics;
-    private IEnumerator ActuallySuppressPhysics() {
-        yield return null;
+        }
     }
 
     private void Awake() {
@@ -202,9 +188,6 @@ public class PlayerPhysics : MonoBehaviour {
 
         /// <summary> A vector from the base position of this body part to the point of the collision </summary>
         private Vector3 _positionVector;
-
-        /// <summary> Value from 0 to 1 signifying how much this part ignores physics </summary>
-        public float SuppressAmount { get; set; }
 
         /// <summary> How much this part is rotating beyond normal </summary>
         private float _rotAmount;
@@ -410,8 +393,9 @@ public class PlayerPhysics : MonoBehaviour {
 
             if(rotCorrected > lowerLimit && rotCorrected < upperLimit) {
                 //Add the magnitude of this force to torqueAmount, which will make the part rotate. The cross product gives us the proper direction.
+                if (bodyPart.name == "ThighR") print(_torqueAmount);
                 _torqueAmount += (_pp._facingRight ? 1 : -1) * forceVector.magnitude * Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
-
+                if (bodyPart.name == "ThighR") print(_torqueAmount);
                 HandleTouching(collisionNormal);
 
                 //Transfer force that was removed because of a low upDown (+ a bit more) at the hinge of this part in the direction of the impulse to the parent
@@ -427,8 +411,10 @@ public class PlayerPhysics : MonoBehaviour {
             //TODO Is massMult needed here? partStrength?
             if(Vector3.Dot(collisionNormal, (DirPre - DirPost).normalized) < -0.1f) return;
 
+            if (bodyPart.name == "ThighR") print(_torqueAmount);
             _torqueAmount += (_pp._facingRight ? -2 : 2) * Time.fixedDeltaTime * _upDown * Vector3.Angle(DirPost, DirPre) *
                              Mathf.Sign(Vector3.Cross(collisionNormal, DirPre).z) * (isLeg ? Vector2.Dot(collisionNormal, Vector2.right) : 1);
+            if (bodyPart.name == "ThighR") print(_torqueAmount);
         }
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
@@ -440,7 +426,11 @@ public class PlayerPhysics : MonoBehaviour {
             bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
                 Space.Self); //Rotate the part _rotAmount past where it is animated
 
+            if (bodyPart.name == "ThighR") print(_torqueAmount);
+
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
+            if (bodyPart.name == "ThighR") print(_torqueAmount);
+
             _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, 0.02f, Time.fixedDeltaTime); //and return the body part back to rest
 
             _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
@@ -453,7 +443,8 @@ public class PlayerPhysics : MonoBehaviour {
         foreach(var c in collInfo.contacts) {
             if(collToPart.ContainsKey(c.otherCollider)) {
                 BodyPartClass part = collToPart[c.otherCollider];
-                Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
+
+                Vector2 force = float.IsNaN(c.normalImpulse) || c.normalImpulse > 20000 ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
                 part.HitCalc(c.point, c.normal, force);
             }
         }
