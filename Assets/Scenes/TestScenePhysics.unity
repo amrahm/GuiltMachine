@@ -45695,6 +45695,11 @@ Prefab:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 114238460798103254, guid: 493daf1007e02224d9b85b86c2eb7288,
+        type: 2}
+      propertyPath: playerStatusIndicator
+      value: 
+      objectReference: {fileID: 1719713410}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
   m_IsPrefabAsset: 0
@@ -48079,6 +48084,12 @@ Transform:
   m_Father: {fileID: 220542309}
   m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1719713410 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114603989882932316, guid: 1b82f01fb7a3f874ca4bfa06b42c2680,
+    type: 2}
+  m_PrefabInternal: {fileID: 2049852008}
+  m_Script: {fileID: 11500000, guid: 4af70c038021f93449fab6f3f2ef38fa, type: 3}
 --- !u!1 &1721419074
 GameObject:
   m_ObjectHideFlags: 0

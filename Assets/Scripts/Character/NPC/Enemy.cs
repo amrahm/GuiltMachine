@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    public Transform DeathExplosionPrefab;
+    private bool exploded = false;
+    GameMaster gm;
 
     [System.Serializable]
     public class EnemyStats
@@ -32,6 +35,7 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         stats.Init();
+        gm = FindObjectOfType<GameMaster>();
 
         if (statusIndicator != null)
         {
@@ -43,23 +47,35 @@ public class Enemy : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player")
         {
-            DamageEnemy(10);
-            Debug.Log("Damaged the enemy on contact with player.");
+            // exploded flag prevents multiple damaging collisions to player
+            if (!exploded)
+            {
+                // Enemy self-destructs and causes damage to player
+                // Comment out line below if you do not want enemy to self-destruct
+                DamageEnemy(100);
+                Player player = collision.gameObject.GetComponent<Player>();
+                player.DamagePlayer(34);
+                exploded = true;
+            }
         }
     }
 
-    // Random effects to modify enemy health
     void Update()
     {
-        if (Input.GetKeyDown("l"))
-        {
-            DamageEnemy(10);
-        }
-        if (Input.GetKeyDown("o"))
-        {
-            HealEnemy(15);
-        }
-        //HealEnemy(1);
+        
+    }
+
+    void DeathEffect(Vector3 deathPos)
+    {
+        // Audio to play on death
+        gm.PlayExplosion();
+
+        Transform deathParticle = (Transform)Instantiate(DeathExplosionPrefab, deathPos, Quaternion.identity);
+        // Destroy particle system after 1 second
+        Destroy(deathParticle.gameObject, 1f);
+
+        // TODO: Shake the camera (need to implement CameraShake script)
+        //camShake.Shake(camShakeAmt, camShakeLength);
     }
 
     public void DamageEnemy(int damage)
@@ -67,6 +83,7 @@ public class Enemy : MonoBehaviour
         stats.curHealth -= damage;
         if (stats.curHealth <= 0)
         {
+            DeathEffect(this.transform.position);
             GameMaster.KillEnemy(this);
         }
 
@@ -74,6 +91,8 @@ public class Enemy : MonoBehaviour
         {
             statusIndicator.SetHealth(stats.curHealth, stats.maxHealth);
         }
+        
+        //TODO: damage particle effects
     }
 
     public void HealEnemy(int healing)
