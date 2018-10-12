@@ -1,25 +1,29 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public abstract class MovementAbstract : MonoBehaviour {
-    /// <summary> Which way the character is currently facing </summary>
-    public abstract bool FacingRight { get; set; }
+    [Tooltip("The shared WhatIsGround asset specifying what characters should consider to be ground. Ignore for enemies that only fly.")]
+    public WhatIsGround whatIsGroundMaster;
 
-    /// <summary> Layermask specifying what to check as ground </summary>
-    public abstract LayerMask WhatIsGround { get; set; }
+    [Tooltip("The greatest slope that the character can walk up. Ignore for enemies that only fly.")]
+    public float maxWalkSlope = 50;
+
+
+    /// <summary> A mask determining what is ground to the character </summary>
+    [NonSerialized] public LayerMask whatIsGround;
+
+    /// <summary> Which way the character is currently facing </summary>
+    [NonSerialized] public bool facingRight = true;
 
     /// <summary> Is the player currently on the ground </summary>
-    public abstract bool Grounded { get; set; }
-    
+    [NonSerialized] public bool grounded;
+
     /// <summary> The direction that the character wants to move </summary>
-    public abstract Vector2 MoveVec { get; set; }
-    
-    /// <summary> The max slope the character can walk up </summary>
-    public abstract float MaxWalkSlope { get; set; }
+    [NonSerialized] public Vector2 moveVec;
 
     /// <summary> The slope the character is walking on </summary>
-    public abstract float WalkSlope { get; set; }
+    [NonSerialized] public float walkSlope;
 
     /// <summary> The normal of the ground the character is walking on </summary>
-    public abstract Vector2 GroundNormal { get; set; }
-
+    [NonSerialized] public Vector2 groundNormal;
 }

@@ -21,11 +21,11 @@ public class EnemyAI : MonoBehaviour
     // The calculated path
     public Path path;
 
-    // The AI's speed per second (not framrate dependent)
+    // The AI's speed per second (not framerate dependent)
     public float speed = 300f;
     public ForceMode2D fMode;
 
-    [HideInInspector] // Makes var public but doesn't show in Unity inspector
+    [HideInInspector]
     public bool pathIsEnded = false;
 
     // The max distance from the AI to the waypoint for it to continue to the next waypoint
@@ -139,9 +139,9 @@ public class EnemyAI : MonoBehaviour
         }
         pathIsEnded = false;
 
-        // Direction to the next waypoint, scaled by magnitude
+        // Direction to the next waypoint, scaled by magnitude and mass
         Vector3 dir = (path.vectorPath[currentWaypoint] - transform.position).normalized;
-        dir *= speed * Time.fixedDeltaTime;
+        dir *= speed * Time.fixedDeltaTime * rb.mass;
 
         // Move the AI
         rb.AddForce(dir, fMode);

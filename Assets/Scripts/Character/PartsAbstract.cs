@@ -1,7 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public abstract class PartsAbstract : MonoBehaviour {
-    public abstract Dictionary<GameObject, Vector3> PartsToLPositions { get; }
-    public abstract Dictionary<GameObject, GameObject> PartsToTargets { get; }
+    [NonSerialized] public GameObject[] parts;
+    [NonSerialized] public GameObject[] targets;
+
+    /// <summary> Initialize the parts and targets arrays </summary>
+    protected abstract void AddPartsToLists();
+
+    private void Awake() { AddPartsToLists(); }
 }

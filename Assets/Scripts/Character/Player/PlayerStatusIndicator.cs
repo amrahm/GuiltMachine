@@ -1,54 +1,44 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerStatusIndicator : MonoBehaviour
+public class PlayerStatusIndicator : StatusIndicator
 {
+    [SerializeField]
+    private RectTransform _guiltBarRect;
+    [SerializeField]
+    private Text _guiltText;
 
-    [SerializeField]
-    private RectTransform healthBarRect;
-    [SerializeField]
-    private Text healthText;
-    [SerializeField]
-    private RectTransform guiltBarRect;
-    [SerializeField]
-    private Text guiltText;
-
-    void Start()
+    protected override void Start()
     {
-        if (healthBarRect == null)
-        {
-            Debug.LogError("STATUS INDICATOR: No health bar object referenced!");
-        }
+        base.Start();
 
-        if (healthText == null)
-        {
-            Debug.LogError("STATUS INDICATOR: No health text object referenced!");
-        }
-        if (guiltBarRect == null)
+        if (_guiltBarRect == null)
         {
             Debug.LogError("STATUS INDICATOR: No guilt bar object referenced!");
         }
 
-        if (guiltText == null)
+        if (_guiltText == null)
         {
             Debug.LogError("STATUS INDICATOR: No guilt text object referenced!");
         }
-
     }
 
-    public void SetHealth(int _cur, int _max)
-    {
-        float _value = (float)_cur / _max;
-
-        healthBarRect.localScale = new Vector3(_value, healthBarRect.localScale.y, healthBarRect.localScale.z);
-        healthText.text = _cur + "/" + _max + " HP";
+    public override void SubscribeToChangeEvents(CharacterStats characterStats) {
+        characterStats.HealthChanged -= SetHealth; //Prevent adding it twice
+        characterStats.HealthChanged += SetHealth;
+        characterStats.GuiltChanged -= SetGuilt; //Prevent adding it twice
+        characterStats.GuiltChanged += SetGuilt;
+    }
+    public override void UnsubscribeToChangeEvents(CharacterStats characterStats) {
+        characterStats.HealthChanged -= SetHealth;
+        characterStats.GuiltChanged -= SetGuilt; //Prevent adding it twice
     }
 
-    public void SetGuilt(int _cur, int _max)
+    private void SetGuilt(int cur, int max)
     {
-        float _value = (float)_cur / _max;
+        float value = (float)cur / max;
 
-        guiltBarRect.localScale = new Vector3(_value, guiltBarRect.localScale.y, guiltBarRect.localScale.z);
-        guiltText.text = _cur + "/" + _max + " Guilt";
+        _guiltBarRect.localScale = new Vector3(value, _guiltBarRect.localScale.y, _guiltBarRect.localScale.z);
+        _guiltText.text = cur + "/" + max + " Guilt";
     }
 }
