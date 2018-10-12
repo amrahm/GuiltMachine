@@ -8,17 +8,10 @@ public class PlayerStatusIndicator : StatusIndicator
     [SerializeField]
     private Text _guiltText;
 
-    private void Start()
+    protected override void Start()
     {
-        if (healthBarRect == null)
-        {
-            Debug.LogError("STATUS INDICATOR: No health bar object referenced!");
-        }
+        base.Start();
 
-        if (healthText == null)
-        {
-            Debug.LogError("STATUS INDICATOR: No health text object referenced!");
-        }
         if (_guiltBarRect == null)
         {
             Debug.LogError("STATUS INDICATOR: No guilt bar object referenced!");
@@ -28,7 +21,6 @@ public class PlayerStatusIndicator : StatusIndicator
         {
             Debug.LogError("STATUS INDICATOR: No guilt text object referenced!");
         }
-
     }
 
     public override void SubscribeToChangeEvents(CharacterStats characterStats) {

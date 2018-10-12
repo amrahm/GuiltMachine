@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public abstract class CharacterControlAbstract : ScriptableObject {
+public abstract class CharacterControlAbstract : MonoBehaviour {
 #if UNITY_EDITOR
     [Tooltip("Show the input fields in the inspector")] [SerializeField]
     private bool _showCurrentInput;
@@ -16,6 +16,4 @@ public abstract class CharacterControlAbstract : ScriptableObject {
     [ConditionalHide("_showCurrentInput", true, true)] public float attackVertical;
     [ConditionalHide("_showCurrentInput", true, true)] public bool attackHPressed;
     [ConditionalHide("_showCurrentInput", true, true)] public bool attackVPressed;
-
-    public abstract void UpdateInput();
 }

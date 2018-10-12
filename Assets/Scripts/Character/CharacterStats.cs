@@ -11,7 +11,8 @@ public class CharacterStats : ScriptableObject {
     public int maxHealth = 100;
 
     private int _curHealth;
-    private int CurHealth
+
+    public int CurHealth
     {
         get { return _curHealth; }
         set { _curHealth = (int)Mathf.Clamp(value, 0f, maxHealth); }
@@ -20,7 +21,7 @@ public class CharacterStats : ScriptableObject {
     public int maxGuilt = 100;
 
     private int _curGuilt;
-    private int CurGuilt
+    public int CurGuilt
     {
         get { return _curGuilt; }
         set { _curGuilt = (int)Mathf.Clamp(value, 0f, maxGuilt);  }

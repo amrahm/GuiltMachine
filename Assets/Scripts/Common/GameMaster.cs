@@ -31,20 +31,4 @@ public class GameMaster : MonoBehaviour {
         Transform clone = Instantiate(spawnPrefab, spawnPoint.position, spawnPoint.rotation);
         Destroy(clone.gameObject, 3f);
     }
-
-//    public static void KillPlayer(Player player)
-//    {
-//        Destroy(player.gameObject);
-//    }
-
-    public static void KillEnemy(Enemy enemy)
-    {
-        Destroy(enemy.gameObject);
-        Debug.Log("Destroyed " + enemy.gameObject.name + " from the scene.");
-    }
-
-    public void PlayExplosion()
-    {
-        GetComponent<AudioSource>().Play();
-    }
 }

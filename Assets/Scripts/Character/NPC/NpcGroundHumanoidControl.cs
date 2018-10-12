@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
-[CreateAssetMenu(menuName = "ScriptableObjects/NpcGroundHumanoidControl")]
 public class NpcGroundHumanoidControl : CharacterControlAbstract {
     public bool inert;
     private float _nextUpdate;
-    public override void UpdateInput() {
+
+    private void Update() {
         //TODO Add some actual AI lol
         if(inert || Time.time < _nextUpdate) return;
         _nextUpdate = Time.time + 1; //Update once every second

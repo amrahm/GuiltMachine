@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using UnityStandardAssets.CrossPlatformInput;
+﻿using UnityStandardAssets.CrossPlatformInput;
 
-[CreateAssetMenu(menuName = "ScriptableObjects/PlayerControl")]
 public class PlayerControl : CharacterControlAbstract {
-    public override void UpdateInput() {
+    private void Update() {
         //Movement
         moveHorizontal = CrossPlatformInputManager.GetAxis("Horizontal");
         hPressed = CrossPlatformInputManager.GetButton("Horizontal");

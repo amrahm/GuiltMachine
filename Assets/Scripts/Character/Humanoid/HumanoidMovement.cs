@@ -120,8 +120,8 @@ public class HumanoidMovement : MovementAbstract {
         _parts = GetComponent<HumanoidParts>();
         _anim = GetComponent<Animator>();
         _rb = GetComponent<Rigidbody2D>();
+        _control = GetComponent<CharacterControlAbstract>();
         _tf = transform;
-        _control = GetComponent<CharacterMasterAbstract>().control;
 
         whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
 

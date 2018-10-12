@@ -16,7 +16,7 @@ public class HumanoidParts : PartsAbstract {
     public GameObject thighRTarget, shinRTarget, footRTarget;
     public GameObject thighLTarget, shinLTarget, footLTarget;
 
-    private void Awake() {
+    protected override void AddPartsToLists() {
         List<GameObject> partsTemp = new List<GameObject>();
         List<GameObject> targetsTemp = new List<GameObject>();
 

@@ -1,12 +1,8 @@
 ﻿using System.Collections;
-using UnityEngine;
 using Pathfinding;
+using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Seeker))]
-public class EnemyAI : MonoBehaviour
-{
-
+public class PhoenixControl : CharacterControlAbstract {
     // What to chase?
     public Transform target;
     public string searchTarget = "Player";
@@ -16,14 +12,9 @@ public class EnemyAI : MonoBehaviour
 
     // Caching
     private Seeker seeker;
-    private Rigidbody2D rb;
 
     // The calculated path
     public Path path;
-
-    // The AI's speed per second (not framerate dependent)
-    public float speed = 300f;
-    public ForceMode2D fMode;
 
     [HideInInspector]
     public bool pathIsEnded = false;
@@ -39,7 +30,6 @@ public class EnemyAI : MonoBehaviour
     void Start()
     {
         seeker = GetComponent<Seeker>();
-        rb = GetComponent<Rigidbody2D>();
 
         if (target == null)
         {
@@ -141,10 +131,8 @@ public class EnemyAI : MonoBehaviour
 
         // Direction to the next waypoint, scaled by magnitude and mass
         Vector3 dir = (path.vectorPath[currentWaypoint] - transform.position).normalized;
-        dir *= speed * Time.fixedDeltaTime * rb.mass;
-
-        // Move the AI
-        rb.AddForce(dir, fMode);
+        moveHorizontal = dir.x;
+        moveVertical = dir.y;
 
         float dist = Vector3.Distance(transform.position, path.vectorPath[currentWaypoint]);
         if (dist < nextWaypointDistance)

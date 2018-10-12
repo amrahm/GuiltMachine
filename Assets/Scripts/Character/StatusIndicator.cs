@@ -9,7 +9,7 @@ public class StatusIndicator : MonoBehaviour
     [SerializeField]
     protected Text healthText;
 
-    private void Start()
+    protected virtual void Start()
     {
         if (healthBarRect == null)
         {
