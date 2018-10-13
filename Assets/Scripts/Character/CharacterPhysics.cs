@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ExtensionMethods;
+using UnityEditor;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
+[ExecuteInEditMode]
 public class CharacterPhysics : MonoBehaviour {
     #region Variables
 
@@ -87,6 +89,17 @@ public class CharacterPhysics : MonoBehaviour {
         _rb = GetComponent<Rigidbody2D>();
         foreach(var part in bodyParts) part.Initialize(this);
     }
+
+#if UNITY_EDITOR
+    private void Update() {
+        if(EditorApplication.isPlaying ) return;
+
+        for(int i = 0; i < _parts.parts.Length; i++) {
+            //Rotate actual part to animated target in edit mode too
+            _parts.parts[i].transform.rotation = _parts.targets[i].transform.rotation;
+        }
+    }
+#endif
 
     private void FixedUpdate() {
         foreach(var part in bodyParts) {

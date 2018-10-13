@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class HumanoidParts : PartsAbstract {
     //A container for all the human part gameobjects so they don't have to be reassigned in a bunch of different scripts
     public GameObject hips, torso, head;
@@ -16,7 +18,18 @@ public class HumanoidParts : PartsAbstract {
     public GameObject thighRTarget, shinRTarget, footRTarget;
     public GameObject thighLTarget, shinLTarget, footLTarget;
 
-    protected override void AddPartsToLists() {
+    
+    private void Awake() {
+        AddPartsToLists();
+    }
+#if UNITY_EDITOR
+    private void Update() {
+        if(EditorApplication.isPlaying ) return;
+        AddPartsToLists();
+    }
+#endif
+
+    private void AddPartsToLists() {
         List<GameObject> partsTemp = new List<GameObject>();
         List<GameObject> targetsTemp = new List<GameObject>();
 
