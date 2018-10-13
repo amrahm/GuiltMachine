@@ -434,12 +434,13 @@ public class CharacterPhysics : MonoBehaviour {
         }
 
         private bool _rotated;
+        private float _oldRot;
         private bool _stepCrouched;
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
         internal void HitRotation() {
             if(_stepCrouched) {
-                _stepCrouched = false;
+                _stepCrouched = false; //TODO is this needed?
             } else if(isLeg) StepCrouchRotation();
             if(!_shouldHitRot) return;
 
@@ -448,6 +449,8 @@ public class CharacterPhysics : MonoBehaviour {
 
             if(_rotated) {
                 _rotated = false;
+                bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * 
+                                                           (_rotAmount - _oldRot) / 2, Space.Self);
             } else
                 bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
                     Space.Self); //Rotate the part _rotAmount past where it is animated
@@ -470,6 +473,7 @@ public class CharacterPhysics : MonoBehaviour {
             bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
                 Space.Self); //Rotate the part _rotAmount past where it is animated
             _rotated = true;
+            _oldRot = _rotAmount;
         }
     }
 
