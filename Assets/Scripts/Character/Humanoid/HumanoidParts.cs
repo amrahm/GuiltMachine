@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Anima2D;
 using UnityEditor;
 using UnityEngine;
 
@@ -36,6 +37,10 @@ public class HumanoidParts : PartsAbstract {
         Action<GameObject, GameObject> addToLists = (part, target) => {
             partsTemp.Add(part);
             targetsTemp.Add(target);
+#if UNITY_EDITOR
+            if(EditorApplication.isPlaying)
+#endif
+            Destroy(target.GetComponent<Bone2D>()); //We don't actually need these anymore
         };
 
         addToLists(hips, hipsTarget);

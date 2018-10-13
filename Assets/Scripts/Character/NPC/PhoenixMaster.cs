@@ -9,7 +9,6 @@ public class PhoenixMaster : CharacterMasterAbstract {
 
     public override void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {
         if (!godMode) characterStats.DamagePlayer(damage);
-        if(!hitCollider.isTrigger) rb?.AddForceAtPosition(force, point, ForceMode2D.Impulse);
         if (characterStats.CurHealth <= 0) StartCoroutine(Die());
         characterPhysics?.AddForceAt(point, force, hitCollider);
     }
@@ -48,7 +47,7 @@ public class PhoenixMaster : CharacterMasterAbstract {
                 
                 // Enemy self-destructs and causes damage to player
                 // Comment out line below if you do not want enemy to self-destruct
-                StartCoroutine(Die());
+//                StartCoroutine(Die());
 
                 _exploded = true;
             }

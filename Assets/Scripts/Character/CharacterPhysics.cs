@@ -83,7 +83,7 @@ public class CharacterPhysics : MonoBehaviour {
         yield return null;
     }
 
-    private void Start() {
+    private void Awake() {
         _movement = GetComponent<MovementAbstract>();
         _parts = GetComponent<PartsAbstract>();
         _rb = GetComponent<Rigidbody2D>();
@@ -92,8 +92,8 @@ public class CharacterPhysics : MonoBehaviour {
 
 #if UNITY_EDITOR
     private void Update() {
-        if(EditorApplication.isPlaying ) return;
-
+        if(EditorApplication.isPlaying) return;
+        _parts = GetComponent<PartsAbstract>(); //IDK why this wasn't working in Awake
         for(int i = 0; i < _parts.parts.Length; i++) {
             //Rotate actual part to animated target in edit mode too
             _parts.parts[i].transform.rotation = _parts.targets[i].transform.rotation;
