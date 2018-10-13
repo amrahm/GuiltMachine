@@ -10,38 +10,11 @@ public class HumanoidParts : PartsAbstract {
     public GameObject thighR, shinR, footR;
     public GameObject thighL, shinL, footL;
 
-    public GameObject hipsTarget, torsoTarget, headTarget;
-    public GameObject upperArmRTarget, lowerArmRTarget, handRTarget;
-    public GameObject upperArmLTarget, lowerArmLTarget, handLTarget;
-    public GameObject thighRTarget, shinRTarget, footRTarget;
-    public GameObject thighLTarget, shinLTarget, footLTarget;
-
     protected override void AddPartsToLists() {
-        List<GameObject> partsTemp = new List<GameObject>();
-        List<GameObject> targetsTemp = new List<GameObject>();
+        List<GameObject> partsTemp = new List<GameObject> {hips, torso, head, upperArmR, lowerArmR, handR, upperArmL, 
+            lowerArmL, handL, thighR, shinR, footR, thighL, shinL, footL};
 
-        Action<GameObject, GameObject> addToLists = (part, target) => {
-            partsTemp.Add(part);
-            targetsTemp.Add(target);
-        };
-
-        addToLists(hips, hipsTarget);
-        addToLists(torso, torsoTarget);
-        addToLists(head, headTarget);
-        addToLists(upperArmR, upperArmRTarget);
-        addToLists(lowerArmR, lowerArmRTarget);
-        addToLists(handR, handRTarget);
-        addToLists(upperArmL, upperArmLTarget);
-        addToLists(lowerArmL, lowerArmLTarget);
-        addToLists(handL, handLTarget);
-        addToLists(thighR, thighRTarget);
-        addToLists(shinR, shinRTarget);
-        addToLists(footR, footRTarget);
-        addToLists(thighL, thighLTarget);
-        addToLists(shinL, shinLTarget);
-        addToLists(footL, footLTarget);
 
         parts = partsTemp.ToArray();
-        targets = targetsTemp.ToArray();
     }
 }
