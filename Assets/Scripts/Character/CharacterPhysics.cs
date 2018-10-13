@@ -96,6 +96,11 @@ public class CharacterPhysics : MonoBehaviour {
 #endif
         }
 
+        for(int i = 0; i < _parts.parts.Length; i++) {
+            //Rotate actual part to animated target
+            _parts.parts[i].transform.rotation = _parts.targets[i].transform.rotation;
+        }
+
         _facingRight = _movement.facingRight;
         CrouchRotation();
 
@@ -105,15 +110,6 @@ public class CharacterPhysics : MonoBehaviour {
         }
     }
 
-    private bool _rotated;
-
-    private void LateUpdate() {
-        _rotated = true;
-        for(int i = 0; i < nonLegBendParts.Length; i++)
-            nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * nonLegBendAmounts[i], Space.Self);
-        foreach(var part in bodyParts) part.LateRotation();
-    }
-
     /// <summary> Handles contracting legs and body when character hits the ground </summary>
     private void CrouchRotation() {
         if(_crouchAmount < 0.1f && _crouchPlus < 0.1f) return;
@@ -121,11 +117,8 @@ public class CharacterPhysics : MonoBehaviour {
         _crouchAmount = _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed, 1, Time.fixedDeltaTime); //Quickly move towards crouchAmount
 
         //Bend all the bendy parts
-        if(_rotated) {
-            _rotated = false;
-        } else
-            for(int i = 0; i < nonLegBendParts.Length; i++)
-                nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * nonLegBendAmounts[i], Space.Self);
+        for(int i = 0; i < nonLegBendParts.Length; i++)
+            nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * nonLegBendAmounts[i], Space.Self);
 
         _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, 1, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
     }
@@ -433,47 +426,19 @@ public class CharacterPhysics : MonoBehaviour {
                              Mathf.Sign(Vector3.Cross(collisionNormal, DirPre).z) * (isLeg ? Vector2.Dot(collisionNormal, Vector2.right) : 1);
         }
 
-        private bool _rotated;
-        private float _oldRot;
-        private bool _stepCrouched;
-
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
         internal void HitRotation() {
-            if(_stepCrouched) {
-                _stepCrouched = false; //TODO is this needed?
-            } else if(isLeg) StepCrouchRotation();
+            if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation(); //TODO remove the if statement
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
-
-
-            if(_rotated) {
-                _rotated = false;
-                bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * 
-                                                           (_rotAmount - _oldRot) / 2, Space.Self);
-            } else
-                bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
-                    Space.Self); //Rotate the part _rotAmount past where it is animated
+            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
+                Space.Self); //Rotate the part _rotAmount past where it is animated
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
             _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, 0.02f, Time.fixedDeltaTime); //and return the body part back to rest
 
             _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
-        }
-
-        /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
-        internal void LateRotation() {
-            if(isLeg) {
-                StepCrouchRotation();
-                _stepCrouched = true;
-            }
-
-            if(!_shouldHitRot) return;
-
-            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
-                Space.Self); //Rotate the part _rotAmount past where it is animated
-            _rotated = true;
-            _oldRot = _rotAmount;
         }
     }
 
