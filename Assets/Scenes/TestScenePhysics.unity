@@ -613,8 +613,7 @@ Prefab:
         type: 2}
       propertyPath: control
       value: 
-      objectReference: {fileID: 11400000, guid: a1be73fc26d5caa4eb88d4ef95e44755,
-        type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 114514372537222238, guid: 493daf1007e02224d9b85b86c2eb7288,
         type: 2}
       propertyPath: m_Length
@@ -909,11 +908,40 @@ Prefab:
       objectReference: {fileID: 2100000, guid: e3bc52c91cafc4003af47c1bbed6ecb3, type: 2}
     - target: {fileID: 1863102470074760, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 114710464730539126, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
   m_SourcePrefab: {fileID: 100100000, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
   m_IsPrefabAsset: 0
+--- !u!1 &58507616 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1863102470074760, guid: 493daf1007e02224d9b85b86c2eb7288,
+    type: 2}
+  m_PrefabInternal: {fileID: 58507615}
+--- !u!114 &58507617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 58507616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a47f72794f3edd248acba17dac355817, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _showCurrentInput: 0
+  moveHorizontal: 0
+  moveVertical: 0
+  hPressed: 0
+  sprint: 0
+  upPressed: 0
+  downPressed: 0
+  attackHorizontal: 0
+  attackVertical: 0
+  attackHPressed: 0
+  attackVPressed: 0
+  inert: 0
 --- !u!1 &71284497
 GameObject:
   m_ObjectHideFlags: 0
@@ -6709,8 +6737,7 @@ Prefab:
         type: 2}
       propertyPath: control
       value: 
-      objectReference: {fileID: 11400000, guid: a1be73fc26d5caa4eb88d4ef95e44755,
-        type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 114514372537222238, guid: 493daf1007e02224d9b85b86c2eb7288,
         type: 2}
       propertyPath: m_Length
@@ -18622,12 +18649,6 @@ Prefab:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 0}
-    - target: {fileID: 114003604137503590, guid: 493daf1007e02224d9b85b86c2eb7288,
-        type: 2}
-      propertyPath: control
-      value: 
-      objectReference: {fileID: 11400000, guid: 9989f1702eb166b4db6a2a13a98e9f3b,
-        type: 2}
     - target: {fileID: 1863102470074760, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
       propertyPath: m_Layer
       value: 14
@@ -18834,9 +18855,38 @@ Prefab:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 114710464730539126, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
   m_SourcePrefab: {fileID: 100100000, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
   m_IsPrefabAsset: 0
+--- !u!1 &1524998085 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1863102470074760, guid: 493daf1007e02224d9b85b86c2eb7288,
+    type: 2}
+  m_PrefabInternal: {fileID: 1524998084}
+--- !u!114 &1524998086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1524998085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a47f72794f3edd248acba17dac355817, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _showCurrentInput: 0
+  moveHorizontal: 0
+  moveVertical: 0
+  hPressed: 0
+  sprint: 0
+  upPressed: 0
+  downPressed: 0
+  attackHorizontal: 0
+  attackVertical: 0
+  attackHPressed: 0
+  attackVPressed: 0
+  inert: 1
 --- !u!1 &1530016657
 GameObject:
   m_ObjectHideFlags: 0

@@ -454,13 +454,13 @@ public class CharacterPhysics : MonoBehaviour {
     }
 
     public void AddForceAt(Vector2 point, Vector2 force, Collider2D hitCollider) {
-        if(!hitCollider.isTrigger) _rb.AddForceAtPosition(force * 7, point, ForceMode2D.Impulse);
+        if(!hitCollider.isTrigger) _rb.AddForceAtPosition(force, point, ForceMode2D.Impulse);
         BodyPartClass part = null;
         while(part == null) {
             if(collToPart.ContainsKey(hitCollider)) part = collToPart[hitCollider];
             else hitCollider = hitCollider.transform.parent.GetComponent<Collider2D>();
         }
-        part.HitCalc(point, -force, force);
+        part.HitCalc(point, -force, force / 7);
     }
 
     private void OnCollisionEnter2D(Collision2D collInfo) {
