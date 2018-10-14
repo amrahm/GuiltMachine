@@ -4,7 +4,6 @@ using Anima2D;
 using UnityEditor;
 using UnityEngine;
 
-[ExecuteInEditMode]
 public class PhoenixParts : PartsAbstract {
     public GameObject hips, torso, head;
     public GameObject wingR, forearmR;
@@ -15,17 +14,8 @@ public class PhoenixParts : PartsAbstract {
     public GameObject wingRTarget, forearmRTarget;
     public GameObject wingLTarget, forearmLTarget;
     public GameObject tailMainTarget, tailTopTarget, tailMidTarget, tailBottomTarget;
-    private void Awake() {
-        AddPartsToLists();
-    }
-#if UNITY_EDITOR
-    private void Update() {
-        if(EditorApplication.isPlaying ) return;
-        AddPartsToLists();
-    }
-#endif
 
-    private void AddPartsToLists() {
+    protected internal override void AddPartsToLists() {
         List<GameObject> partsTemp = new List<GameObject>();
         List<GameObject> targetsTemp = new List<GameObject>();
 

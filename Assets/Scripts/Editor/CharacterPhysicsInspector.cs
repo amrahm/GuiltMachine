@@ -27,6 +27,8 @@ public class CharacterPhysicsInspector : Editor {
         EditorGUILayout.PropertyField(prop, true);
         GUI.enabled = true;
 
+        SerializedProperty animationMode = _getTarget.FindProperty(nameof(CharacterPhysics.animationMode));
+        EditorGUILayout.PropertyField(animationMode);
         SerializedProperty crouchSpeed = _getTarget.FindProperty(nameof(CharacterPhysics.crouchSpeed));
         EditorGUILayout.PropertyField(crouchSpeed);
         SerializedProperty nonLegBendParts = _getTarget.FindProperty(nameof(CharacterPhysics.nonLegBendParts));

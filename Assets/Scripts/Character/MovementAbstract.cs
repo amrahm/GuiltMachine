@@ -26,4 +26,27 @@ public abstract class MovementAbstract : MonoBehaviour {
 
     /// <summary> The normal of the ground the character is walking on </summary>
     [NonSerialized] public Vector2 groundNormal;
+
+    /// <summary> Transform component of the gameObject </summary
+    protected Transform tf;
+
+    /// <summary> Rigidbody component of the gameObject </summary>
+    protected Rigidbody2D rb;
+
+    /// <summary> Reference to Control script, which gives input to this script </summary>
+    protected CharacterControlAbstract control;
+
+    /// <summary> Reference to the player's animator component </summary>
+    protected Animator anim;
+
+    protected virtual void Awake() {
+        //Setting up references.
+        anim = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+        control = GetComponent<CharacterControlAbstract>();
+        tf = transform;
+
+        if(whatIsGroundMaster != null)
+            whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
+    }
 }

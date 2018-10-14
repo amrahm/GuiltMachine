@@ -71,12 +71,6 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Position of the foot last frame when crouching </summary>
     private float _lastFootPos;
 
-    /// <summary> Transform component of the gameObject </summary
-    private Transform _tf;
-
-    /// <summary> Rigidbody component of the gameObject </summary>
-    private Rigidbody2D _rb;
-
     /// <summary> Used to zero out friction when moving. True if the Player's feet have no friction. </summary>
     private bool _frictionZero;
 
@@ -89,14 +83,8 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Whether or not the player is touching something </summary>
     private bool _isTouching;
 
-    /// <summary> Reference to the player's animator component </summary>
-    private Animator _anim;
-
     /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
     private HumanoidParts _parts;
-
-    /// <summary> Reference to Control script, which gives input to this script </summary>
-    private CharacterControlAbstract _control;
 
     /// <summary> Tthe physics material on the foot colliders </summary>
     private PhysicsMaterial2D _footFrictionMat;
@@ -115,13 +103,10 @@ public class HumanoidMovement : MovementAbstract {
 
     #endregion
 
-    private void Start() {
+    protected override void Awake() {
         //Setting up references.
+        base.Awake();
         _parts = GetComponent<HumanoidParts>();
-        _anim = GetComponent<Animator>();
-        _rb = GetComponent<Rigidbody2D>();
-        _control = GetComponent<CharacterControlAbstract>();
-        _tf = transform;
 
         whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
 
@@ -139,45 +124,45 @@ public class HumanoidMovement : MovementAbstract {
 
     private void FixedUpdate() {
         UpdateGrounded();
-        Move(_control.moveHorizontal, _control.hPressed, _control.sprint);
-        Jump(_control.upPressed);
-        Crouch(_control.downPressed);
+        Move(control.moveHorizontal, control.hPressed, control.sprint);
+        Jump(control.upPressed);
+        Crouch(control.downPressed);
     }
 
     /// <summary> Update whether or not this character is touching the ground </summary>
     private void UpdateGrounded() {
         //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
-        RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -_tf.up, groundCheckDistance, whatIsGround);
+        RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up, groundCheckDistance, whatIsGround);
         if(rightHit.collider == null)
-            rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -_tf.up, groundCheckDistance, whatIsGround);
-        RaycastHit2D leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -_tf.up, groundCheckDistance, whatIsGround);
+            rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up, groundCheckDistance, whatIsGround);
+        RaycastHit2D leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up, groundCheckDistance, whatIsGround);
         if(leftHit.collider == null)
-            leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -_tf.up, groundCheckDistance, whatIsGround);
-        float rightAngle = Vector2.Angle(rightHit.normal, _tf.up);
-        float leftAngle = Vector2.Angle(leftHit.normal, _tf.up);
+            leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up, groundCheckDistance, whatIsGround);
+        float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
+        float leftAngle = Vector2.Angle(leftHit.normal, tf.up);
 
         //pick the larger angle that is still within bounds
         bool rightGreater = rightAngle > leftAngle && rightAngle < maxWalkSlope || leftAngle > maxWalkSlope;
         groundNormal = rightGreater && rightHit.collider != null ? rightHit.normal :
-                       leftHit.collider != null ? leftHit.normal : (Vector2) _tf.up;
+                       leftHit.collider != null ? leftHit.normal : (Vector2) tf.up;
         walkSlope = rightGreater ? rightAngle : leftAngle;
 
         grounded = (rightHit.collider != null || leftHit.collider != null) && walkSlope < maxWalkSlope;
 
 #if UNITY_EDITOR
         if(_visualizeDebug) {
-            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -_tf.up * groundCheckDistance);
-            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -_tf.up * groundCheckDistance);
-            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -_tf.up * groundCheckDistance);
-            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -_tf.up * groundCheckDistance);
+            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up * groundCheckDistance);
+            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up * groundCheckDistance);
+            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up * groundCheckDistance);
+            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up * groundCheckDistance);
         }
 #endif
 
-        _anim.SetFloat(_vSpeedAnim, _rb.velocity.y); //Set the vertical animation for moving up/down through the air
+        anim.SetFloat(_vSpeedAnim, rb.velocity.y); //Set the vertical animation for moving up/down through the air
 
         if(grounded) {
             //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
-            _rb.transform.position += new Vector3(0, (_parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos) / 2);
+            rb.transform.position += new Vector3(0, (_parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos) / 2);
             _lastFootPos = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
         }
     }
@@ -188,29 +173,29 @@ public class HumanoidMovement : MovementAbstract {
     /// <param name="sprint"> Sprinting input</param>
     private void Move(float move, bool movePressed, float sprint) {
         float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
-        Vector2 tangent = grounded ? Vector3.Cross(groundNormal, Vector3.forward) : _tf.right;
-        float velForward = _rb.velocity.x;
-        float velTangent = Vector2.Dot(_rb.velocity, tangent);
+        Vector2 tangent = grounded ? Vector3.Cross(groundNormal, Vector3.forward) : tf.right;
+        float velForward = rb.velocity.x;
+        float velTangent = Vector2.Dot(rb.velocity, tangent);
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
 #endif
-        moveVec = _rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
+        moveVec = rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
         float slopeReducer = Mathf.Lerp(1, .6f, walkSlope / maxWalkSlope);
         moveVec *= slopeReducer; //reduce speed as slopes increase
 
         Action<float> kick = force => { //If pressing walk from standstill, gives a kick so walking is more responsive
-            if(move > 0 && velForward < _maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * force * 30 * slopeReducer);
-            else if(move < 0 && velForward > -_maxSpeed / 3) _rb.AddForce(_rb.mass * tangent * -force * 30 * slopeReducer);
+            if(move > 0 && velForward < _maxSpeed / 3) rb.AddForce(rb.mass * tangent * force * 30 * slopeReducer);
+            else if(move < 0 && velForward > -_maxSpeed / 3) rb.AddForce(rb.mass * tangent * -force * 30 * slopeReducer);
         };
 
         if(grounded) {
             _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ? Mathf.Abs(velTangent) / _maxSpeed / 2 : Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
             _walkSprint = (_walkSprint + Mathf.Abs(move / 2 * _sprintSpeed * slopeReducer)) / 2; //avg it with intention
-            _anim.SetFloat(_speedAnim, _anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
+            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
 //            _anim.SetFloat("Speed", Mathf.Abs(move / 2 * _sprintSpeed));
 
             if(movePressed && Mathf.Abs(velForward) < _maxSpeed * sprintAmt) {
-                _rb.AddForce(moveVec, ForceMode2D.Impulse);
+                rb.AddForce(moveVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
                     _footFrictionMat.friction = 0;
                     _frictionZero = true;
@@ -220,7 +205,7 @@ public class HumanoidMovement : MovementAbstract {
                     _footFrictionMat.friction = 1;
                     _frictionZero = false;
                 }
-                _rb.velocity -= (Vector2) _tf.right * velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
+                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
             }
 
             kick(_kick);
@@ -232,11 +217,11 @@ public class HumanoidMovement : MovementAbstract {
                 moveVec *= _airControl;
                 kick(_kickAir);
                 if(movePressed && (move > 0 && velForward < _maxSpeed * sprintAmt || move < 0 && velForward > -_maxSpeed * sprintAmt)) {
-                    _rb.AddForce(moveVec, ForceMode2D.Impulse);
+                    rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
             }
-            _rb.velocity -= (Vector2) _tf.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
-            _anim.SetFloat(_speedAnim, _anim.GetFloat(_speedAnim).SharpInDamp(0, 1));
+            rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
+            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(0, 1));
         }
     }
 
@@ -246,14 +231,14 @@ public class HumanoidMovement : MovementAbstract {
         if(grounded && jump && !_jumpStarted) {
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true;
-            _rb.velocity = new Vector2(_rb.velocity.x, _jumpSpeed);
+            rb.velocity = new Vector2(rb.velocity.x, _jumpSpeed);
         } else if(jump && _jumpFuelLeft > 0) {
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
-            _rb.AddForce(new Vector2(0f, _rb.mass * _jumpFuelForce), ForceMode2D.Force);
+            rb.AddForce(new Vector2(0f, rb.mass * _jumpFuelForce), ForceMode2D.Force);
             float grav = Mathf.Lerp(0.0f, 1, (_jumpFuel - _jumpFuelLeft) / _jumpFuel);
-            _rb.gravityScale = grav;
+            rb.gravityScale = grav;
         } else {
-            _rb.gravityScale = 1f;
+            rb.gravityScale = 1f;
             _jumpFuelLeft = 0;
         }
         if(grounded && !jump) {
@@ -266,10 +251,10 @@ public class HumanoidMovement : MovementAbstract {
     private void Crouch(bool crouching) {
         bool wasStanding = !_crouching;
         _crouching = grounded && crouching && _walkSprint < .65f;
-        _anim.SetBool(_crouchingAnim, _crouching);
+        anim.SetBool(_crouchingAnim, _crouching);
 
         bool roll = wasStanding && _crouching && _walkSprint > .01f;
-        _anim.SetBool(_rollAnim, roll);
+        anim.SetBool(_rollAnim, roll);
     }
 
 
@@ -278,7 +263,7 @@ public class HumanoidMovement : MovementAbstract {
         facingRight = !facingRight; //Switch the way the player is labelled as facing.
 
         //Multiply the player's x local scale by -1.
-        _tf.localScale = new Vector3(-_tf.localScale.x, _tf.localScale.y, _tf.localScale.z);
+        tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
     }
 
     // ReSharper disable once UnusedParameter.Local

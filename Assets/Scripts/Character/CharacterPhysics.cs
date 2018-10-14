@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Anima2D;
 using ExtensionMethods;
 using UnityEditor;
 using UnityEngine;
@@ -10,6 +11,13 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CharacterPhysics : MonoBehaviour {
     #region Variables
+
+#if UNITY_EDITOR || DEBUG
+    [Tooltip("Enable this while animating. Should be disabled before entering play mode or building the game.")]
+    public bool animationMode;
+
+    private bool _wasAnimationMode;
+#endif
 
     [Tooltip("How fast to crouch from an impact")]
     public float crouchSpeed = 2;
@@ -90,17 +98,6 @@ public class CharacterPhysics : MonoBehaviour {
         foreach(var part in bodyParts) part.Initialize(this);
     }
 
-#if UNITY_EDITOR
-    private void Update() {
-        if(EditorApplication.isPlaying) return;
-        _parts = GetComponent<PartsAbstract>(); //IDK why this wasn't working in Awake
-        for(int i = 0; i < _parts.parts.Length; i++) {
-            //Rotate actual part to animated target in edit mode too
-            _parts.parts[i].transform.rotation = _parts.targets[i].transform.rotation;
-        }
-    }
-#endif
-
     private void FixedUpdate() {
         foreach(var part in bodyParts) {
             part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir);
@@ -111,7 +108,8 @@ public class CharacterPhysics : MonoBehaviour {
 
         for(int i = 0; i < _parts.parts.Length; i++) {
             //Rotate actual part to animated target
-            _parts.parts[i].transform.rotation = _parts.targets[i].transform.rotation;
+            _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
+                _parts.targets[i].transform.rotation);
         }
 
         _facingRight = _movement.facingRight;
@@ -483,4 +481,45 @@ public class CharacterPhysics : MonoBehaviour {
     private void OnCollisionStay2D(Collision2D collInfo) {
         CollisionHandler(collInfo);
     }
+
+    #region SetAnimationMode
+
+#if UNITY_EDITOR || DEBUG
+    private void Update() {
+        if(EditorApplication.isPlaying) {
+            if(animationMode) Debug.LogError($"Animation mode is still on for gameObject {gameObject.name}");
+            return;
+        }
+        _parts = GetComponent<PartsAbstract>();
+        _parts.AddPartsToLists();
+        if(!_wasAnimationMode && animationMode) SwapPartsWithTargets(_parts.parts, _parts.targets);
+        if(_wasAnimationMode && !animationMode) SwapPartsWithTargets(_parts.targets, _parts.parts);
+        _wasAnimationMode = animationMode;
+        
+        for(int i = 0; i < _parts.parts.Length; i++) {
+            //Rotate actual part to animated target in edit mode too
+            _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
+                _parts.targets[i].transform.rotation);
+        }
+    }
+
+    private void SwapPartsWithTargets(GameObject[] currents, GameObject[] news) {
+        foreach(Transform sprite in transform.Find("Sprites")) {
+            List<Bone2D> bones = sprite.GetComponent<SpriteMeshInstance>().bones;
+            for(int i = 0; i < bones.Count; i++) {
+                int index = Array.IndexOf(currents, bones[i].gameObject);
+                if(index != -1) {
+                    Bone2D bone2D = news[index].GetComponent<Bone2D>();
+                    if(bone2D == null) Debug.LogError($"Can't find Bone2D component on {news[index]}");
+                    bones[i] = bone2D;
+                } else {
+                    Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
+                }
+            }
+            sprite.GetComponent<SpriteMeshInstance>().bones = bones;
+        }
+    }
+#endif
+
+    #endregion
 }
