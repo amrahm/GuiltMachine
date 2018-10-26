@@ -65,7 +65,6 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
                 v.vertex = UnityPixelSnap(v.vertex);
                 #endif
                 v.normal = float3(0,0,-1);
-                v.tangent = float4(1, 0, 0, -1);
 
                 UNITY_INITIALIZE_OUTPUT(Input, o);
                 o.color = _Color;
