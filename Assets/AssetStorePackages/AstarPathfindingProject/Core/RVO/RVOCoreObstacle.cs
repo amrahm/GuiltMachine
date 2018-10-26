@@ -1,27 +1,27 @@
 using UnityEngine;
 
 namespace Pathfinding.RVO {
-	/** One vertex in an obstacle.
-	 * This is a linked list and one vertex can therefore be used to reference the whole obstacle
-	 * \astarpro
-	 */
+	/// <summary>
+	/// One vertex in an obstacle.
+	/// This is a linked list and one vertex can therefore be used to reference the whole obstacle
+	/// </summary>
 	public class ObstacleVertex {
 		public bool ignore;
 
-		/** Position of the vertex */
+		/// <summary>Position of the vertex</summary>
 		public Vector3 position;
 		public Vector2 dir;
 
-		/** Height of the obstacle in this vertex */
+		/// <summary>Height of the obstacle in this vertex</summary>
 		public float height;
 
-		/** Collision layer for this obstacle */
+		/// <summary>Collision layer for this obstacle</summary>
 		public RVOLayer layer = RVOLayer.DefaultObstacle;
 
 
-		/** Next vertex in the obstacle */
+		/// <summary>Next vertex in the obstacle</summary>
 		public ObstacleVertex next;
-		/** Previous vertex in the obstacle */
+		/// <summary>Previous vertex in the obstacle</summary>
 		public ObstacleVertex prev;
 	}
 }

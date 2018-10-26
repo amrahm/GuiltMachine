@@ -1,9 +1,10 @@
-/** This is a simple utility class for importing obj files into a Unity mesh at runtime.
- * This version of ObjImporter first reads through the entire file, getting a count of how large
- * the final arrays will be, and then uses standard arrays for everything (as opposed to ArrayLists
- * or any other fancy things).
- * \author el anónimo at the UnifyCommunity wiki (at least he seems to have created the page)
- */
+/// <summary>
+/// This is a simple utility class for importing obj files into a Unity mesh at runtime.
+/// This version of ObjImporter first reads through the entire file, getting a count of how large
+/// the final arrays will be, and then uses standard arrays for everything (as opposed to ArrayLists
+/// or any other fancy things).
+/// \author el anónimo at the UnifyCommunity wiki (at least he seems to have created the page)
+/// </summary>
 
 using UnityEngine;
 using System.Collections.Generic;

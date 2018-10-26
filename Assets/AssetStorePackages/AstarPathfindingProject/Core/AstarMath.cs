@@ -5,9 +5,10 @@ using System;
 namespace Pathfinding {
 	using Pathfinding.Util;
 
-	/** Contains various spline functions.
-	 * \ingroup utils
-	 */
+	/// <summary>
+	/// Contains various spline functions.
+	/// \ingroup utils
+	/// </summary>
 	static class AstarSplines {
 		public static Vector3 CatmullRom (Vector3 previous, Vector3 start, Vector3 end, Vector3 next, float elapsedTime) {
 			// References used:
@@ -42,26 +43,21 @@ namespace Pathfinding {
 				 0.5F*percentCompleteSquared);
 		}
 
-		[System.Obsolete("Use CatmullRom")]
-		public static Vector3 CatmullRomOLD (Vector3 previous, Vector3 start, Vector3 end, Vector3 next, float elapsedTime) {
-			return CatmullRom(previous, start, end, next, elapsedTime);
-		}
-
-		/** Returns a point on a cubic bezier curve. \a t is clamped between 0 and 1 */
+		/// <summary>Returns a point on a cubic bezier curve. t is clamped between 0 and 1</summary>
 		public static Vector3 CubicBezier (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
 			t = Mathf.Clamp01(t);
 			float t2 = 1-t;
 			return t2*t2*t2 * p0 + 3 * t2*t2 * t * p1 + 3 * t2 * t*t * p2 + t*t*t * p3;
 		}
 
-		/** Returns the derivative for a point on a cubic bezier curve. \a t is clamped between 0 and 1 */
+		/// <summary>Returns the derivative for a point on a cubic bezier curve. t is clamped between 0 and 1</summary>
 		public static Vector3 CubicBezierDerivative (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
 			t = Mathf.Clamp01(t);
 			float t2 = 1-t;
 			return 3*t2*t2*(p1-p0) + 6*t2*t*(p2 - p1) + 3*t*t*(p3 - p2);
 		}
 
-		/** Returns the second derivative for a point on a cubic bezier curve. \a t is clamped between 0 and 1 */
+		/// <summary>Returns the second derivative for a point on a cubic bezier curve. t is clamped between 0 and 1</summary>
 		public static Vector3 CubicBezierSecondDerivative (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
 			t = Mathf.Clamp01(t);
 			float t2 = 1-t;
@@ -69,47 +65,51 @@ namespace Pathfinding {
 		}
 	}
 
-	/** Various vector math utility functions.
-	 * \version A lot of functions in the Polygon class have been moved to this class
-	 * the names have changed slightly and everything now consistently assumes a left handed
-	 * coordinate system now instead of sometimes using a left handed one and sometimes
-	 * using a right handed one. This is why the 'Left' methods in the Polygon class redirect
-	 * to methods named 'Right'. The functionality is exactly the same.
-	 *
-	 * Note the difference between segments and lines. Lines are infinitely
-	 * long but segments have only a finite length.
-	 *
-	 * \ingroup utils
-	 */
+	/// <summary>
+	/// Various vector math utility functions.
+	/// Version: A lot of functions in the Polygon class have been moved to this class
+	/// the names have changed slightly and everything now consistently assumes a left handed
+	/// coordinate system now instead of sometimes using a left handed one and sometimes
+	/// using a right handed one. This is why the 'Left' methods in the Polygon class redirect
+	/// to methods named 'Right'. The functionality is exactly the same.
+	///
+	/// Note the difference between segments and lines. Lines are infinitely
+	/// long but segments have only a finite length.
+	///
+	/// \ingroup utils
+	/// </summary>
 	public static class VectorMath {
-		/** Complex number multiplication.
-		 * \returns a * b
-		 *
-		 * Used to rotate vectors in an efficient way.
-		 *
-		 * \see https://en.wikipedia.org/wiki/Complex_number#Multiplication_and_division
-		 */
+		/// <summary>
+		/// Complex number multiplication.
+		/// Returns: a * b
+		///
+		/// Used to rotate vectors in an efficient way.
+		///
+		/// See: https://en.wikipedia.org/wiki/Complex_number<see cref="Multiplication_and_division"/>
+		/// </summary>
 		public static Vector2 ComplexMultiply (Vector2 a, Vector2 b) {
 			return new Vector2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 		}
 
-		/** Complex number multiplication.
-		 * \returns a * conjugate(b)
-		 *
-		 * Used to rotate vectors in an efficient way.
-		 *
-		 * \see https://en.wikipedia.org/wiki/Complex_number#Multiplication_and_division
-		 * \see https://en.wikipedia.org/wiki/Complex_conjugate
-		 */
+		/// <summary>
+		/// Complex number multiplication.
+		/// Returns: a * conjugate(b)
+		///
+		/// Used to rotate vectors in an efficient way.
+		///
+		/// See: https://en.wikipedia.org/wiki/Complex_number<see cref="Multiplication_and_division"/>
+		/// See: https://en.wikipedia.org/wiki/Complex_conjugate
+		/// </summary>
 		public static Vector2 ComplexMultiplyConjugate (Vector2 a, Vector2 b) {
 			return new Vector2(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y);
 		}
 
-		/** Returns the closest point on the line.
-		 * The line is treated as infinite.
-		 * \see ClosestPointOnSegment
-		 * \see ClosestPointOnLineFactor
-		 */
+		/// <summary>
+		/// Returns the closest point on the line.
+		/// The line is treated as infinite.
+		/// See: ClosestPointOnSegment
+		/// See: ClosestPointOnLineFactor
+		/// </summary>
 		public static Vector3 ClosestPointOnLine (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
 			Vector3 lineDirection = Vector3.Normalize(lineEnd - lineStart);
 			float dot = Vector3.Dot(point - lineStart, lineDirection);
@@ -117,13 +117,14 @@ namespace Pathfinding {
 			return lineStart + (dot*lineDirection);
 		}
 
-		/** Factor along the line which is closest to the point.
-		 * Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
-		 * The closest point can be calculated using (end-start)*factor + start.
-		 *
-		 * \see ClosestPointOnLine
-		 * \see ClosestPointOnSegment
-		 */
+		/// <summary>
+		/// Factor along the line which is closest to the point.
+		/// Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
+		/// The closest point can be calculated using (end-start)*factor + start.
+		///
+		/// See: ClosestPointOnLine
+		/// See: ClosestPointOnSegment
+		/// </summary>
 		public static float ClosestPointOnLineFactor (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
 			var dir = lineEnd - lineStart;
 			float sqrMagn = dir.sqrMagnitude;
@@ -133,10 +134,11 @@ namespace Pathfinding {
 			return Vector3.Dot(point - lineStart, dir) / sqrMagn;
 		}
 
-		/** Factor along the line which is closest to the point.
-		 * Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
-		 * The closest point can be calculated using (end-start)*factor + start
-		 */
+		/// <summary>
+		/// Factor along the line which is closest to the point.
+		/// Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
+		/// The closest point can be calculated using (end-start)*factor + start
+		/// </summary>
 		public static float ClosestPointOnLineFactor (Int3 lineStart, Int3 lineEnd, Int3 point) {
 			var lineDirection = lineEnd - lineStart;
 			float magn = lineDirection.sqrMagnitude;
@@ -148,10 +150,11 @@ namespace Pathfinding {
 			return closestPoint;
 		}
 
-		/** Factor of the nearest point on the segment.
-		 * Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
-		 * The closest point can be calculated using (end-start)*factor + start;
-		 */
+		/// <summary>
+		/// Factor of the nearest point on the segment.
+		/// Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
+		/// The closest point can be calculated using (end-start)*factor + start;
+		/// </summary>
 		public static float ClosestPointOnLineFactor (Int2 lineStart, Int2 lineEnd, Int2 point) {
 			var lineDirection = lineEnd - lineStart;
 			double magn = lineDirection.sqrMagnitudeLong;
@@ -163,11 +166,12 @@ namespace Pathfinding {
 			return (float)closestPoint;
 		}
 
-		/** Returns the closest point on the segment.
-		 * The segment is NOT treated as infinite.
-		 * \see ClosestPointOnLine
-		 * \see ClosestPointOnSegmentXZ
-		 */
+		/// <summary>
+		/// Returns the closest point on the segment.
+		/// The segment is NOT treated as infinite.
+		/// See: ClosestPointOnLine
+		/// See: ClosestPointOnSegmentXZ
+		/// </summary>
 		public static Vector3 ClosestPointOnSegment (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
 			var dir = lineEnd - lineStart;
 			float sqrMagn = dir.sqrMagnitude;
@@ -178,13 +182,14 @@ namespace Pathfinding {
 			return lineStart + Mathf.Clamp01(factor)*dir;
 		}
 
-		/** Returns the closest point on the segment in the XZ plane.
-		 * The y coordinate of the result will be the same as the y coordinate of the \a point parameter.
-		 *
-		 * The segment is NOT treated as infinite.
-		 * \see ClosestPointOnSegment
-		 * \see ClosestPointOnLine
-		 */
+		/// <summary>
+		/// Returns the closest point on the segment in the XZ plane.
+		/// The y coordinate of the result will be the same as the y coordinate of the point parameter.
+		///
+		/// The segment is NOT treated as infinite.
+		/// See: ClosestPointOnSegment
+		/// See: ClosestPointOnLine
+		/// </summary>
 		public static Vector3 ClosestPointOnSegmentXZ (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
 			lineStart.y = point.y;
 			lineEnd.y = point.y;
@@ -198,11 +203,12 @@ namespace Pathfinding {
 			return lineStart+(Mathf.Clamp(closestPoint, 0.0f, fullDirection2.magnitude)*lineDirection);
 		}
 
-		/** Returns the approximate shortest squared distance between x,z and the segment p-q.
-		 * The segment is not considered infinite.
-		 * This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
-		 * \todo Is this actually approximate? It looks exact.
-		 */
+		/// <summary>
+		/// Returns the approximate shortest squared distance between x,z and the segment p-q.
+		/// The segment is not considered infinite.
+		/// This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
+		/// TODO: Is this actually approximate? It looks exact.
+		/// </summary>
 		public static float SqrDistancePointSegmentApproximate (int x, int z, int px, int pz, int qx, int qz) {
 			float pqx = (float)(qx - px);
 			float pqz = (float)(qz - pz);
@@ -224,11 +230,12 @@ namespace Pathfinding {
 			return dx*dx + dz*dz;
 		}
 
-		/** Returns the approximate shortest squared distance between x,z and the segment p-q.
-		 * The segment is not considered infinite.
-		 * This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
-		 * \todo Is this actually approximate? It looks exact.
-		 */
+		/// <summary>
+		/// Returns the approximate shortest squared distance between x,z and the segment p-q.
+		/// The segment is not considered infinite.
+		/// This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
+		/// TODO: Is this actually approximate? It looks exact.
+		/// </summary>
 		public static float SqrDistancePointSegmentApproximate (Int3 a, Int3 b, Int3 p) {
 			float pqx = (float)(b.x - a.x);
 			float pqz = (float)(b.z - a.z);
@@ -250,19 +257,21 @@ namespace Pathfinding {
 			return dx*dx + dz*dz;
 		}
 
-		/** Returns the squared distance between p and the segment a-b.
-		 * The line is not considered infinite.
-		 */
+		/// <summary>
+		/// Returns the squared distance between p and the segment a-b.
+		/// The line is not considered infinite.
+		/// </summary>
 		public static float SqrDistancePointSegment (Vector3 a, Vector3 b, Vector3 p) {
 			var nearest = ClosestPointOnSegment(a, b, p);
 
 			return (nearest-p).sqrMagnitude;
 		}
 
-		/** 3D minimum distance between 2 segments.
-		 * Input: two 3D line segments S1 and S2
-		 * \returns the shortest squared distance between S1 and S2
-		 */
+		/// <summary>
+		/// 3D minimum distance between 2 segments.
+		/// Input: two 3D line segments S1 and S2
+		/// Returns: the shortest squared distance between S1 and S2
+		/// </summary>
 		public static float SqrDistanceSegmentSegment (Vector3 s1, Vector3 e1, Vector3 s2, Vector3 e2) {
 			Vector3 u = e1 - s1;
 			Vector3 v = e2 - s2;
@@ -329,106 +338,117 @@ namespace Pathfinding {
 			return dP.sqrMagnitude;   // return the closest distance
 		}
 
-		/** Squared distance between two points in the XZ plane */
+		/// <summary>Squared distance between two points in the XZ plane</summary>
 		public static float SqrDistanceXZ (Vector3 a, Vector3 b) {
 			var delta = a-b;
 
 			return delta.x*delta.x+delta.z*delta.z;
 		}
 
-		/** Signed area of a triangle in the XZ plane multiplied by 2.
-		 * This will be negative for clockwise triangles and positive for counter-clockwise ones
-		 */
+		/// <summary>
+		/// Signed area of a triangle in the XZ plane multiplied by 2.
+		/// This will be negative for clockwise triangles and positive for counter-clockwise ones
+		/// </summary>
 		public static long SignedTriangleAreaTimes2XZ (Int3 a, Int3 b, Int3 c) {
 			return (long)(b.x - a.x) * (long)(c.z - a.z) - (long)(c.x - a.x) * (long)(b.z - a.z);
 		}
 
-		/** Signed area of a triangle in the XZ plane multiplied by 2.
-		 * This will be negative for clockwise triangles and positive for counter-clockwise ones.
-		 */
+		/// <summary>
+		/// Signed area of a triangle in the XZ plane multiplied by 2.
+		/// This will be negative for clockwise triangles and positive for counter-clockwise ones.
+		/// </summary>
 		public static float SignedTriangleAreaTimes2XZ (Vector3 a, Vector3 b, Vector3 c) {
 			return (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
 		}
 
-		/** Returns if \a p lies on the right side of the line \a a - \a b.
-		 * Uses XZ space. Does not return true if the points are colinear.
-		 */
+		/// <summary>
+		/// Returns if p lies on the right side of the line a - b.
+		/// Uses XZ space. Does not return true if the points are colinear.
+		/// </summary>
 		public static bool RightXZ (Vector3 a, Vector3 b, Vector3 p) {
 			return (b.x - a.x) * (p.z - a.z) - (p.x - a.x) * (b.z - a.z) < -float.Epsilon;
 		}
 
-		/** Returns if \a p lies on the right side of the line \a a - \a b.
-		 * Uses XZ space. Does not return true if the points are colinear.
-		 */
+		/// <summary>
+		/// Returns if p lies on the right side of the line a - b.
+		/// Uses XZ space. Does not return true if the points are colinear.
+		/// </summary>
 		public static bool RightXZ (Int3 a, Int3 b, Int3 p) {
 			return (long)(b.x - a.x) * (long)(p.z - a.z) - (long)(p.x - a.x) * (long)(b.z - a.z) < 0;
 		}
 
-		/** Returns which side of the line \a a - \a b that \a p lies on.
-		 * Uses XZ space.
-		 */
+		/// <summary>
+		/// Returns which side of the line a - b that p lies on.
+		/// Uses XZ space.
+		/// </summary>
 		public static Side SideXZ (Int3 a, Int3 b, Int3 p) {
 			var s = (long)(b.x - a.x) * (long)(p.z - a.z) - (long)(p.x - a.x) * (long)(b.z - a.z);
 
 			return s > 0 ? Side.Left : (s < 0 ? Side.Right : Side.Colinear);
 		}
 
-		/** Returns if \a p lies on the right side of the line \a a - \a b.
-		 * Also returns true if the points are colinear.
-		 */
+		/// <summary>
+		/// Returns if p lies on the right side of the line a - b.
+		/// Also returns true if the points are colinear.
+		/// </summary>
 		public static bool RightOrColinear (Vector2 a, Vector2 b, Vector2 p) {
 			return (b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y) <= 0;
 		}
 
-		/** Returns if \a p lies on the right side of the line \a a - \a b.
-		 * Also returns true if the points are colinear.
-		 */
+		/// <summary>
+		/// Returns if p lies on the right side of the line a - b.
+		/// Also returns true if the points are colinear.
+		/// </summary>
 		public static bool RightOrColinear (Int2 a, Int2 b, Int2 p) {
 			return (long)(b.x - a.x) * (long)(p.y - a.y) - (long)(p.x - a.x) * (long)(b.y - a.y) <= 0;
 		}
 
-		/** Returns if \a p lies on the left side of the line \a a - \a b.
-		 * Uses XZ space. Also returns true if the points are colinear.
-		 */
+		/// <summary>
+		/// Returns if p lies on the left side of the line a - b.
+		/// Uses XZ space. Also returns true if the points are colinear.
+		/// </summary>
 		public static bool RightOrColinearXZ (Vector3 a, Vector3 b, Vector3 p) {
 			return (b.x - a.x) * (p.z - a.z) - (p.x - a.x) * (b.z - a.z) <= 0;
 		}
 
-		/** Returns if \a p lies on the left side of the line \a a - \a b.
-		 * Uses XZ space. Also returns true if the points are colinear.
-		 */
+		/// <summary>
+		/// Returns if p lies on the left side of the line a - b.
+		/// Uses XZ space. Also returns true if the points are colinear.
+		/// </summary>
 		public static bool RightOrColinearXZ (Int3 a, Int3 b, Int3 p) {
 			return (long)(b.x - a.x) * (long)(p.z - a.z) - (long)(p.x - a.x) * (long)(b.z - a.z) <= 0;
 		}
 
-		/** Returns if the points a in a clockwise order.
-		 * Will return true even if the points are colinear or very slightly counter-clockwise
-		 * (if the signed area of the triangle formed by the points has an area less than or equals to float.Epsilon) */
+		/// <summary>
+		/// Returns if the points a in a clockwise order.
+		/// Will return true even if the points are colinear or very slightly counter-clockwise
+		/// (if the signed area of the triangle formed by the points has an area less than or equals to float.Epsilon)
+		/// </summary>
 		public static bool IsClockwiseMarginXZ (Vector3 a, Vector3 b, Vector3 c) {
 			return (b.x-a.x)*(c.z-a.z)-(c.x-a.x)*(b.z-a.z) <= float.Epsilon;
 		}
 
-		/** Returns if the points a in a clockwise order */
+		/// <summary>Returns if the points a in a clockwise order</summary>
 		public static bool IsClockwiseXZ (Vector3 a, Vector3 b, Vector3 c) {
 			return (b.x-a.x)*(c.z-a.z)-(c.x-a.x)*(b.z-a.z) < 0;
 		}
 
-		/** Returns if the points a in a clockwise order */
+		/// <summary>Returns if the points a in a clockwise order</summary>
 		public static bool IsClockwiseXZ (Int3 a, Int3 b, Int3 c) {
 			return RightXZ(a, b, c);
 		}
 
-		/** Returns true if the points a in a clockwise order or if they are colinear */
+		/// <summary>Returns true if the points a in a clockwise order or if they are colinear</summary>
 		public static bool IsClockwiseOrColinearXZ (Int3 a, Int3 b, Int3 c) {
 			return RightOrColinearXZ(a, b, c);
 		}
 
-		/** Returns true if the points a in a clockwise order or if they are colinear */
+		/// <summary>Returns true if the points a in a clockwise order or if they are colinear</summary>
 		public static bool IsClockwiseOrColinear (Int2 a, Int2 b, Int2 c) {
 			return RightOrColinear(a, b, c);
 		}
 
-		/** Returns if the points are colinear (lie on a straight line) */
+		/// <summary>Returns if the points are colinear (lie on a straight line)</summary>
 		public static bool IsColinear (Vector3 a, Vector3 b, Vector3 c) {
 			var lhs = b - a;
 			var rhs = c - a;
@@ -443,7 +463,7 @@ namespace Pathfinding {
 			return v <= 0.0000001f;
 		}
 
-		/** Returns if the points are colinear (lie on a straight line) */
+		/// <summary>Returns if the points are colinear (lie on a straight line)</summary>
 		public static bool IsColinear (Vector2 a, Vector2 b, Vector2 c) {
 			float v = (b.x-a.x)*(c.y-a.y)-(c.x-a.x)*(b.y-a.y);
 
@@ -451,12 +471,12 @@ namespace Pathfinding {
 			return v <= 0.0000001f && v >= -0.0000001f;
 		}
 
-		/** Returns if the points are colinear (lie on a straight line) */
+		/// <summary>Returns if the points are colinear (lie on a straight line)</summary>
 		public static bool IsColinearXZ (Int3 a, Int3 b, Int3 c) {
 			return (long)(b.x - a.x) * (long)(c.z - a.z) - (long)(c.x - a.x) * (long)(b.z - a.z) == 0;
 		}
 
-		/** Returns if the points are colinear (lie on a straight line) */
+		/// <summary>Returns if the points are colinear (lie on a straight line)</summary>
 		public static bool IsColinearXZ (Vector3 a, Vector3 b, Vector3 c) {
 			float v = (b.x-a.x)*(c.z-a.z)-(c.x-a.x)*(b.z-a.z);
 
@@ -464,32 +484,35 @@ namespace Pathfinding {
 			return v <= 0.0000001f && v >= -0.0000001f;
 		}
 
-		/** Returns if the points are colinear (lie on a straight line) */
+		/// <summary>Returns if the points are colinear (lie on a straight line)</summary>
 		public static bool IsColinearAlmostXZ (Int3 a, Int3 b, Int3 c) {
 			long v = (long)(b.x - a.x) * (long)(c.z - a.z) - (long)(c.x - a.x) * (long)(b.z - a.z);
 
 			return v > -1 && v < 1;
 		}
 
-		/** Returns if the line segment \a start2 - \a end2 intersects the line segment \a start1 - \a end1.
-		 * If only the endpoints coincide, the result is undefined (may be true or false).
-		 */
+		/// <summary>
+		/// Returns if the line segment start2 - end2 intersects the line segment start1 - end1.
+		/// If only the endpoints coincide, the result is undefined (may be true or false).
+		/// </summary>
 		public static bool SegmentsIntersect (Int2 start1, Int2 end1, Int2 start2, Int2 end2) {
 			return RightOrColinear(start1, end1, start2) != RightOrColinear(start1, end1, end2) && RightOrColinear(start2, end2, start1) != RightOrColinear(start2, end2, end1);
 		}
 
-		/** Returns if the line segment \a start2 - \a end2 intersects the line segment \a start1 - \a end1.
-		 * If only the endpoints coincide, the result is undefined (may be true or false).
-		 *
-		 * \note XZ space
-		 */
+		/// <summary>
+		/// Returns if the line segment start2 - end2 intersects the line segment start1 - end1.
+		/// If only the endpoints coincide, the result is undefined (may be true or false).
+		///
+		/// Note: XZ space
+		/// </summary>
 		public static bool SegmentsIntersectXZ (Int3 start1, Int3 end1, Int3 start2, Int3 end2) {
 			return RightOrColinearXZ(start1, end1, start2) != RightOrColinearXZ(start1, end1, end2) && RightOrColinearXZ(start2, end2, start1) != RightOrColinearXZ(start2, end2, end1);
 		}
 
-		/** Returns if the two line segments intersects. The lines are NOT treated as infinite (just for clarification)
-		 * \see IntersectionPoint
-		 */
+		/// <summary>
+		/// Returns if the two line segments intersects. The lines are NOT treated as infinite (just for clarification)
+		/// See: IntersectionPoint
+		/// </summary>
 		public static bool SegmentsIntersectXZ (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2) {
 			Vector3 dir1 = end1-start1;
 			Vector3 dir2 = end2-start2;
@@ -512,13 +535,14 @@ namespace Pathfinding {
 			return true;
 		}
 
-		/** Intersection point between two infinite lines.
-		 * Note that start points and directions are taken as parameters instead of start and end points.
-		 * Lines are treated as infinite. If the lines are parallel 'start1' will be returned.
-		 * Intersections are calculated on the XZ plane.
-		 *
-		 * \see LineIntersectionPointXZ
-		 */
+		/// <summary>
+		/// Intersection point between two infinite lines.
+		/// Note that start points and directions are taken as parameters instead of start and end points.
+		/// Lines are treated as infinite. If the lines are parallel 'start1' will be returned.
+		/// Intersections are calculated on the XZ plane.
+		///
+		/// See: LineIntersectionPointXZ
+		/// </summary>
 		public static Vector3 LineDirIntersectionPointXZ (Vector3 start1, Vector3 dir1, Vector3 start2, Vector3 dir2) {
 			float den = dir2.z*dir1.x - dir2.x * dir1.z;
 
@@ -532,13 +556,14 @@ namespace Pathfinding {
 			return start1 + dir1*u;
 		}
 
-		/** Intersection point between two infinite lines.
-		 * Note that start points and directions are taken as parameters instead of start and end points.
-		 * Lines are treated as infinite. If the lines are parallel 'start1' will be returned.
-		 * Intersections are calculated on the XZ plane.
-		 *
-		 * \see LineIntersectionPointXZ
-		 */
+		/// <summary>
+		/// Intersection point between two infinite lines.
+		/// Note that start points and directions are taken as parameters instead of start and end points.
+		/// Lines are treated as infinite. If the lines are parallel 'start1' will be returned.
+		/// Intersections are calculated on the XZ plane.
+		///
+		/// See: LineIntersectionPointXZ
+		/// </summary>
 		public static Vector3 LineDirIntersectionPointXZ (Vector3 start1, Vector3 dir1, Vector3 start2, Vector3 dir2, out bool intersects) {
 			float den = dir2.z*dir1.x - dir2.x * dir1.z;
 
@@ -554,11 +579,12 @@ namespace Pathfinding {
 			return start1 + dir1*u;
 		}
 
-		/** Returns if the ray (start1, end1) intersects the segment (start2, end2).
-		 * false is returned if the lines are parallel.
-		 * Only the XZ coordinates are used.
-		 * \todo Double check that this actually works
-		 */
+		/// <summary>
+		/// Returns if the ray (start1, end1) intersects the segment (start2, end2).
+		/// false is returned if the lines are parallel.
+		/// Only the XZ coordinates are used.
+		/// TODO: Double check that this actually works
+		/// </summary>
 		public static bool RaySegmentIntersectXZ (Int3 start1, Int3 end1, Int3 start2, Int3 end2) {
 			Int3 dir1 = end1-start1;
 			Int3 dir2 = end2-start2;
@@ -590,13 +616,14 @@ namespace Pathfinding {
 			return true;
 		}
 
-		/** Returns the intersection factors for line 1 and line 2. The intersection factors is a distance along the line \a start - \a end where the other line intersects it.\n
-		 * \code intersectionPoint = start1 + factor1 * (end1-start1) \endcode
-		 * \code intersectionPoint2 = start2 + factor2 * (end2-start2) \endcode
-		 * Lines are treated as infinite.\n
-		 * false is returned if the lines are parallel and true if they are not.
-		 * Only the XZ coordinates are used.
-		 */
+		/// <summary>
+		/// Returns the intersection factors for line 1 and line 2. The intersection factors is a distance along the line start - end where the other line intersects it.\n
+		/// <code> intersectionPoint = start1 + factor1 * (end1-start1) </code>
+		/// <code> intersectionPoint2 = start2 + factor2 * (end2-start2) </code>
+		/// Lines are treated as infinite.\n
+		/// false is returned if the lines are parallel and true if they are not.
+		/// Only the XZ coordinates are used.
+		/// </summary>
 		public static bool LineIntersectionFactorXZ (Int3 start1, Int3 end1, Int3 start2, Int3 end2, out float factor1, out float factor2) {
 			Int3 dir1 = end1-start1;
 			Int3 dir2 = end2-start2;
@@ -618,13 +645,14 @@ namespace Pathfinding {
 			return true;
 		}
 
-		/** Returns the intersection factors for line 1 and line 2. The intersection factors is a distance along the line \a start - \a end where the other line intersects it.\n
-		 * \code intersectionPoint = start1 + factor1 * (end1-start1) \endcode
-		 * \code intersectionPoint2 = start2 + factor2 * (end2-start2) \endcode
-		 * Lines are treated as infinite.\n
-		 * false is returned if the lines are parallel and true if they are not.
-		 * Only the XZ coordinates are used.
-		 */
+		/// <summary>
+		/// Returns the intersection factors for line 1 and line 2. The intersection factors is a distance along the line start - end where the other line intersects it.\n
+		/// <code> intersectionPoint = start1 + factor1 * (end1-start1) </code>
+		/// <code> intersectionPoint2 = start2 + factor2 * (end2-start2) </code>
+		/// Lines are treated as infinite.\n
+		/// false is returned if the lines are parallel and true if they are not.
+		/// Only the XZ coordinates are used.
+		/// </summary>
 		public static bool LineIntersectionFactorXZ (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2, out float factor1, out float factor2) {
 			Vector3 dir1 = end1-start1;
 			Vector3 dir2 = end2-start2;
@@ -649,15 +677,17 @@ namespace Pathfinding {
 			return true;
 		}
 
-		/** Returns the intersection factor for line 1 with ray 2.
-		 * The intersection factors is a factor distance along the line \a start - \a end where the other line intersects it.\n
-		 * \code intersectionPoint = start1 + factor * (end1-start1) \endcode
-		 * Lines are treated as infinite.\n
-		 *
-		 * The second "line" is treated as a ray, meaning only matches on start2 or forwards towards end2 (and beyond) will be returned
-		 * If the point lies on the wrong side of the ray start, Nan will be returned.
-		 *
-		 * NaN is returned if the lines are parallel. */
+		/// <summary>
+		/// Returns the intersection factor for line 1 with ray 2.
+		/// The intersection factors is a factor distance along the line start - end where the other line intersects it.\n
+		/// <code> intersectionPoint = start1 + factor * (end1-start1) </code>
+		/// Lines are treated as infinite.\n
+		///
+		/// The second "line" is treated as a ray, meaning only matches on start2 or forwards towards end2 (and beyond) will be returned
+		/// If the point lies on the wrong side of the ray start, Nan will be returned.
+		///
+		/// NaN is returned if the lines are parallel.
+		/// </summary>
 		public static float LineRayIntersectionFactorXZ (Int3 start1, Int3 end1, Int3 start2, Int3 end2) {
 			Int3 dir1 = end1-start1;
 			Int3 dir2 = end2-start2;
@@ -677,11 +707,13 @@ namespace Pathfinding {
 			return (float)nom/den;
 		}
 
-		/** Returns the intersection factor for line 1 with line 2.
-		 * The intersection factor is a distance along the line \a start1 - \a end1 where the line \a start2 - \a end2 intersects it.\n
-		 * \code intersectionPoint = start1 + intersectionFactor * (end1-start1) \endcode.
-		 * Lines are treated as infinite.\n
-		 * -1 is returned if the lines are parallel (note that this is a valid return value if they are not parallel too) */
+		/// <summary>
+		/// Returns the intersection factor for line 1 with line 2.
+		/// The intersection factor is a distance along the line start1 - end1 where the line start2 - end2 intersects it.\n
+		/// <code> intersectionPoint = start1 + intersectionFactor * (end1-start1) </code>.
+		/// Lines are treated as infinite.\n
+		/// -1 is returned if the lines are parallel (note that this is a valid return value if they are not parallel too)
+		/// </summary>
 		public static float LineIntersectionFactorXZ (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2) {
 			Vector3 dir1 = end1-start1;
 			Vector3 dir2 = end2-start2;
@@ -698,14 +730,14 @@ namespace Pathfinding {
 			return u;
 		}
 
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel */
+		/// <summary>Returns the intersection point between the two lines. Lines are treated as infinite. start1 is returned if the lines are parallel</summary>
 		public static Vector3 LineIntersectionPointXZ (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2) {
 			bool s;
 
 			return LineIntersectionPointXZ(start1, end1, start2, end2, out s);
 		}
 
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel */
+		/// <summary>Returns the intersection point between the two lines. Lines are treated as infinite. start1 is returned if the lines are parallel</summary>
 		public static Vector3 LineIntersectionPointXZ (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2, out bool intersects) {
 			Vector3 dir1 = end1-start1;
 			Vector3 dir2 = end2-start2;
@@ -725,14 +757,14 @@ namespace Pathfinding {
 			return start1 + dir1*u;
 		}
 
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel */
+		/// <summary>Returns the intersection point between the two lines. Lines are treated as infinite. start1 is returned if the lines are parallel</summary>
 		public static Vector2 LineIntersectionPoint (Vector2 start1, Vector2 end1, Vector2 start2, Vector2 end2) {
 			bool s;
 
 			return LineIntersectionPoint(start1, end1, start2, end2, out s);
 		}
 
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel */
+		/// <summary>Returns the intersection point between the two lines. Lines are treated as infinite. start1 is returned if the lines are parallel</summary>
 		public static Vector2 LineIntersectionPoint (Vector2 start1, Vector2 end1, Vector2 start2, Vector2 end2, out bool intersects) {
 			Vector2 dir1 = end1-start1;
 			Vector2 dir2 = end2-start2;
@@ -752,10 +784,11 @@ namespace Pathfinding {
 			return start1 + dir1*u;
 		}
 
-		/** Returns the intersection point between the two line segments in XZ space.
-		 * Lines are NOT treated as infinite. \a start1 is returned if the line segments do not intersect
-		 * The point will be returned along the line [start1, end1] (this matters only for the y coordinate).
-		 */
+		/// <summary>
+		/// Returns the intersection point between the two line segments in XZ space.
+		/// Lines are NOT treated as infinite. start1 is returned if the line segments do not intersect
+		/// The point will be returned along the line [start1, end1] (this matters only for the y coordinate).
+		/// </summary>
 		public static Vector3 SegmentIntersectionPointXZ (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2, out bool intersects) {
 			Vector3 dir1 = end1-start1;
 			Vector3 dir2 = end2-start2;
@@ -781,10 +814,11 @@ namespace Pathfinding {
 			return start1 + dir1*u;
 		}
 
-		/** Does the line segment intersect the bounding box.
-		 * The line is NOT treated as infinite.
-		 * \author Slightly modified code from http://www.3dkingdoms.com/weekly/weekly.php?a=21
-		 */
+		/// <summary>
+		/// Does the line segment intersect the bounding box.
+		/// The line is NOT treated as infinite.
+		/// \author Slightly modified code from http://www.3dkingdoms.com/weekly/weekly.php?a=21
+		/// </summary>
 		public static bool SegmentIntersectsBounds (Bounds bounds, Vector3 a, Vector3 b) {
 			// Put segment in box space
 			a -= bounds.center;
@@ -810,17 +844,18 @@ namespace Pathfinding {
 			return true;
 		}
 
-		/** Intersection of a line and a circle.
-		 * Returns the greatest t such that segmentStart+t*(segmentEnd-segmentStart) lies on the circle.
-		 *
-		 * In case the line does not intersect with the circle, the closest point on the line
-		 * to the circle will be returned.
-		 *
-		 * \note Works for line and sphere in 3D space as well.
-		 *
-		 * \see http://mathworld.wolfram.com/Circle-LineIntersection.html
-		 * \see https://en.wikipedia.org/wiki/Intersection_(Euclidean_geometry)#A_line_and_a_circle
-		 */
+		/// <summary>
+		/// Intersection of a line and a circle.
+		/// Returns the greatest t such that segmentStart+t*(segmentEnd-segmentStart) lies on the circle.
+		///
+		/// In case the line does not intersect with the circle, the closest point on the line
+		/// to the circle will be returned.
+		///
+		/// Note: Works for line and sphere in 3D space as well.
+		///
+		/// See: http://mathworld.wolfram.com/Circle-LineIntersection.html
+		/// See: https://en.wikipedia.org/wiki/Intersection_(Euclidean_geometry)<see cref="A_line_and_a_circle"/>
+		/// </summary>
 		public static float LineCircleIntersectionFactor (Vector3 circleCenter, Vector3 linePoint1, Vector3 linePoint2, float radius) {
 			float segmentLength;
 			var normalizedDirection = Normalize(linePoint2 - linePoint1, out segmentLength);
@@ -840,22 +875,23 @@ namespace Pathfinding {
 			return segmentLength > 0.00001f ? t / segmentLength : 1f;
 		}
 
-		/** True if the matrix will reverse orientations of faces.
-		 *
-		 * Scaling by a negative value along an odd number of axes will reverse
-		 * the orientation of e.g faces on a mesh. This must be counter adjusted
-		 * by for example the recast rasterization system to be able to handle
-		 * meshes with negative scales properly.
-		 *
-		 * We can find out if they are flipped by finding out how the signed
-		 * volume of a unit cube is transformed when applying the matrix
-		 *
-		 * If the (signed) volume turns out to be negative
-		 * that also means that the orientation of it has been reversed.
-		 *
-		 * \see https://en.wikipedia.org/wiki/Normal_(geometry)
-		 * \see https://en.wikipedia.org/wiki/Parallelepiped
-		 */
+		/// <summary>
+		/// True if the matrix will reverse orientations of faces.
+		///
+		/// Scaling by a negative value along an odd number of axes will reverse
+		/// the orientation of e.g faces on a mesh. This must be counter adjusted
+		/// by for example the recast rasterization system to be able to handle
+		/// meshes with negative scales properly.
+		///
+		/// We can find out if they are flipped by finding out how the signed
+		/// volume of a unit cube is transformed when applying the matrix
+		///
+		/// If the (signed) volume turns out to be negative
+		/// that also means that the orientation of it has been reversed.
+		///
+		/// See: https://en.wikipedia.org/wiki/Normal_(geometry)
+		/// See: https://en.wikipedia.org/wiki/Parallelepiped
+		/// </summary>
 		public static bool ReversesFaceOrientations (Matrix4x4 matrix) {
 			var dX = matrix.MultiplyVector(new Vector3(1, 0, 0));
 			var dY = matrix.MultiplyVector(new Vector3(0, 1, 0));
@@ -867,26 +903,27 @@ namespace Pathfinding {
 			return volume < 0;
 		}
 
-		/** True if the matrix will reverse orientations of faces in the XZ plane.
-		 * Almost the same as ReversesFaceOrientations, but this method assumes
-		 * that scaling a face with a negative scale along the Y axis does not
-		 * reverse the orientation of the face.
-		 *
-		 * This is used for navmesh cuts.
-		 *
-		 * Scaling by a negative value along one axis or rotating
-		 * it so that it is upside down will reverse
-		 * the orientation of the cut, so we need to be reverse
-		 * it again as a countermeasure.
-		 * However if it is flipped along two axes it does not need to
-		 * be reversed.
-		 * We can handle all these cases by finding out how a unit square formed
-		 * by our forward axis and our rightward axis is transformed in XZ space
-		 * when applying the local to world matrix.
-		 * If the (signed) area of the unit square turns out to be negative
-		 * that also means that the orientation of it has been reversed.
-		 * The signed area is calculated using a cross product of the vectors.
-		 */
+		/// <summary>
+		/// True if the matrix will reverse orientations of faces in the XZ plane.
+		/// Almost the same as ReversesFaceOrientations, but this method assumes
+		/// that scaling a face with a negative scale along the Y axis does not
+		/// reverse the orientation of the face.
+		///
+		/// This is used for navmesh cuts.
+		///
+		/// Scaling by a negative value along one axis or rotating
+		/// it so that it is upside down will reverse
+		/// the orientation of the cut, so we need to be reverse
+		/// it again as a countermeasure.
+		/// However if it is flipped along two axes it does not need to
+		/// be reversed.
+		/// We can handle all these cases by finding out how a unit square formed
+		/// by our forward axis and our rightward axis is transformed in XZ space
+		/// when applying the local to world matrix.
+		/// If the (signed) area of the unit square turns out to be negative
+		/// that also means that the orientation of it has been reversed.
+		/// The signed area is calculated using a cross product of the vectors.
+		/// </summary>
 		public static bool ReversesFaceOrientationsXZ (Matrix4x4 matrix) {
 			var dX = matrix.MultiplyVector(new Vector3(1, 0, 0));
 			var dZ = matrix.MultiplyVector(new Vector3(0, 0, 1));
@@ -897,9 +934,10 @@ namespace Pathfinding {
 			return cross < 0;
 		}
 
-		/** Normalize vector and also return the magnitude.
-		 * This is more efficient than calculating the magnitude and normalizing separately
-		 */
+		/// <summary>
+		/// Normalize vector and also return the magnitude.
+		/// This is more efficient than calculating the magnitude and normalizing separately
+		/// </summary>
 		public static Vector3 Normalize (Vector3 v, out float magnitude) {
 			magnitude = v.magnitude;
 			// This is the same constant that Unity uses
@@ -910,9 +948,10 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Normalize vector and also return the magnitude.
-		 * This is more efficient than calculating the magnitude and normalizing separately
-		 */
+		/// <summary>
+		/// Normalize vector and also return the magnitude.
+		/// This is more efficient than calculating the magnitude and normalizing separately
+		/// </summary>
 		public static Vector2 Normalize (Vector2 v, out float magnitude) {
 			magnitude = v.magnitude;
 			// This is the same constant that Unity uses
@@ -943,101 +982,19 @@ namespace Pathfinding {
 		}
 	}
 
-	/** Utility functions for working with numbers and strings.
-	 * \ingroup utils
-	 * \see Polygon
-	 * \see VectorMath
-	 */
+	/// <summary>
+	/// Utility functions for working with numbers and strings.
+	/// \ingroup utils
+	/// See: Polygon
+	/// See: VectorMath
+	/// </summary>
 	public static class AstarMath {
-		/** Returns the closest point on the line. The line is treated as infinite.
-		 * \see NearestPointStrict
-		 */
-		[System.Obsolete("Use VectorMath.ClosestPointOnLine instead")]
-		public static Vector3 NearestPoint (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
-			return VectorMath.ClosestPointOnLine(lineStart, lineEnd, point);
-		}
-
-		[System.Obsolete("Use VectorMath.ClosestPointOnLineFactor instead")]
-		public static float NearestPointFactor (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
-			return VectorMath.ClosestPointOnLineFactor(lineStart, lineEnd, point);
-		}
-
-		/** Factor of the nearest point on the segment.
-		 * Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
-		 * The closest point can be got by (end-start)*factor + start;
-		 */
-		[System.Obsolete("Use VectorMath.ClosestPointOnLineFactor instead")]
-		public static float NearestPointFactor (Int3 lineStart, Int3 lineEnd, Int3 point) {
-			return VectorMath.ClosestPointOnLineFactor(lineStart, lineEnd, point);
-		}
-
-		/** Factor of the nearest point on the segment.
-		 * Returned value is in the range [0,1] if the point lies on the segment otherwise it just lies on the line.
-		 * The closest point can be got by (end-start)*factor + start;
-		 */
-		[System.Obsolete("Use VectorMath.ClosestPointOnLineFactor instead")]
-		public static float NearestPointFactor (Int2 lineStart, Int2 lineEnd, Int2 point) {
-			return VectorMath.ClosestPointOnLineFactor(lineStart, lineEnd, point);
-		}
-
-		/** Returns the closest point on the line segment. The line is NOT treated as infinite.
-		 * \see NearestPoint
-		 */
-		[System.Obsolete("Use VectorMath.ClosestPointOnSegment instead")]
-		public static Vector3 NearestPointStrict (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
-			return VectorMath.ClosestPointOnSegment(lineStart, lineEnd, point);
-		}
-
-		/** Returns the closest point on the line segment on the XZ plane. The line is NOT treated as infinite.
-		 * \see NearestPoint
-		 */
-		[System.Obsolete("Use VectorMath.ClosestPointOnSegmentXZ instead")]
-		public static Vector3 NearestPointStrictXZ (Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
-			return VectorMath.ClosestPointOnSegmentXZ(lineStart, lineEnd, point);
-		}
-
-		/** Returns the approximate shortest squared distance between x,z and the line p-q.
-		 * The line is considered infinite.
-		 * This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
-		 */
-		[System.Obsolete("Use VectorMath.SqrDistancePointSegmentApproximate instead")]
-		public static float DistancePointSegment (int x, int z, int px, int pz, int qx, int qz) {
-			return VectorMath.SqrDistancePointSegmentApproximate(x, z, px, pz, qx, qz);
-		}
-
-		/** Returns the approximate shortest squared distance between x,z and the line p-q.
-		 * The line is considered infinite.
-		 * This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
-		 */
-		[System.Obsolete("Use VectorMath.SqrDistancePointSegmentApproximate instead")]
-		public static float DistancePointSegment (Int3 a, Int3 b, Int3 p) {
-			return VectorMath.SqrDistancePointSegmentApproximate(a, b, p);
-		}
-
-		/** Returns the squared distance between c and the line a-b. The line is not considered infinite. */
-		[System.Obsolete("Use VectorMath.SqrDistancePointSegment instead")]
-		public static float DistancePointSegmentStrict (Vector3 a, Vector3 b, Vector3 p) {
-			return VectorMath.SqrDistancePointSegment(a, b, p);
-		}
-
-		/** Returns a point on a cubic bezier curve. \a t is clamped between 0 and 1 */
-		[System.Obsolete("Use AstarSplines.CubicBezier instead")]
-		public static Vector3 CubicBezier (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
-			return AstarSplines.CubicBezier(p0, p1, p2, p3, t);
-		}
-
-		/** Maps a value between startMin and startMax to be between 0 and 1 */
-		[System.Obsolete("Use Mathf.InverseLerp instead")]
-		public static float MapTo (float startMin, float startMax, float value) {
-			return Mathf.InverseLerp(startMin, startMax, value);
-		}
-
-		/** Maps a value between startMin and startMax to be between targetMin and targetMax */
+		/// <summary>Maps a value between startMin and startMax to be between targetMin and targetMax</summary>
 		public static float MapTo (float startMin, float startMax, float targetMin, float targetMax, float value) {
 			return Mathf.Lerp(targetMin, targetMax, Mathf.InverseLerp(startMin, startMax, value));
 		}
 
-		/** Returns a nicely formatted string for the number of bytes (KiB, MiB, GiB etc). Uses decimal names (KB, Mb - 1000) but calculates using binary values (KiB, MiB - 1024) */
+		/// <summary>Returns a nicely formatted string for the number of bytes (KiB, MiB, GiB etc). Uses decimal names (KB, Mb - 1000) but calculates using binary values (KiB, MiB - 1024)</summary>
 		public static string FormatBytesBinary (int bytes) {
 			double sign = bytes >= 0 ? 1D : -1D;
 
@@ -1053,16 +1010,18 @@ namespace Pathfinding {
 			return ((bytes/(1024D*1024D*1024D))*sign).ToString("0.0") +" GiB";
 		}
 
-		/** Returns bit number \a b from int \a a. The bit number is zero based. Relevant \a b values are from 0 to 31.
-		 * Equals to (a >> b) & 1
-		 */
+		/// <summary>
+		/// Returns bit number b from int a. The bit number is zero based. Relevant b values are from 0 to 31.
+		/// Equals to (a >> b) & 1
+		/// </summary>
 		static int Bit (int a, int b) {
 			return (a >> b) & 1;
 		}
 
-		/** Returns a nice color from int \a i with alpha \a a. Got code from the open-source Recast project, works really well.
-		 * Seems like there are only 64 possible colors from studying the code
-		 */
+		/// <summary>
+		/// Returns a nice color from int i with alpha a. Got code from the open-source Recast project, works really well.
+		/// Seems like there are only 64 possible colors from studying the code
+		/// </summary>
 		public static Color IntToColor (int i, float a) {
 			int r = Bit(i, 2) + Bit(i, 3) * 2 + 1;
 			int g = Bit(i, 1) + Bit(i, 4) * 2 + 1;
@@ -1071,13 +1030,13 @@ namespace Pathfinding {
 			return new Color(r*0.25F, g*0.25F, b*0.25F, a);
 		}
 
-		/**
-		 * Converts an HSV color to an RGB color.
-		 * According to the algorithm described at http://en.wikipedia.org/wiki/HSL_and_HSV
-		 *
-		 * @author Wikipedia
-		 * @return the RGB representation of the color.
-		 */
+		/// <summary>
+		/// Converts an HSV color to an RGB color.
+		/// According to the algorithm described at http://en.wikipedia.org/wiki/HSL_and_HSV
+		///
+		/// @author Wikipedia
+		/// @return the RGB representation of the color.
+		/// </summary>
 		public static Color HSVToRGB (float h, float s, float v) {
 			float r = 0, g = 0, b = 0;
 
@@ -1113,259 +1072,49 @@ namespace Pathfinding {
 
 			return new Color(r, g, b);
 		}
-
-		/** Squared distance between two points on the XZ plane */
-		[System.Obsolete("Use VectorMath.SqrDistanceXZ instead")]
-		public static float SqrMagnitudeXZ (Vector3 a, Vector3 b) {
-			return VectorMath.SqrDistanceXZ(a, b);
-		}
-
-		/** \deprecated Obsolete */
-		[System.Obsolete("Obsolete", true)]
-		public static float DistancePointSegment2 (int x, int z, int px, int pz, int qx, int qz) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Obsolete */
-		[System.Obsolete("Obsolete", true)]
-		public static float DistancePointSegment2 (Vector3 a, Vector3 b, Vector3 p) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Int3.GetHashCode instead */
-		[System.Obsolete("Use Int3.GetHashCode instead", true)]
-		public static int ComputeVertexHash (int x, int y, int z) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Obsolete */
-		[System.Obsolete("Obsolete", true)]
-		public static float Hermite (float start, float end, float value) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Obsolete */
-		[System.Obsolete("Obsolete", true)]
-		public static float MapToRange (float targetMin, float targetMax, float value) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Obsolete */
-		[System.Obsolete("Obsolete", true)]
-		public static string FormatBytes (int bytes) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Obsolete */
-		[System.Obsolete("Obsolete", true)]
-		public static float MagnitudeXZ (Vector3 a, Vector3 b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Obsolete */
-		[System.Obsolete("Obsolete", true)]
-		public static int Repeat (int i, int n) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Abs instead */
-		[System.Obsolete("Use Mathf.Abs instead", true)]
-		public static float Abs (float a) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Abs instead */
-		[System.Obsolete("Use Mathf.Abs instead", true)]
-		public static int Abs (int a) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Min instead */
-		[System.Obsolete("Use Mathf.Min instead", true)]
-		public static float Min (float a, float b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Min instead */
-		[System.Obsolete("Use Mathf.Min instead", true)]
-		public static int Min (int a, int b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Min instead */
-		[System.Obsolete("Use Mathf.Min instead", true)]
-		public static uint Min (uint a, uint b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Max instead */
-		[System.Obsolete("Use Mathf.Max instead", true)]
-		public static float Max (float a, float b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Max instead */
-		[System.Obsolete("Use Mathf.Max instead", true)]
-		public static int Max (int a, int b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Max instead */
-		[System.Obsolete("Use Mathf.Max instead", true)]
-		public static uint Max (uint a, uint b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Max instead */
-		[System.Obsolete("Use Mathf.Max instead", true)]
-		public static ushort Max (ushort a, ushort b) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Sign instead */
-		[System.Obsolete("Use Mathf.Sign instead", true)]
-		public static float Sign (float a) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Sign instead */
-		[System.Obsolete("Use Mathf.Sign instead", true)]
-		public static int Sign (int a) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Clamp instead */
-		[System.Obsolete("Use Mathf.Clamp instead", true)]
-		public static float Clamp (float a, float b, float c) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Clamp instead */
-		[System.Obsolete("Use Mathf.Clamp instead", true)]
-		public static int Clamp (int a, int b, int c) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Clamp01 instead */
-		[System.Obsolete("Use Mathf.Clamp01 instead", true)]
-		public static float Clamp01 (float a) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Clamp01 instead */
-		[System.Obsolete("Use Mathf.Clamp01 instead", true)]
-		public static int Clamp01 (int a) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.Lerp instead */
-		[System.Obsolete("Use Mathf.Lerp instead", true)]
-		public static float Lerp (float a, float b, float t) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.RoundToInt instead */
-		[System.Obsolete("Use Mathf.RoundToInt instead", true)]
-		public static int RoundToInt (float v) {
-			throw new System.NotImplementedException("Obsolete");
-		}
-
-		/** \deprecated Use Mathf.RoundToInt instead */
-		[System.Obsolete("Use Mathf.RoundToInt instead", true)]
-		public static int RoundToInt (double v) {
-			throw new System.NotImplementedException("Obsolete");
-		}
 	}
 
-	/** Utility functions for working with polygons, lines, and other vector math.
-	 * All functions which accepts Vector3s but work in 2D space uses the XZ space if nothing else is said.
-	 *
-	 * \version A lot of functions in this class have been moved to the VectorMath class
-	 * the names have changed slightly and everything now consistently assumes a left handed
-	 * coordinate system now instead of sometimes using a left handed one and sometimes
-	 * using a right handed one. This is why the 'Left' methods redirect to methods
-	 * named 'Right'. The functionality is exactly the same.
-	 *
-	 * \ingroup utils
-	 */
+	/// <summary>
+	/// Utility functions for working with polygons, lines, and other vector math.
+	/// All functions which accepts Vector3s but work in 2D space uses the XZ space if nothing else is said.
+	///
+	/// Version: A lot of functions in this class have been moved to the VectorMath class
+	/// the names have changed slightly and everything now consistently assumes a left handed
+	/// coordinate system now instead of sometimes using a left handed one and sometimes
+	/// using a right handed one. This is why the 'Left' methods redirect to methods
+	/// named 'Right'. The functionality is exactly the same.
+	///
+	/// \ingroup utils
+	/// </summary>
 	public static class Polygon {
-		/** Signed area of a triangle in the XZ plane multiplied by 2.
-		 * This will be negative for clockwise triangles and positive for counter-clockwise ones */
-		[System.Obsolete("Use VectorMath.SignedTriangleAreaTimes2XZ instead")]
-		public static long TriangleArea2 (Int3 a, Int3 b, Int3 c) {
-			return VectorMath.SignedTriangleAreaTimes2XZ(a, b, c);
-		}
-
-		/** Signed area of a triangle in the XZ plane multiplied by 2.
-		 * This will be negative for clockwise triangles and positive for counter-clockwise ones.
-		 */
-		[System.Obsolete("Use VectorMath.SignedTriangleAreaTimes2XZ instead")]
-		public static float TriangleArea2 (Vector3 a, Vector3 b, Vector3 c) {
-			return VectorMath.SignedTriangleAreaTimes2XZ(a, b, c);
-		}
-
-		/** Signed area of a triangle in the XZ plane multiplied by 2.
-		 * This will be negative for clockwise triangles and positive for counter-clockwise ones.
-		 * This method can handle larger numbers than TriangleArea2(Int3)
-		 */
-		[System.Obsolete("Use TriangleArea2 instead to avoid confusion regarding the factor 2")]
-		public static long TriangleArea (Int3 a, Int3 b, Int3 c) {
-			return TriangleArea2(a, b, c);
-		}
-
-		/** Signed area of a triangle in the XZ plane multiplied by 2.
-		 * This will be negative for clockwise triangles and positive for counter-clockwise ones.
-		 * Idential to TriangleArea2(Vector3), kept for compability.
-		 */
-		[System.Obsolete("Use TriangleArea2 instead to avoid confusion regarding the factor 2")]
-		public static float TriangleArea (Vector3 a, Vector3 b, Vector3 c) {
-			return TriangleArea2(a, b, c);
-		}
-
-		/** Returns if the triangle \a ABC contains the point \a p in XZ space */
-		[System.Obsolete("Use ContainsPointXZ instead")]
-		public static bool ContainsPoint (Vector3 a, Vector3 b, Vector3 c, Vector3 p) {
-			return ContainsPointXZ(a, b, c, p);
-		}
-
-		/** Returns if the triangle \a ABC contains the point \a p in XZ space.
-		 * The triangle vertices are assumed to be laid out in clockwise order.
-		 */
+		/// <summary>
+		/// Returns if the triangle ABC contains the point p in XZ space.
+		/// The triangle vertices are assumed to be laid out in clockwise order.
+		/// </summary>
 		public static bool ContainsPointXZ (Vector3 a, Vector3 b, Vector3 c, Vector3 p) {
 			return VectorMath.IsClockwiseMarginXZ(a, b, p) && VectorMath.IsClockwiseMarginXZ(b, c, p) && VectorMath.IsClockwiseMarginXZ(c, a, p);
 		}
 
-		/** Returns if the triangle \a ABC contains the point \a p */
-		[System.Obsolete("Use ContainsPointXZ instead")]
-		public static bool ContainsPoint (Int3 a, Int3 b, Int3 c, Int3 p) {
-			return ContainsPointXZ(a, b, c, p);
-		}
-
-		/** Returns if the triangle \a ABC contains the point \a p.
-		 * The triangle vertices are assumed to be laid out in clockwise order.
-		 */
+		/// <summary>
+		/// Returns if the triangle ABC contains the point p.
+		/// The triangle vertices are assumed to be laid out in clockwise order.
+		/// </summary>
 		public static bool ContainsPointXZ (Int3 a, Int3 b, Int3 c, Int3 p) {
 			return VectorMath.IsClockwiseOrColinearXZ(a, b, p) && VectorMath.IsClockwiseOrColinearXZ(b, c, p) && VectorMath.IsClockwiseOrColinearXZ(c, a, p);
 		}
 
-		/** Returns if the triangle \a ABC contains the point \a p.
-		 * The triangle vertices are assumed to be laid out in clockwise order.
-		 */
+		/// <summary>
+		/// Returns if the triangle ABC contains the point p.
+		/// The triangle vertices are assumed to be laid out in clockwise order.
+		/// </summary>
 		public static bool ContainsPoint (Int2 a, Int2 b, Int2 c, Int2 p) {
 			return VectorMath.IsClockwiseOrColinear(a, b, p) && VectorMath.IsClockwiseOrColinear(b, c, p) && VectorMath.IsClockwiseOrColinear(c, a, p);
 		}
 
-		/** Checks if \a p is inside the polygon (XZ space)
-		 * \author http://unifycommunity.com/wiki/index.php?title=PolyContainsPoint (Eric5h5)
-		 */
-		[System.Obsolete("Use ContainsPointXZ instead")]
-		public static bool ContainsPoint (Vector3[] polyPoints, Vector3 p) {
-			return ContainsPointXZ(polyPoints, p);
-		}
-
-		/** Checks if \a p is inside the polygon.
-		 * \author http://unifycommunity.com/wiki/index.php?title=PolyContainsPoint (Eric5h5)
-		 */
+		/// <summary>
+		/// Checks if p is inside the polygon.
+		/// \author http://unifycommunity.com/wiki/index.php?title=PolyContainsPoint (Eric5h5)
+		/// </summary>
 		public static bool ContainsPoint (Vector2[] polyPoints, Vector2 p) {
 			int j = polyPoints.Length-1;
 			bool inside = false;
@@ -1378,9 +1127,10 @@ namespace Pathfinding {
 			return inside;
 		}
 
-		/** Checks if \a p is inside the polygon (XZ space).
-		 * \author http://unifycommunity.com/wiki/index.php?title=PolyContainsPoint (Eric5h5)
-		 */
+		/// <summary>
+		/// Checks if p is inside the polygon (XZ space).
+		/// \author http://unifycommunity.com/wiki/index.php?title=PolyContainsPoint (Eric5h5)
+		/// </summary>
 		public static bool ContainsPointXZ (Vector3[] polyPoints, Vector3 p) {
 			int j = polyPoints.Length-1;
 			bool inside = false;
@@ -1393,13 +1143,14 @@ namespace Pathfinding {
 			return inside;
 		}
 
-		/** Sample Y coordinate of the triangle (p1, p2, p3) at the point p in XZ space.
-		 * The y coordinate of \a p is ignored.
-		 *
-		 * \returns The interpolated y coordinate unless the triangle is degenerate in which case a DivisionByZeroException will be thrown
-		 *
-		 * \see https://en.wikipedia.org/wiki/Barycentric_coordinate_system
-		 */
+		/// <summary>
+		/// Sample Y coordinate of the triangle (p1, p2, p3) at the point p in XZ space.
+		/// The y coordinate of p is ignored.
+		///
+		/// Returns: The interpolated y coordinate unless the triangle is degenerate in which case a DivisionByZeroException will be thrown
+		///
+		/// See: https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+		/// </summary>
 		public static int SampleYCoordinateInTriangle (Int3 p1, Int3 p2, Int3 p3, Int3 p) {
 			double det = ((double)(p2.z - p3.z)) * (p1.x - p3.x) + ((double)(p3.x - p2.x)) * (p1.z - p3.z);
 
@@ -1409,292 +1160,12 @@ namespace Pathfinding {
 			return (int)Math.Round(lambda1 * p1.y + lambda2 * p2.y + (1 - lambda1 - lambda2) * p3.y);
 		}
 
-		/** Returns if \a p lies on the left side of the line \a a - \a b. Uses XZ space.
-		 * Does not return true if the points are colinear.
-		 * \deprecated Use VectorMath.RightXZ instead. Note that it now uses a left handed coordinate system (same as Unity)
-		 */
-		[System.Obsolete("Use VectorMath.RightXZ instead. Note that it now uses a left handed coordinate system (same as Unity)")]
-		public static bool LeftNotColinear (Vector3 a, Vector3 b, Vector3 p) {
-			return VectorMath.RightXZ(a, b, p);
-		}
-
-		/** Returns if \a p lies on the left side of the line \a a - \a b. Uses XZ space. Also returns true if the points are colinear
-		 * \deprecated Use VectorMath.RightOrColinearXZ instead. Note that it now uses a left handed coordinate system (same as Unity)
-		 */
-		[System.Obsolete("Use VectorMath.RightOrColinearXZ instead. Note that it now uses a left handed coordinate system (same as Unity)")]
-		public static bool Left (Vector3 a, Vector3 b, Vector3 p) {
-			return VectorMath.RightOrColinearXZ(a, b, p);
-		}
-
-		/** Returns if \a p lies on the left side of the line \a a - \a b. Also returns true if the points are colinear
-		 * \deprecated Use VectorMath.RightOrColinear instead. Note that it now uses a left handed coordinate system (same as Unity)
-		 */
-		[System.Obsolete("Use VectorMath.RightOrColinear instead. Note that it now uses a left handed coordinate system (same as Unity)")]
-		public static bool Left (Vector2 a, Vector2 b, Vector2 p) {
-			return VectorMath.RightOrColinear(a, b, p);
-		}
-
-		/** Returns if \a p lies on the left side of the line \a a - \a b. Uses XZ space. Also returns true if the points are colinear
-		 * \deprecated Use VectorMath.RightOrColinearXZ instead. Note that it now uses a left handed coordinate system (same as Unity)
-		 */
-		[System.Obsolete("Use VectorMath.RightOrColinearXZ instead. Note that it now uses a left handed coordinate system (same as Unity)")]
-		public static bool Left (Int3 a, Int3 b, Int3 p) {
-			return VectorMath.RightOrColinearXZ(a, b, p);
-		}
-
-		/** Returns if \a p lies on the left side of the line \a a - \a b. Uses XZ space.
-		 * \deprecated Use VectorMath.RightXZ instead. Note that it now uses a left handed coordinate system (same as Unity)
-		 */
-		[System.Obsolete("Use VectorMath.RightXZ instead. Note that it now uses a left handed coordinate system (same as Unity)")]
-		public static bool LeftNotColinear (Int3 a, Int3 b, Int3 p) {
-			return VectorMath.RightXZ(a, b, p);
-		}
-
-		/** Returns if \a p lies on the left side of the line \a a - \a b. Also returns true if the points are colinear
-		 * \deprecated Use VectorMath.RightOrColinear instead. Note that it now uses a left handed coordinate system (same as Unity)
-		 */
-		[System.Obsolete("Use VectorMath.RightOrColinear instead. Note that it now uses a left handed coordinate system (same as Unity)")]
-		public static bool Left (Int2 a, Int2 b, Int2 p) {
-			return VectorMath.RightOrColinear(a, b, p);
-		}
-
-		/** Returns if the points a in a clockwise order.
-		 * Will return true even if the points are colinear or very slightly counter-clockwise
-		 * (if the signed area of the triangle formed by the points has an area less than or equals to float.Epsilon)
-		 * \deprecated Use VectorMath.IsClockwiseMarginXZ instead
-		 */
-		[System.Obsolete("Use VectorMath.IsClockwiseMarginXZ instead")]
-		public static bool IsClockwiseMargin (Vector3 a, Vector3 b, Vector3 c) {
-			return VectorMath.IsClockwiseMarginXZ(a, b, c);
-		}
-
-		/** Returns if the points a in a clockwise order
-		 * \deprecated Use VectorMath.IsClockwiseXZ instead
-		 */
-		[System.Obsolete("Use VectorMath.IsClockwiseXZ instead")]
-		public static bool IsClockwise (Vector3 a, Vector3 b, Vector3 c) {
-			return VectorMath.IsClockwiseXZ(a, b, c);
-		}
-
-		/** Returns if the points a in a clockwise order
-		 * \deprecated Use VectorMath.IsClockwiseXZ instead
-		 */
-		[System.Obsolete("Use VectorMath.IsClockwiseXZ instead")]
-		public static bool IsClockwise (Int3 a, Int3 b, Int3 c) {
-			return VectorMath.IsClockwiseXZ(a, b, c);
-		}
-
-		/** Returns true if the points a in a clockwise order or if they are colinear
-		 * \deprecated Use VectorMath.IsClockwiseOrColinearXZ instead
-		 */
-		[System.Obsolete("Use VectorMath.IsClockwiseOrColinearXZ instead")]
-		public static bool IsClockwiseMargin (Int3 a, Int3 b, Int3 c) {
-			return VectorMath.IsClockwiseOrColinearXZ(a, b, c);
-		}
-
-		/** Returns true if the points a in a clockwise order or if they are colinear
-		 * \deprecated Use VectorMath.IsClockwiseOrColinear instead
-		 */
-		[System.Obsolete("Use VectorMath.IsClockwiseOrColinear instead")]
-		public static bool IsClockwiseMargin (Int2 a, Int2 b, Int2 c) {
-			return VectorMath.IsClockwiseOrColinear(a, b, c);
-		}
-
-		/** Returns if the points are colinear (lie on a straight line)
-		 * \deprecated Use VectorMath.IsColinearXZ instead
-		 */
-		[System.Obsolete("Use VectorMath.IsColinearXZ instead")]
-		public static bool IsColinear (Int3 a, Int3 b, Int3 c) {
-			return VectorMath.IsColinearXZ(a, b, c);
-		}
-
-		/** Returns if the points are colinear (lie on a straight line)
-		 * \deprecated Use VectorMath.IsColinearAlmostXZ instead
-		 */
-		[System.Obsolete("Use VectorMath.IsColinearAlmostXZ instead")]
-		public static bool IsColinearAlmost (Int3 a, Int3 b, Int3 c) {
-			return VectorMath.IsColinearAlmostXZ(a, b, c);
-		}
-
-		/** Returns if the points are colinear (lie on a straight line)
-		 * \deprecated Use VectorMath.IsColinearXZ instead
-		 */
-		[System.Obsolete("Use VectorMath.IsColinearXZ instead")]
-		public static bool IsColinear (Vector3 a, Vector3 b, Vector3 c) {
-			return VectorMath.IsColinearXZ(a, b, c);
-		}
-
-		/** Returns if the line segment \a a2 - \a b2 intersects the infinite line \a a - \a b. a-b is infinite, a2-b2 is not infinite */
-		[System.Obsolete("Marked for removal since it is not used by any part of the A* Pathfinding Project")]
-		public static bool IntersectsUnclamped (Vector3 a, Vector3 b, Vector3 a2, Vector3 b2) {
-			return VectorMath.RightOrColinearXZ(a, b, a2) != VectorMath.RightOrColinearXZ(a, b, b2);
-		}
-
-		/** Returns if the line segment \a a2 - \a b2 intersects the line segment \a a - \a b.
-		 * If only the endpoints coincide, the result is undefined (may be true or false).
-		 *
-		 * \deprecated Use VectorMath.SegmentsIntersect instead */
-		[System.Obsolete("Use VectorMath.SegmentsIntersect instead")]
-		public static bool Intersects (Int2 start1, Int2 end1, Int2 start2, Int2 end2) {
-			return VectorMath.SegmentsIntersect(start1, end1, start2, end2);
-		}
-
-		/** Returns if the line segment \a a2 - \a b2 intersects the line segment \a a - \a b.
-		 * If only the endpoints coincide, the result is undefined (may be true or false).
-		 *
-		 * \note XZ space
-		 *
-		 * \deprecated Use VectorMath.SegmentsIntersectXZ instead */
-		[System.Obsolete("Use VectorMath.SegmentsIntersectXZ instead")]
-		public static bool Intersects (Int3 start1, Int3 end1, Int3 start2, Int3 end2) {
-			return VectorMath.SegmentsIntersectXZ(start1, end1, start2, end2);
-		}
-
-		/** Returns if the two line segments intersects. The lines are NOT treated as infinite (just for clarification)
-		 * \see IntersectionPoint
-		 *
-		 * \deprecated Use VectorMath.SegmentsIntersectXZ instead */
-		[System.Obsolete("Use VectorMath.SegmentsIntersectXZ instead")]
-		public static bool Intersects (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2) {
-			return VectorMath.SegmentsIntersectXZ(start1, end1, start2, end2);
-		}
-
-		/** Intersection point between two infinite lines.
-		 * Lines are treated as infinite. If the lines are parallel 'start1' will be returned. Intersections are calculated on the XZ plane.
-		 *
-		 * \deprecated Use VectorMath.LineDirIntersectionPointXZ instead */
-		[System.Obsolete("Use VectorMath.LineDirIntersectionPointXZ instead")]
-		public static Vector3 IntersectionPointOptimized (Vector3 start1, Vector3 dir1, Vector3 start2, Vector3 dir2) {
-			return VectorMath.LineDirIntersectionPointXZ(start1, dir1, start2, dir2);
-		}
-
-		/** Intersection point between two infinite lines.
-		 * Lines are treated as infinite. If the lines are parallel 'start1' will be returned. Intersections are calculated on the XZ plane.
-		 *
-		 * \deprecated Use VectorMath.LineDirIntersectionPointXZ instead */
-		[System.Obsolete("Use VectorMath.LineDirIntersectionPointXZ instead")]
-		public static Vector3 IntersectionPointOptimized (Vector3 start1, Vector3 dir1, Vector3 start2, Vector3 dir2, out bool intersects) {
-			return VectorMath.LineDirIntersectionPointXZ(start1, dir1, start2, dir2, out intersects);
-		}
-
-		/** Returns if the ray (start1, end1) intersects the segment (start2, end2).
-		 * false is returned if the lines are parallel.
-		 * Only the XZ coordinates are used.
-		 * \todo Double check that this actually works
-		 *
-		 * \deprecated Use VectorMath.RaySegmentIntersectXZ instead */
-		[System.Obsolete("Use VectorMath.RaySegmentIntersectXZ instead")]
-		public static bool IntersectionFactorRaySegment (Int3 start1, Int3 end1, Int3 start2, Int3 end2) {
-			return VectorMath.RaySegmentIntersectXZ(start1, end1, start2, end2);
-		}
-
-		/** Returns the intersection factors for line 1 and line 2. The intersection factors is a distance along the line \a start - \a end where the other line intersects it.\n
-		 * \code intersectionPoint = start1 + factor1 * (end1-start1) \endcode
-		 * \code intersectionPoint2 = start2 + factor2 * (end2-start2) \endcode
-		 * Lines are treated as infinite.\n
-		 * false is returned if the lines are parallel and true if they are not.
-		 * Only the XZ coordinates are used.
-		 *
-		 * \deprecated Use VectorMath.LineIntersectionFactorXZ instead */
-		[System.Obsolete("Use VectorMath.LineIntersectionFactorXZ instead")]
-		public static bool IntersectionFactor (Int3 start1, Int3 end1, Int3 start2, Int3 end2, out float factor1, out float factor2) {
-			return VectorMath.LineIntersectionFactorXZ(start1, end1, start2, end2, out factor1, out factor2);
-		}
-
-		/** Returns the intersection factors for line 1 and line 2. The intersection factors is a distance along the line \a start - \a end where the other line intersects it.\n
-		 * \code intersectionPoint = start1 + factor1 * (end1-start1) \endcode
-		 * \code intersectionPoint2 = start2 + factor2 * (end2-start2) \endcode
-		 * Lines are treated as infinite.\n
-		 * false is returned if the lines are parallel and true if they are not.
-		 * Only the XZ coordinates are used.
-		 *
-		 * \deprecated Use VectorMath.LineIntersectionFactorXZ instead */
-		[System.Obsolete("Use VectorMath.LineIntersectionFactorXZ instead")]
-		public static bool IntersectionFactor (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2, out float factor1, out float factor2) {
-			return VectorMath.LineIntersectionFactorXZ(start1, end1, start2, end2, out factor1, out factor2);
-		}
-
-		/** Returns the intersection factor for line 1 with ray 2.
-		 * The intersection factors is a factor distance along the line \a start - \a end where the other line intersects it.\n
-		 * \code intersectionPoint = start1 + factor * (end1-start1) \endcode
-		 * Lines are treated as infinite.\n
-		 *
-		 * The second "line" is treated as a ray, meaning only matches on start2 or forwards towards end2 (and beyond) will be returned
-		 * If the point lies on the wrong side of the ray start, Nan will be returned.
-		 *
-		 * NaN is returned if the lines are parallel. *
-		 * \deprecated Use VectorMath.LineRayIntersectionFactorXZ instead */
-		[System.Obsolete("Use VectorMath.LineRayIntersectionFactorXZ instead")]
-		public static float IntersectionFactorRay (Int3 start1, Int3 end1, Int3 start2, Int3 end2) {
-			return VectorMath.LineRayIntersectionFactorXZ(start1, end1, start2, end2);
-		}
-
-		/** Returns the intersection factor for line 1 with line 2.
-		 * The intersection factor is a distance along the line \a start1 - \a end1 where the line \a start2 - \a end2 intersects it.\n
-		 * \code intersectionPoint = start1 + intersectionFactor * (end1-start1) \endcode.
-		 * Lines are treated as infinite.\n
-		 * -1 is returned if the lines are parallel (note that this is a valid return value if they are not parallel too) *
-		 * \deprecated Use VectorMath.LineIntersectionFactorXZ instead */
-		[System.Obsolete("Use VectorMath.LineIntersectionFactorXZ instead")]
-		public static float IntersectionFactor (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2) {
-			return VectorMath.LineIntersectionFactorXZ(start1, end1, start2, end2);
-		}
-
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel
-		 * \deprecated Use VectorMath.LineIntersectionPointXZ instead */
-		[System.Obsolete("Use VectorMath.LineIntersectionPointXZ instead")]
-		public static Vector3 IntersectionPoint (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2) {
-			return VectorMath.LineIntersectionPointXZ(start1, end1, start2, end2);
-		}
-
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel
-		 * \deprecated Use VectorMath.LineIntersectionPointXZ instead */
-		[System.Obsolete("Use VectorMath.LineIntersectionPointXZ instead")]
-		public static Vector3 IntersectionPoint (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2, out bool intersects) {
-			return VectorMath.LineIntersectionPointXZ(start1, end1, start2, end2, out intersects);
-		}
-
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel
-		 * \deprecated Use VectorMath.LineIntersectionPoint instead */
-		[System.Obsolete("Use VectorMath.LineIntersectionPoint instead")]
-		public static Vector2 IntersectionPoint (Vector2 start1, Vector2 end1, Vector2 start2, Vector2 end2) {
-			return VectorMath.LineIntersectionPoint(start1, end1, start2, end2);
-		}
-
-		/** Returns the intersection point between the two lines. Lines are treated as infinite. \a start1 is returned if the lines are parallel
-		 * \deprecated Use VectorMath.LineIntersectionPoint instead */
-		[System.Obsolete("Use VectorMath.LineIntersectionPoint instead")]
-		public static Vector2 IntersectionPoint (Vector2 start1, Vector2 end1, Vector2 start2, Vector2 end2, out bool intersects) {
-			return VectorMath.LineIntersectionPoint(start1, end1, start2, end2, out intersects);
-		}
-
-		/** Returns the intersection point between the two line segments in XZ space.
-		 * Lines are NOT treated as infinite. \a start1 is returned if the line segments do not intersect
-		 * The point will be returned along the line [start1, end1] (this matters only for the y coordinate).
-		 *
-		 * \deprecated Use VectorMath.SegmentIntersectionPointXZ instead */
-		[System.Obsolete("Use VectorMath.SegmentIntersectionPointXZ instead")]
-		public static Vector3 SegmentIntersectionPoint (Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2, out bool intersects) {
-			return VectorMath.SegmentIntersectionPointXZ(start1, end1, start2, end2, out intersects);
-		}
-
-		/** Calculates convex hull in XZ space for the points.
-		 * Implemented using the very simple Gift Wrapping Algorithm
-		 * which has a complexity of O(nh) where \a n is the number of points and \a h is the number of points on the hull,
-		 * so it is in the worst case quadratic.
-		 *
-		 * \deprecated Use ConvexHullXZ instead
-		 */
-		[System.Obsolete("Use ConvexHullXZ instead")]
-		public static Vector3[] ConvexHull (Vector3[] points) {
-			return ConvexHullXZ(points);
-		}
-
-		/** Calculates convex hull in XZ space for the points.
-		 * Implemented using the very simple Gift Wrapping Algorithm
-		 * which has a complexity of O(nh) where \a n is the number of points and \a h is the number of points on the hull,
-		 * so it is in the worst case quadratic.
-		 */
+		/// <summary>
+		/// Calculates convex hull in XZ space for the points.
+		/// Implemented using the very simple Gift Wrapping Algorithm
+		/// which has a complexity of O(nh) where n is the number of points and h is the number of points on the hull,
+		/// so it is in the worst case quadratic.
+		/// </summary>
 		public static Vector3[] ConvexHullXZ (Vector3[] points) {
 			if (points.Length == 0) return new Vector3[0];
 
@@ -1727,30 +1198,10 @@ namespace Pathfinding {
 			return result;
 		}
 
-		/** Does the line segment intersect the bounding box.
-		 * The line is NOT treated as infinite.
-		 * \author Slightly modified code from http://www.3dkingdoms.com/weekly/weekly.php?a=21
-		 *
-		 * \deprecated Use VectorMath.SegmentIntersectsBounds instead
-		 */
-		[System.Obsolete("Use VectorMath.SegmentIntersectsBounds instead")]
-		public static bool LineIntersectsBounds (Bounds bounds, Vector3 a, Vector3 b) {
-			return VectorMath.SegmentIntersectsBounds(bounds, a, b);
-		}
-
-		/** Returns the closest point on the triangle. The \a triangle array must have a length of at least 3.
-		 * \see ClosesPointOnTriangle(Vector3,Vector3,Vector3,Vector3);
-		 *
-		 * \deprecated Scheduled for removal since it is not used by any part of the A* Pathfinding Project
-		 */
-		[System.Obsolete("Scheduled for removal since it is not used by any part of the A* Pathfinding Project")]
-		public static Vector3 ClosestPointOnTriangle (Vector3[] triangle, Vector3 point) {
-			return ClosestPointOnTriangle(triangle[0], triangle[1], triangle[2], point);
-		}
-
-		/** Closest point on the triangle \a abc to the point \a p.
-		 * \see 'Real Time Collision Detection' by Christer Ericson, chapter 5.1, page 141
-		 */
+		/// <summary>
+		/// Closest point on the triangle abc to the point p.
+		/// See: 'Real Time Collision Detection' by Christer Ericson, chapter 5.1, page 141
+		/// </summary>
 		public static Vector2 ClosestPointOnTriangle (Vector2 a, Vector2 b, Vector2 c, Vector2 p) {
 			// Check if p is in vertex region outside A
 			var ab = b - a;
@@ -1817,9 +1268,10 @@ namespace Pathfinding {
 			return p;
 		}
 
-		/** Closest point on the triangle \a abc to the point \a p when seen from above.
-		 * \see 'Real Time Collision Detection' by Christer Ericson, chapter 5.1, page 141
-		 */
+		/// <summary>
+		/// Closest point on the triangle abc to the point p when seen from above.
+		/// See: 'Real Time Collision Detection' by Christer Ericson, chapter 5.1, page 141
+		/// </summary>
 		public static Vector3 ClosestPointOnTriangleXZ (Vector3 a, Vector3 b, Vector3 c, Vector3 p) {
 			// Check if p is in vertex region outside A
 			var ab = new Vector2(b.x - a.x, b.z - a.z);
@@ -1886,9 +1338,10 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Closest point on the triangle \a abc to the point \a p.
-		 * \see 'Real Time Collision Detection' by Christer Ericson, chapter 5.1, page 141
-		 */
+		/// <summary>
+		/// Closest point on the triangle abc to the point p.
+		/// See: 'Real Time Collision Detection' by Christer Ericson, chapter 5.1, page 141
+		/// </summary>
 		public static Vector3 ClosestPointOnTriangle (Vector3 a, Vector3 b, Vector3 c, Vector3 p) {
 			// Check if p is in vertex region outside A
 			var ab = b - a;
@@ -1952,30 +1405,19 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Get the 3D minimum distance between 2 segments
-		 * Input:  two 3D line segments S1 and S2
-		 * \returns the shortest squared distance between S1 and S2
-		 *
-		 * \deprecated Use VectorMath.SqrDistanceSegmentSegment instead
-		 */
-		[System.Obsolete("Use VectorMath.SqrDistanceSegmentSegment instead")]
-		public static float DistanceSegmentSegment3D (Vector3 s1, Vector3 e1, Vector3 s2, Vector3 e2) {
-			return VectorMath.SqrDistanceSegmentSegment(s1, e1, s2, e2);
-		}
-
-		/** Cached dictionary to avoid excessive allocations */
+		/// <summary>Cached dictionary to avoid excessive allocations</summary>
 		static readonly Dictionary<Int3, int> cached_Int3_int_dict = new Dictionary<Int3, int>();
 
-		/** Compress the mesh by removing duplicate vertices.
-		 *
-		 * \param vertices Vertices of the input mesh
-		 * \param triangles Triangles of the input mesh
-		 * \param outVertices Vertices of the output mesh.
-		 * \param outTriangles Triangles of the output mesh.
-		 *
-		 * Vertices that differ by only 1 along the y coordinate will also be merged together.
-		 * \warning This function is not threadsafe. It uses some cached structures to reduce allocations.
-		 */
+		/// <summary>
+		/// Compress the mesh by removing duplicate vertices.
+		///
+		/// Vertices that differ by only 1 along the y coordinate will also be merged together.
+		/// Warning: This function is not threadsafe. It uses some cached structures to reduce allocations.
+		/// </summary>
+		/// <param name="vertices">Vertices of the input mesh</param>
+		/// <param name="triangles">Triangles of the input mesh</param>
+		/// <param name="outVertices">Vertices of the output mesh.</param>
+		/// <param name="outTriangles">Triangles of the output mesh.</param>
 		public static void CompressMesh (List<Int3> vertices, List<int> triangles, out Int3[] outVertices, out int[] outTriangles) {
 			Dictionary<Int3, int> firstVerts = cached_Int3_int_dict;
 			firstVerts.Clear();
@@ -2018,13 +1460,14 @@ namespace Pathfinding {
 			ArrayPool<int>.Release(ref compressedPointers);
 		}
 
-		/** Given a set of edges between vertices, follows those edges and returns them as chains and cycles.
-		 * \param outline outline[a] = b if there is an edge from \a a to \a b.
-		 * \param hasInEdge \a hasInEdge should contain \a b if outline[a] = b for any key \a a.
-		 * \param results Will be called once for each contour with the contour as a parameter as well as a boolean indicating if the contour is a cycle or a chain (see image).
-		 *
-		 * \shadowimage{grid_contour_compressed.png}
-		 */
+		/// <summary>
+		/// Given a set of edges between vertices, follows those edges and returns them as chains and cycles.
+		///
+		/// [Open online documentation to see images]
+		/// </summary>
+		/// <param name="outline">outline[a] = b if there is an edge from a to b.</param>
+		/// <param name="hasInEdge">hasInEdge should contain b if outline[a] = b for any key a.</param>
+		/// <param name="results">Will be called once for each contour with the contour as a parameter as well as a boolean indicating if the contour is a cycle or a chain (see image).</param>
 		public static void TraceContours (Dictionary<int, int> outline, HashSet<int> hasInEdge, System.Action<List<int>, bool> results) {
 			// Iterate through chains of the navmesh outline.
 			// I.e segments of the outline that are not loops
@@ -2072,7 +1515,7 @@ namespace Pathfinding {
 			ListPool<int>.Release(ref obstacleVertices);
 		}
 
-		/** Divides each segment in the list into \a subSegments segments and fills the result list with the new points */
+		/// <summary>Divides each segment in the list into subSegments segments and fills the result list with the new points</summary>
 		public static void Subdivide (List<Vector3> points, List<Vector3> result, int subSegments) {
 			for (int i = 0; i < points.Count-1; i++)
 				for (int j = 0; j < subSegments; j++)

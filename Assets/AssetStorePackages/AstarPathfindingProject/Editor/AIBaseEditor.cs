@@ -5,53 +5,85 @@ namespace Pathfinding {
 	[CustomEditor(typeof(AIBase), true)]
 	[CanEditMultipleObjects]
 	public class BaseAIEditor : EditorBase {
-		protected SerializedProperty gravity, groundMask, centerOffset, rotationIn2D, acceleration;
 		float lastSeenCustomGravity = float.NegativeInfinity;
 
-		protected override void OnEnable () {
-			base.OnEnable();
-			gravity = serializedObject.FindProperty("gravity");
-			groundMask = serializedObject.FindProperty("groundMask");
-			centerOffset = serializedObject.FindProperty("centerOffset");
-			rotationIn2D = serializedObject.FindProperty("rotationIn2D");
-			acceleration = serializedObject.FindProperty("maxAcceleration");
-		}
-
 		protected override void Inspector () {
-			// Iterate over all properties of the script
-			var p = serializedObject.GetIterator();
+			var isAIPath = typeof(AIPath).IsAssignableFrom(target.GetType());
 
-			p.Next(true);
-			while (p.NextVisible(false)) {
-				if (!SerializedProperty.EqualContents(p, groundMask) && !SerializedProperty.EqualContents(p, centerOffset) && !SerializedProperty.EqualContents(p, gravity) && !SerializedProperty.EqualContents(p, rotationIn2D)) {
-					if (SerializedProperty.EqualContents(p, acceleration) && typeof(AIPath).IsAssignableFrom(target.GetType())) {
-						EditorGUI.BeginChangeCheck();
-						int grav = acceleration.hasMultipleDifferentValues ? -1 : (acceleration.floatValue >= 0 ? 1 : 0);
-						var ngrav = EditorGUILayout.Popup("Max Acceleration", grav, new [] { "Default", "Custom" });
-						if (EditorGUI.EndChangeCheck()) {
-							if (ngrav == 0) acceleration.floatValue = -2.5f;
-							else if (acceleration.floatValue < 0) acceleration.floatValue = 10;
-						}
+			Section("Shape");
+			FloatField("radius", min: 0.01f);
+			FloatField("height", min: 0.01f);
 
-						if (!acceleration.hasMultipleDifferentValues && ngrav == 1) {
-							EditorGUI.indentLevel++;
-							PropertyField(acceleration.propertyPath);
-							EditorGUI.indentLevel--;
-							acceleration.floatValue = Mathf.Max(acceleration.floatValue, 0.01f);
-						}
-					} else {
-						PropertyField(p);
-					}
-				}
+			Section("Pathfinding");
+			if (PropertyField("canSearch")) {
+				EditorGUI.indentLevel++;
+				FloatField("repathRate", min: 0f);
+				EditorGUI.indentLevel--;
 			}
 
-			PropertyField(rotationIn2D);
+			Section("Movement");
+
+			PropertyField("canMove");
+			FloatField("maxSpeed", min: 0f);
+
+			if (isAIPath) {
+				EditorGUI.BeginChangeCheck();
+				var acceleration = FindProperty("maxAcceleration");
+				int acc = acceleration.hasMultipleDifferentValues ? -1 : (acceleration.floatValue >= 0 ? 1 : 0);
+				var nacc = EditorGUILayout.Popup("Max Acceleration", acc, new [] { "Default", "Custom" });
+				if (EditorGUI.EndChangeCheck()) {
+					if (nacc == 0) acceleration.floatValue = -2.5f;
+					else if (acceleration.floatValue < 0) acceleration.floatValue = 10;
+				}
+
+				if (!acceleration.hasMultipleDifferentValues && nacc == 1) {
+					EditorGUI.indentLevel++;
+					PropertyField(acceleration.propertyPath);
+					EditorGUI.indentLevel--;
+					acceleration.floatValue = Mathf.Max(acceleration.floatValue, 0.01f);
+				}
+
+				Popup("orientation", new [] { new GUIContent("ZAxisForward (for 3D games)"), new GUIContent("YAxisForward (for 2D games)") });
+			} else {
+				FloatField("acceleration", min: 0f);
+
+				// The RichAI script doesn't really support any orientation other than Z axis forward, so don't expose it in the inspector
+				FindProperty("orientation").enumValueIndex = (int)OrientationMode.ZAxisForward;
+			}
+
+			if (PropertyField("enableRotation")) {
+				EditorGUI.indentLevel++;
+				FloatField("rotationSpeed", min: 0f);
+				PropertyField("slowWhenNotFacingTarget");
+				EditorGUI.indentLevel--;
+			}
+
+			if (isAIPath) {
+				FloatField("pickNextWaypointDist", min: 0f);
+				FloatField("slowdownDistance", min: 0f);
+			} else {
+				FloatField("slowdownTime", min: 0f);
+				FloatField("wallForce", min: 0f);
+				FloatField("wallDist", min: 0f);
+				PropertyField("funnelSimplification");
+			}
+
+			FloatField("endReachedDistance", min: 0f);
+
+			if (isAIPath) {
+				PropertyField("alwaysDrawGizmos");
+				PropertyField("whenCloseToDestination");
+				PropertyField("constrainInsideGraph");
+			}
 
 			var mono = target as MonoBehaviour;
 			var rigid = mono.GetComponent<Rigidbody>();
 			var rigid2D = mono.GetComponent<Rigidbody2D>();
 			var controller = mono.GetComponent<CharacterController>();
 			var canUseGravity = (controller != null && controller.enabled) || ((rigid == null || rigid.isKinematic) && (rigid2D == null || rigid2D.isKinematic));
+
+			var gravity = FindProperty("gravity");
+			var groundMask = FindProperty("groundMask");
 
 			if (canUseGravity) {
 				EditorGUI.BeginChangeCheck();
@@ -76,7 +108,6 @@ namespace Pathfinding {
 
 						if (controller == null || !controller.enabled) {
 							PropertyField(groundMask.propertyPath, "Raycast Ground Mask");
-							PropertyField(centerOffset.propertyPath, "Raycast Center Offset");
 						}
 
 						EditorGUI.indentLevel--;

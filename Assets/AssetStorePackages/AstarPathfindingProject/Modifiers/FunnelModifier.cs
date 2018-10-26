@@ -5,42 +5,45 @@ using Pathfinding.Util;
 namespace Pathfinding {
 	[AddComponentMenu("Pathfinding/Modifiers/Funnel")]
 	[System.Serializable]
-	/** Simplifies paths on navmesh graphs using the funnel algorithm.
-	 * The funnel algorithm is an algorithm which can, given a path corridor with nodes in the path where the nodes have an area, like triangles, it can find the shortest path inside it.
-	 * This makes paths on navmeshes look much cleaner and smoother.
-	 * \shadowimage{funnelModifier_on.png}
-	 *
-	 * The funnel modifier also works on grid graphs however since it only simplifies the paths within the nodes which the original path visited it may not always
-	 * simplify the path as much as you would like it to. The \link Pathfinding.RaycastModifier RaycastModifier\endlink can be a better fit for grid graphs.
-	 * \shadowimage{funnel_on_grid.png}
-	 *
-	 * \ingroup modifiers
-	 * \see http://digestingduck.blogspot.se/2010/03/simple-stupid-funnel-algorithm.html
-	 */
+	/// <summary>
+	/// Simplifies paths on navmesh graphs using the funnel algorithm.
+	/// The funnel algorithm is an algorithm which can, given a path corridor with nodes in the path where the nodes have an area, like triangles, it can find the shortest path inside it.
+	/// This makes paths on navmeshes look much cleaner and smoother.
+	/// [Open online documentation to see images]
+	///
+	/// The funnel modifier also works on grid graphs however since it only simplifies the paths within the nodes which the original path visited it may not always
+	/// simplify the path as much as you would like it to. The <see cref="Pathfinding.RaycastModifier"/> can be a better fit for grid graphs.
+	/// [Open online documentation to see images]
+	///
+	/// \ingroup modifiers
+	/// See: http://digestingduck.blogspot.se/2010/03/simple-stupid-funnel-algorithm.html
+	/// </summary>
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_funnel_modifier.php")]
 	public class FunnelModifier : MonoModifier {
-		/** Determines if twists and bends should be straightened out before running the funnel algorithm.
-		 * If the unwrap option is disabled the funnel will simply be projected onto the XZ plane.
-		 * If the unwrap option is enabled then the funnel may be oriented arbitrarily and may have twists and bends.
-		 * This makes it possible to support the funnel algorithm in XY space as well as in more complicated cases, such
-		 * as on curved worlds.
-		 *
-		 * \note This has a performance overhead, so if you do not need it you can disable it to improve
-		 * performance.
-		 *
-		 * \shadowimage{funnel_unwrap_illustration.png}
-		 *
-		 * \see #Pathfinding.Funnel.Unwrap for more example images.
-		 *
-		 * \note This is required if you want to use the funnel modifier for 2D games (i.e in the XY plane).
-		 */
+		/// <summary>
+		/// Determines if twists and bends should be straightened out before running the funnel algorithm.
+		/// If the unwrap option is disabled the funnel will simply be projected onto the XZ plane.
+		/// If the unwrap option is enabled then the funnel may be oriented arbitrarily and may have twists and bends.
+		/// This makes it possible to support the funnel algorithm in XY space as well as in more complicated cases, such
+		/// as on curved worlds.
+		///
+		/// Note: This has a performance overhead, so if you do not need it you can disable it to improve
+		/// performance.
+		///
+		/// [Open online documentation to see images]
+		///
+		/// See: <see cref="Pathfinding.Funnel.Unwrap"/> for more example images.
+		///
+		/// Note: This is required if you want to use the funnel modifier for 2D games (i.e in the XY plane).
+		/// </summary>
 		public bool unwrap = true;
 
-		/** Insert a vertex every time the path crosses a portal instead of only at the corners of the path.
-		 * The resulting path will have exactly one vertex per portal if this is enabled.
-		 * This may introduce vertices with the same position in the output (esp. in corners where many portals meet).
-		 * \shadowimage{funnel_split_at_every_portal.png}
-		 */
+		/// <summary>
+		/// Insert a vertex every time the path crosses a portal instead of only at the corners of the path.
+		/// The resulting path will have exactly one vertex per portal if this is enabled.
+		/// This may introduce vertices with the same position in the output (esp. in corners where many portals meet).
+		/// [Open online documentation to see images]
+		/// </summary>
 		public bool splitAtEveryPortal;
 
 	#if UNITY_EDITOR

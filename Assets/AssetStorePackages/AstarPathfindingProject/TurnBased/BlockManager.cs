@@ -4,41 +4,43 @@ using System.Collections.Generic;
 namespace Pathfinding {
 	using Pathfinding.Util;
 
-	/** Manager for blocker scripts such as SingleNodeBlocker.
-	 *
-	 * This is part of the turn based utilities. It can be used for
-	 * any game, but it is primarily intended for turn based games.
-	 *
-	 * \see TurnBasedAI
-	 * \see \ref turnbased
-	 */
+	/// <summary>
+	/// Manager for blocker scripts such as SingleNodeBlocker.
+	///
+	/// This is part of the turn based utilities. It can be used for
+	/// any game, but it is primarily intended for turn based games.
+	///
+	/// See: TurnBasedAI
+	/// See: turnbased (view in online documentation for working links)
+	/// </summary>
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_block_manager.php")]
 	public class BlockManager : VersionedMonoBehaviour {
-		/** Contains info on which SingleNodeBlocker objects have blocked a particular node */
+		/// <summary>Contains info on which SingleNodeBlocker objects have blocked a particular node</summary>
 		Dictionary<GraphNode, List<SingleNodeBlocker> > blocked = new Dictionary<GraphNode, List<SingleNodeBlocker> >();
 
 		public enum BlockMode {
-			/** All blockers except those in the TraversalProvider.selector list will block */
+			/// <summary>All blockers except those in the TraversalProvider.selector list will block</summary>
 			AllExceptSelector,
-			/** Only elements in the TraversalProvider.selector list will block */
+			/// <summary>Only elements in the TraversalProvider.selector list will block</summary>
 			OnlySelector
 		}
 
-		/** Blocks nodes according to a BlockManager */
+		/// <summary>Blocks nodes according to a BlockManager</summary>
 		public class TraversalProvider : ITraversalProvider {
-			/** Holds information about which nodes are occupied */
+			/// <summary>Holds information about which nodes are occupied</summary>
 			readonly BlockManager blockManager;
 
-			/** Affects which nodes are considered blocked */
+			/// <summary>Affects which nodes are considered blocked</summary>
 			public BlockMode mode { get; private set; }
 
-			/** Blockers for this path.
-			 * The effect depends on #mode.
-			 *
-			 * Note that having a large selector has a performance cost.
-			 *
-			 * \see mode
-			 */
+			/// <summary>
+			/// Blockers for this path.
+			/// The effect depends on <see cref="mode"/>.
+			///
+			/// Note that having a large selector has a performance cost.
+			///
+			/// See: mode
+			/// </summary>
 			readonly List<SingleNodeBlocker> selector;
 
 			public TraversalProvider (BlockManager blockManager, BlockMode mode, List<SingleNodeBlocker> selector) {
@@ -77,7 +79,7 @@ namespace Pathfinding {
 				throw new System.Exception("No AstarPath object in the scene");
 		}
 
-		/** True if the node contains any blocker which is included in the \a selector list */
+		/// <summary>True if the node contains any blocker which is included in the selector list</summary>
 		public bool NodeContainsAnyOf (GraphNode node, List<SingleNodeBlocker> selector) {
 			List<SingleNodeBlocker> blockersInNode;
 			if (!blocked.TryGetValue(node, out blockersInNode)) {
@@ -97,7 +99,7 @@ namespace Pathfinding {
 			return false;
 		}
 
-		/** True if the node contains any blocker which is not included in the \a selector list */
+		/// <summary>True if the node contains any blocker which is not included in the selector list</summary>
 		public bool NodeContainsAnyExcept (GraphNode node, List<SingleNodeBlocker> selector) {
 			List<SingleNodeBlocker> blockersInNode;
 			if (!blocked.TryGetValue(node, out blockersInNode)) {
@@ -120,13 +122,14 @@ namespace Pathfinding {
 			return false;
 		}
 
-		/** Register \a blocker as being present at the specified node.
-		 * Calling this method multiple times will add multiple instances of the blocker to the node.
-		 *
-		 * \note The node will not be blocked immediately. Instead the pathfinding
-		 * threads will be paused and then the update will be applied. It is however
-		 * guaranteed to be applied before the next path request is started.
-		 */
+		/// <summary>
+		/// Register blocker as being present at the specified node.
+		/// Calling this method multiple times will add multiple instances of the blocker to the node.
+		///
+		/// Note: The node will not be blocked immediately. Instead the pathfinding
+		/// threads will be paused and then the update will be applied. It is however
+		/// guaranteed to be applied before the next path request is started.
+		/// </summary>
 		public void InternalBlock (GraphNode node, SingleNodeBlocker blocker) {
 			AstarPath.active.AddWorkItem(new AstarWorkItem(() => {
 				List<SingleNodeBlocker> blockersInNode;
@@ -138,14 +141,15 @@ namespace Pathfinding {
 			}));
 		}
 
-		/** Remove \a blocker from the specified node.
-		 * Will only remove a single instance, calling this method multiple
-		 * times will remove multiple instances of the blocker from the node.
-		 *
-		 * \note The node will not be unblocked immediately. Instead the pathfinding
-		 * threads will be paused and then the update will be applied. It is however
-		 * guaranteed to be applied before the next path request is started.
-		 */
+		/// <summary>
+		/// Remove blocker from the specified node.
+		/// Will only remove a single instance, calling this method multiple
+		/// times will remove multiple instances of the blocker from the node.
+		///
+		/// Note: The node will not be unblocked immediately. Instead the pathfinding
+		/// threads will be paused and then the update will be applied. It is however
+		/// guaranteed to be applied before the next path request is started.
+		/// </summary>
 		public void InternalUnblock (GraphNode node, SingleNodeBlocker blocker) {
 			AstarPath.active.AddWorkItem(new AstarWorkItem(() => {
 				List<SingleNodeBlocker> blockersInNode;

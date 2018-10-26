@@ -3,11 +3,12 @@ using System.Collections.Generic;
 namespace Pathfinding {
 	using Pathfinding.Util;
 
-	/** Represents a collection of GraphNodes.
-	 * It allows for fast lookups of the closest node to a point.
-	 *
-	 * \see https://en.wikipedia.org/wiki/K-d_tree
-	 */
+	/// <summary>
+	/// Represents a collection of GraphNodes.
+	/// It allows for fast lookups of the closest node to a point.
+	///
+	/// See: https://en.wikipedia.org/wiki/K-d_tree
+	/// </summary>
 	public class PointKDTree {
 		// TODO: Make constant
 		public const int LeafSize = 10;
@@ -22,13 +23,13 @@ namespace Pathfinding {
 		static readonly IComparer<GraphNode>[] comparers = new IComparer<GraphNode>[] { new CompareX(), new CompareY(), new CompareZ() };
 
 		struct Node {
-			/** Nodes in this leaf node (null if not a leaf node) */
+			/// <summary>Nodes in this leaf node (null if not a leaf node)</summary>
 			public GraphNode[] data;
-			/** Split point along the #splitAxis if not a leaf node */
+			/// <summary>Split point along the <see cref="splitAxis"/> if not a leaf node</summary>
 			public int split;
-			/** Number of non-null entries in #data */
+			/// <summary>Number of non-null entries in <see cref="data"/></summary>
 			public ushort count;
-			/** Axis to split along if not a leaf node (x=0, y=1, z=2) */
+			/// <summary>Axis to split along if not a leaf node (x=0, y=1, z=2)</summary>
 			public byte splitAxis;
 		}
 
@@ -49,13 +50,13 @@ namespace Pathfinding {
 			tree[1] = new Node { data = GetOrCreateList() };
 		}
 
-		/** Add the node to the tree */
+		/// <summary>Add the node to the tree</summary>
 		public void Add (GraphNode node) {
 			numNodes++;
 			Add(node, 1);
 		}
 
-		/** Rebuild the tree starting with all nodes in the array between index start (inclusive) and end (exclusive) */
+		/// <summary>Rebuild the tree starting with all nodes in the array between index start (inclusive) and end (exclusive)</summary>
 		public void Rebuild (GraphNode[] nodes, int start, int end) {
 			if (start < 0 || end < start || end > nodes.Length)
 				throw new System.ArgumentException();
@@ -173,7 +174,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Closest node to the point which satisfies the constraint */
+		/// <summary>Closest node to the point which satisfies the constraint</summary>
 		public GraphNode GetNearest (Int3 point, NNConstraint constraint) {
 			GraphNode best = null;
 			long bestSqrDist = long.MaxValue;
@@ -206,12 +207,11 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Add all nodes within a squared distance of the point to the buffer.
-		 * \param point Nodes around this point will be added to the \a buffer.
-		 * \param sqrRadius squared maximum distance in Int3 space. If you are converting from world space you will need to multiply by Int3.Precision:
-		 * \code var sqrRadius = (worldSpaceRadius * Int3.Precision) * (worldSpaceRadius * Int3.Precision); \endcode
-		 * \param buffer All nodes will be added to this list.
-		 */
+		/// <summary>Add all nodes within a squared distance of the point to the buffer.</summary>
+		/// <param name="point">Nodes around this point will be added to the buffer.</param>
+		/// <param name="sqrRadius">squared maximum distance in Int3 space. If you are converting from world space you will need to multiply by Int3.Precision:
+		/// <code> var sqrRadius = (worldSpaceRadius * Int3.Precision) * (worldSpaceRadius * Int3.Precision); </code></param>
+		/// <param name="buffer">All nodes will be added to this list.</param>
 		public void GetInRange (Int3 point, long sqrRadius, List<GraphNode> buffer) {
 			GetInRangeInternal(1, point, sqrRadius, buffer);
 		}

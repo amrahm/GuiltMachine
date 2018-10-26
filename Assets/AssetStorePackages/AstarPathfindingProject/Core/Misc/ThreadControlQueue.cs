@@ -1,7 +1,7 @@
 using System.Threading;
 
 namespace Pathfinding {
-	/** Queue of paths to be processed by the system */
+	/// <summary>Queue of paths to be processed by the system</summary>
 	class ThreadControlQueue {
 		public class QueueTerminationException : System.Exception {
 		}
@@ -15,46 +15,50 @@ namespace Pathfinding {
 
 		bool blocked;
 
-		/** Number of receiver threads that are currently blocked.
-		 * This is only modified while a thread has a lock on lockObj
-		 */
+		/// <summary>
+		/// Number of receiver threads that are currently blocked.
+		/// This is only modified while a thread has a lock on lockObj
+		/// </summary>
 		int blockedReceivers;
 
-		/** True while head == null.
-		 * This is only modified while a thread has a lock on lockObj
-		 */
+		/// <summary>
+		/// True while head == null.
+		/// This is only modified while a thread has a lock on lockObj
+		/// </summary>
 		bool starving;
 
-		/** True after TerminateReceivers has been called.
-		 * All receivers will be terminated when they next call Pop.
-		 */
+		/// <summary>
+		/// True after TerminateReceivers has been called.
+		/// All receivers will be terminated when they next call Pop.
+		/// </summary>
 		bool terminate;
 
 		ManualResetEvent block = new ManualResetEvent(true);
 
-		/** Create a new queue with the specified number of receivers.
-		 * It is important that the number of receivers is fixed.
-		 * Properties like AllReceiversBlocked rely on knowing the exact number of receivers using the Pop (or PopNoBlock) methods.
-		 */
+		/// <summary>
+		/// Create a new queue with the specified number of receivers.
+		/// It is important that the number of receivers is fixed.
+		/// Properties like AllReceiversBlocked rely on knowing the exact number of receivers using the Pop (or PopNoBlock) methods.
+		/// </summary>
 		public ThreadControlQueue (int numReceivers) {
 			this.numReceivers = numReceivers;
 		}
 
-		/** True if the queue is empty */
+		/// <summary>True if the queue is empty</summary>
 		public bool IsEmpty {
 			get {
 				return head == null;
 			}
 		}
 
-		/** True if TerminateReceivers has been called */
+		/// <summary>True if TerminateReceivers has been called</summary>
 		public bool IsTerminating {
 			get {
 				return terminate;
 			}
 		}
 
-		/** Block queue, all calls to Pop will block until Unblock is called */
+		/// <summary>Block queue, all calls to Pop will block until Unblock is called</summary>
 		public void Block () {
 			lock (lockObj) {
 				blocked = true;
@@ -62,10 +66,11 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Unblock queue.
-		 * Calls to Pop will not block anymore.
-		 * \see Block
-		 */
+		/// <summary>
+		/// Unblock queue.
+		/// Calls to Pop will not block anymore.
+		/// See: Block
+		/// </summary>
 		public void Unblock () {
 			lock (lockObj) {
 				blocked = false;
@@ -73,18 +78,20 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Aquires a lock on this queue.
-		 * Must be paired with a call to #Unlock */
+		/// <summary>
+		/// Aquires a lock on this queue.
+		/// Must be paired with a call to <see cref="Unlock"/>
+		/// </summary>
 		public void Lock () {
 			Monitor.Enter(lockObj);
 		}
 
-		/** Releases the lock on this queue */
+		/// <summary>Releases the lock on this queue</summary>
 		public void Unlock () {
 			Monitor.Exit(lockObj);
 		}
 
-		/** True if blocking and all receivers are waiting for unblocking */
+		/// <summary>True if blocking and all receivers are waiting for unblocking</summary>
 		public bool AllReceiversBlocked {
 			get {
 				lock (lockObj) {
@@ -93,7 +100,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Push a path to the front of the queue */
+		/// <summary>Push a path to the front of the queue</summary>
 		public void PushFront (Path path) {
 			lock (lockObj) {
 				// If termination is due, why add stuff to a queue which will not be read from anyway
@@ -116,7 +123,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Push a path to the end of the queue */
+		/// <summary>Push a path to the end of the queue</summary>
 		public void Push (Path path) {
 			lock (lockObj) {
 				// If termination is due, why add stuff to a queue which will not be read from anyway
@@ -144,7 +151,7 @@ namespace Pathfinding {
 			block.Reset();
 		}
 
-		/** All calls to Pop and PopNoBlock will now generate exceptions */
+		/// <summary>All calls to Pop and PopNoBlock will now generate exceptions</summary>
 		public void TerminateReceivers () {
 			lock (lockObj) {
 				terminate = true;
@@ -152,13 +159,14 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Pops the next item off the queue.
-		 * This call will block if there are no items in the queue or if the queue is currently blocked.
-		 *
-		 * \returns A Path object, guaranteed to be not null.
-		 * \throws QueueTerminationException if #TerminateReceivers has been called.
-		 * \throws System.InvalidOperationException if more receivers get blocked than the fixed count sent to the constructor
-		 */
+		/// <summary>
+		/// Pops the next item off the queue.
+		/// This call will block if there are no items in the queue or if the queue is currently blocked.
+		///
+		/// Returns: A Path object, guaranteed to be not null.
+		/// \throws QueueTerminationException if <see cref="TerminateReceivers"/> has been called.
+		/// \throws System.InvalidOperationException if more receivers get blocked than the fixed count sent to the constructor
+		/// </summary>
 		public Path Pop () {
 			Monitor.Enter(lockObj);
 			try {
@@ -208,25 +216,27 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Call when a receiver was terminated in other ways than by a QueueTerminationException.
-		 *
-		 * After this call, the receiver should be dead and not call anything else in this class.
-		 */
+		/// <summary>
+		/// Call when a receiver was terminated in other ways than by a QueueTerminationException.
+		///
+		/// After this call, the receiver should be dead and not call anything else in this class.
+		/// </summary>
 		public void ReceiverTerminated () {
 			Monitor.Enter(lockObj);
 			blockedReceivers++;
 			Monitor.Exit(lockObj);
 		}
 
-		/** Pops the next item off the queue, this call will not block.
-		 * To ensure stability, the caller must follow this pattern.
-		 * 1. Call PopNoBlock(false), if a null value is returned, wait for a bit (e.g yield return null in a Unity coroutine)
-		 * 2. try again with PopNoBlock(true), if still null, wait for a bit
-		 * 3. Repeat from step 2.
-		 *
-		 * \throws QueueTerminationException if #TerminateReceivers has been called.
-		 * \throws System.InvalidOperationException if more receivers get blocked than the fixed count sent to the constructor
-		 */
+		/// <summary>
+		/// Pops the next item off the queue, this call will not block.
+		/// To ensure stability, the caller must follow this pattern.
+		/// 1. Call PopNoBlock(false), if a null value is returned, wait for a bit (e.g yield return null in a Unity coroutine)
+		/// 2. try again with PopNoBlock(true), if still null, wait for a bit
+		/// 3. Repeat from step 2.
+		///
+		/// \throws QueueTerminationException if <see cref="TerminateReceivers"/> has been called.
+		/// \throws System.InvalidOperationException if more receivers get blocked than the fixed count sent to the constructor
+		/// </summary>
 		public Path PopNoBlock (bool blockedBefore) {
 			Monitor.Enter(lockObj);
 			try {

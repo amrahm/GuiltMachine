@@ -7,29 +7,30 @@ namespace Pathfinding {
 	[AddComponentMenu("Pathfinding/Modifiers/Simple Smooth")]
 	[System.Serializable]
 	[RequireComponent(typeof(Seeker))]
-	/** Modifier which smooths the path. This modifier can smooth a path by either moving the points closer together (Simple) or using Bezier curves (Bezier).\n
-	 * \ingroup modifiers
-	 * Attach this component to the same GameObject as a Seeker component.
-	 * \n
-	 * This component will hook in to the Seeker's path post-processing system and will post process any paths it searches for.
-	 * Take a look at the Modifier Priorities settings on the Seeker component to determine where in the process this modifier should process the path.
-	 * \n
-	 * \n
-	 * Several smoothing types are available, here follows a list of them and a short description of what they do, and how they work.
-	 * But the best way is really to experiment with them yourself.\n
-	 *
-	 * - <b>Simple</b> Smooths the path by drawing all points close to each other. This results in paths that might cut corners if you are not careful.
-	 * It will also subdivide the path to create more more points to smooth as otherwise it would still be quite rough.
-	 * \shadowimage{smooth_simple.png}
-	 * - <b>Bezier</b> Smooths the path using Bezier curves. This results a smooth path which will always pass through all points in the path, but make sure it doesn't turn too quickly.
-	 * \shadowimage{smooth_bezier.png}
-	 * - <b>OffsetSimple</b> An alternative to Simple smooth which will offset the path outwards in each step to minimize the corner-cutting.
-	 * But be careful, if too high values are used, it will turn into loops and look really ugly.
-	 * - <b>Curved Non Uniform</b> \shadowimage{smooth_curved_nonuniform.png}
-	 *
-	 * \note Modifies vectorPath array
-	 * \todo Make the smooth modifier take the world geometry into account when smoothing
-	 * */
+	/// <summary>
+	/// Modifier which smooths the path. This modifier can smooth a path by either moving the points closer together (Simple) or using Bezier curves (Bezier).\n
+	/// \ingroup modifiers
+	/// Attach this component to the same GameObject as a Seeker component.
+	/// \n
+	/// This component will hook in to the Seeker's path post-processing system and will post process any paths it searches for.
+	/// Take a look at the Modifier Priorities settings on the Seeker component to determine where in the process this modifier should process the path.
+	/// \n
+	/// \n
+	/// Several smoothing types are available, here follows a list of them and a short description of what they do, and how they work.
+	/// But the best way is really to experiment with them yourself.\n
+	///
+	/// - <b>Simple</b> Smooths the path by drawing all points close to each other. This results in paths that might cut corners if you are not careful.
+	/// It will also subdivide the path to create more more points to smooth as otherwise it would still be quite rough.
+	/// [Open online documentation to see images]
+	/// - <b>Bezier</b> Smooths the path using Bezier curves. This results a smooth path which will always pass through all points in the path, but make sure it doesn't turn too quickly.
+	/// [Open online documentation to see images]
+	/// - <b>OffsetSimple</b> An alternative to Simple smooth which will offset the path outwards in each step to minimize the corner-cutting.
+	/// But be careful, if too high values are used, it will turn into loops and look really ugly.
+	/// - <b>Curved Non Uniform</b> [Open online documentation to see images]
+	///
+	/// Note: Modifies vectorPath array
+	/// TODO: Make the smooth modifier take the world geometry into account when smoothing
+	/// </summary>
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_simple_smooth_modifier.php")]
 	public class SimpleSmoothModifier : MonoModifier {
 	#if UNITY_EDITOR
@@ -41,42 +42,45 @@ namespace Pathfinding {
 
 		public override int Order { get { return 50; } }
 
-		/** Type of smoothing to use */
+		/// <summary>Type of smoothing to use</summary>
 		public SmoothType smoothType = SmoothType.Simple;
 
-		/** Number of times to subdivide when not using a uniform length */
+		/// <summary>Number of times to subdivide when not using a uniform length</summary>
 		[Tooltip("The number of times to subdivide (divide in half) the path segments. [0...inf] (recommended [1...10])")]
 		public int subdivisions = 2;
 
-		/** Number of times to apply smoothing */
+		/// <summary>Number of times to apply smoothing</summary>
 		[Tooltip("Number of times to apply smoothing")]
 		public int iterations = 2;
 
-		/** Determines how much smoothing to apply in each smooth iteration. 0.5 usually produces the nicest looking curves. */
+		/// <summary>Determines how much smoothing to apply in each smooth iteration. 0.5 usually produces the nicest looking curves.</summary>
 		[Tooltip("Determines how much smoothing to apply in each smooth iteration. 0.5 usually produces the nicest looking curves")]
 		[Range(0, 1)]
 		public float strength = 0.5F;
 
-		/** Toggle to divide all lines in equal length segments.
-		 * \see #maxSegmentLength
-		 */
+		/// <summary>
+		/// Toggle to divide all lines in equal length segments.
+		/// See: <see cref="maxSegmentLength"/>
+		/// </summary>
 		[Tooltip("Toggle to divide all lines in equal length segments")]
 		public bool uniformLength = true;
 
-		/** The length of the segments in the smoothed path when using #uniformLength.
-		 * A high value yields rough paths and low value yields very smooth paths, but is slower */
+		/// <summary>
+		/// The length of the segments in the smoothed path when using <see cref="uniformLength"/>.
+		/// A high value yields rough paths and low value yields very smooth paths, but is slower
+		/// </summary>
 		[Tooltip("The length of each segment in the smoothed path. A high value yields rough paths and low value yields very smooth paths, but is slower")]
 		public float maxSegmentLength = 2F;
 
-		/** Length factor of the bezier curves' tangents' */
+		/// <summary>Length factor of the bezier curves' tangents'</summary>
 		[Tooltip("Length factor of the bezier curves' tangents")]
 		public float bezierTangentLength = 0.4F;
 
-		/** Offset to apply in each smoothing iteration when using Offset Simple. \see #smoothType */
+		/// <summary>Offset to apply in each smoothing iteration when using Offset Simple. See: <see cref="smoothType"/></summary>
 		[Tooltip("Offset to apply in each smoothing iteration when using Offset Simple")]
 		public float offset = 0.2F;
 
-		/** Roundness factor used for CurvedNonuniform */
+		/// <summary>Roundness factor used for CurvedNonuniform</summary>
 		[Tooltip("How much to smooth the path. A higher value will give a smoother path, but might take the character far off the optimal path.")]
 		public float factor = 0.1F;
 

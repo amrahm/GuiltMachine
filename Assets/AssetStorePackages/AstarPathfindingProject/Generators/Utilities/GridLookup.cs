@@ -1,22 +1,24 @@
 using System.Collections.Generic;
 
 namespace Pathfinding.Util {
-	/** Holds a lookup datastructure to quickly find objects inside rectangles.
-	 * Objects of type T occupy an integer rectangle in the grid and they can be
-	 * moved efficiently. You can query for all objects that touch a specified
-	 * rectangle that runs in O(m*k) time where m is the number of objects that
-	 * the query returns and k is the average number of cells that an object
-	 * occupies.
-	 *
-	 * All objects must be contained within a rectangle with one point at the origin
-	 * (inclusive) and one at #size (exclusive) that is specified in the constructor.
-	 */
+	/// <summary>
+	/// Holds a lookup datastructure to quickly find objects inside rectangles.
+	/// Objects of type T occupy an integer rectangle in the grid and they can be
+	/// moved efficiently. You can query for all objects that touch a specified
+	/// rectangle that runs in O(m*k+r) time where m is the number of objects that
+	/// the query returns, k is the average number of cells that an object
+	/// occupies and r is the area of the rectangle query.
+	///
+	/// All objects must be contained within a rectangle with one point at the origin
+	/// (inclusive) and one at <see cref="size"/> (exclusive) that is specified in the constructor.
+	/// </summary>
 	public class GridLookup<T> where T : class {
 		Int2 size;
 		Item[] cells;
-		/** Linked list of all items.
-		 * Note that the first item in the list is a dummy item and does not contain any data.
-		 */
+		/// <summary>
+		/// Linked list of all items.
+		/// Note that the first item in the list is a dummy item and does not contain any data.
+		/// </summary>
 		Root all = new Root();
 		Dictionary<T, Root> rootLookup = new Dictionary<T, Root>();
 		Stack<Item> itemPool = new Stack<Item>();
@@ -33,22 +35,29 @@ namespace Pathfinding.Util {
 		}
 
 		public class Root {
-			/** Underlying object */
+			/// <summary>Underlying object</summary>
 			public T obj;
-			/** Next item in the linked list of all roots */
+			/// <summary>Next item in the linked list of all roots</summary>
 			public Root next;
-			/** Previous item in the linked list of all roots */
+			/// <summary>Previous item in the linked list of all roots</summary>
 			internal Root prev;
 			internal IntRect previousBounds = new IntRect(0, 0, -1, -1);
+			/// <summary>References to an item in each grid cell that this object is contained inside</summary>
 			internal List<Item> items = new List<Item>();
 			internal bool flag;
 		}
 
-		/** Linked list of all items */
+		/// <summary>Linked list of all items</summary>
 		public Root AllItems {
 			get {
 				return all.next;
 			}
+		}
+
+		public void Clear () {
+			rootLookup.Clear();
+			all.next = null;
+			foreach (var item in cells) item.next = null;
 		}
 
 		public Root GetRoot (T item) {
@@ -58,9 +67,10 @@ namespace Pathfinding.Util {
 			return root;
 		}
 
-		/** Add an object to the lookup data structure.
-		 * \returns A handle which can be used for Move operations
-		  */
+		/// <summary>
+		/// Add an object to the lookup data structure.
+		/// Returns: A handle which can be used for Move operations
+		/// </summary>
 		public Root Add (T item, IntRect bounds) {
 			var root = new Root {
 				obj = item,
@@ -76,7 +86,7 @@ namespace Pathfinding.Util {
 			return root;
 		}
 
-		/** Removes an item from the lookup data structure */
+		/// <summary>Removes an item from the lookup data structure</summary>
 		public void Remove (T item) {
 			Root root;
 
@@ -91,7 +101,7 @@ namespace Pathfinding.Util {
 			if (root.next != null) root.next.prev = root.prev;
 		}
 
-		/** Move an object to occupy a new set of cells */
+		/// <summary>Move an object to occupy a new set of cells</summary>
 		public void Move (T item, IntRect bounds) {
 			Root root;
 
@@ -140,9 +150,10 @@ namespace Pathfinding.Util {
 			}
 		}
 
-		/** Returns all objects of a specific type inside the cells marked by the rectangle.
-		 * \note For better memory usage, consider pooling the list using Pathfinding.Util.ListPool after you are done with it
-		 */
+		/// <summary>
+		/// Returns all objects of a specific type inside the cells marked by the rectangle.
+		/// Note: For better memory usage, consider pooling the list using Pathfinding.Util.ListPool after you are done with it
+		/// </summary>
 		public List<U> QueryRect<U>(IntRect r) where U : class, T {
 			List<U> result = Pathfinding.Util.ListPool<U>.Claim();
 

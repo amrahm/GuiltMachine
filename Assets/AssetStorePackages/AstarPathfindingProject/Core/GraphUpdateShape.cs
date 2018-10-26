@@ -1,16 +1,17 @@
 using UnityEngine;
 
 namespace Pathfinding {
-	/** Defines a shape for a Pathfinding.GraphUpdateObject.
-	 * The shape consists of a number of points which it can either calculate the convex hull of or use as a polygon directly.
-	 *
-	 * A shape is essentially a 2D shape however it can be rotated arbitrarily.
-	 * When a matrix and a list of points is specified in the constructor the matrix decides what direction
-	 * is the 'up' direction. When checking if a point is contained in the shape, the point will be projected down
-	 * on a plane where the 'up' direction is the normal and then it will check if the shape contains the point.
-	 *
-	 * \see Pathfinding.GraphUpdateObject.shape
-	 */
+	/// <summary>
+	/// Defines a shape for a Pathfinding.GraphUpdateObject.
+	/// The shape consists of a number of points which it can either calculate the convex hull of or use as a polygon directly.
+	///
+	/// A shape is essentially a 2D shape however it can be rotated arbitrarily.
+	/// When a matrix and a list of points is specified in the constructor the matrix decides what direction
+	/// is the 'up' direction. When checking if a point is contained in the shape, the point will be projected down
+	/// on a plane where the 'up' direction is the normal and then it will check if the shape contains the point.
+	///
+	/// See: Pathfinding.GraphUpdateObject.shape
+	/// </summary>
 	public class GraphUpdateShape {
 		Vector3[] _points;
 		Vector3[] _convexPoints;
@@ -21,9 +22,11 @@ namespace Pathfinding {
 		Vector3 origin;
 		public float minimumHeight;
 
-		/** Gets or sets the points of the polygon in the shape.
-		 * These points should be specified in clockwise order.
-		 * Will automatically calculate the convex hull if #convex is set to true */
+		/// <summary>
+		/// Gets or sets the points of the polygon in the shape.
+		/// These points should be specified in clockwise order.
+		/// Will automatically calculate the convex hull if <see cref="convex"/> is set to true
+		/// </summary>
 		public Vector3[] points {
 			get {
 				return _points;
@@ -34,9 +37,10 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Sets if the convex hull of the points should be calculated.
-		 * Convex hulls are faster but non-convex hulls can be used to specify more complicated shapes.
-		 */
+		/// <summary>
+		/// Sets if the convex hull of the points should be calculated.
+		/// Convex hulls are faster but non-convex hulls can be used to specify more complicated shapes.
+		/// </summary>
 		public bool convex {
 			get {
 				return _convex;
@@ -52,14 +56,16 @@ namespace Pathfinding {
 		public GraphUpdateShape () {
 		}
 
-		/** Construct a shape.
-		 * \param points Contour of the shape in local space with respect to the matrix (i.e the shape should be in the XZ plane, the Y coordinate will only affect the bounds)
-		 * \param convex If true, the convex hull of the points will be calculated. \see #convex
-		 * \param matrix local to world space matrix for the points. The matrix determines the up direction of the shape.
-		 * \param minimumHeight If the points would be in the XZ plane only, the shape would not have a height and then it might not
-		 *			include any points inside it (as testing for inclusion is done in 3D space when updating graphs). This ensures
-		 *			 that the shape has at least the minimum height (in the up direction that the matrix specifies).
-		 */
+		/// <summary>
+		/// Construct a shape.
+		/// See: <see cref="convex"/>
+		/// </summary>
+		/// <param name="points">Contour of the shape in local space with respect to the matrix (i.e the shape should be in the XZ plane, the Y coordinate will only affect the bounds)</param>
+		/// <param name="convex">If true, the convex hull of the points will be calculated.</param>
+		/// <param name="matrix">local to world space matrix for the points. The matrix determines the up direction of the shape.</param>
+		/// <param name="minimumHeight">If the points would be in the XZ plane only, the shape would not have a height and then it might not
+		///         include any points inside it (as testing for inclusion is done in 3D space when updating graphs). This ensures
+		///          that the shape has at least the minimum height (in the up direction that the matrix specifies).</param>
 		public GraphUpdateShape (Vector3[] points, bool convex, Matrix4x4 matrix, float minimumHeight) {
 			this.convex = convex;
 			this.points = points;
@@ -74,7 +80,7 @@ namespace Pathfinding {
 			_convexPoints = points != null ? Polygon.ConvexHullXZ(points) : null;
 		}
 
-		/** World space bounding box of this shape */
+		/// <summary>World space bounding box of this shape</summary>
 		public Bounds GetBounds () {
 			return GetBounds(convex ? _convexPoints : points, right, up, forward, origin, minimumHeight);
 		}

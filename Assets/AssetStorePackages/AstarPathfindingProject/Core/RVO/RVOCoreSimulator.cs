@@ -11,202 +11,214 @@ using Thread = System.Threading.Thread;
 using ThreadStart = System.Threading.ThreadStart;
 #endif
 
-/** Local avoidance related classes */
+/// <summary>Local avoidance related classes</summary>
 namespace Pathfinding.RVO {
-	/** Exposes properties of an Agent class.
-	 *
-	 * \see RVOController
-	 * \see RVOSimulator
-	 *
-	 * \astarpro
-	 */
+	/// <summary>
+	/// Exposes properties of an Agent class.
+	///
+	/// See: RVOController
+	/// See: RVOSimulator
+	/// </summary>
 	public interface IAgent {
-		/** Position of the agent.
-		 * The agent does not move by itself, a movement script has to be responsible for
-		 * reading the CalculatedTargetPoint and CalculatedSpeed properties and move towards that point with that speed.
-		 * This property should ideally be set every frame.
-		 *
-		 * Note that this is a Vector2, not a Vector3 since the RVO simulates everything internally in 2D. So if your agents move in the
-		 * XZ plane you may have to convert it to a Vector3 like this.
-		 *
-		 * \code
-		 * Vector3 position3D = new Vector3(agent.Position.x, agent.ElevationCoordinate, agent.Position.y);
-		 * \endcode
-		 */
+		/// <summary>
+		/// Position of the agent.
+		/// The agent does not move by itself, a movement script has to be responsible for
+		/// reading the CalculatedTargetPoint and CalculatedSpeed properties and move towards that point with that speed.
+		/// This property should ideally be set every frame.
+		///
+		/// Note that this is a Vector2, not a Vector3 since the RVO simulates everything internally in 2D. So if your agents move in the
+		/// XZ plane you may have to convert it to a Vector3 like this.
+		///
+		/// <code>
+		/// Vector3 position3D = new Vector3(agent.Position.x, agent.ElevationCoordinate, agent.Position.y);
+		/// </code>
+		/// </summary>
 		Vector2 Position { get; set; }
 
-		/** Coordinate which separates characters in the height direction.
-		 * Since RVO can be used either in 2D or 3D, it is not as simple as just using the y coordinate of the 3D position.
-		 * In 3D this will most likely be set to the y coordinate, but in 2D (top down) it should in most cases be set to 0 since
-		 * all characters are always in the same plane, however it may be set to some other value, for example if the game
-		 * is 2D isometric.
-		 *
-		 * The position is assumed to be at the base of the character (near the feet).
-		 */
+		/// <summary>
+		/// Coordinate which separates characters in the height direction.
+		/// Since RVO can be used either in 2D or 3D, it is not as simple as just using the y coordinate of the 3D position.
+		/// In 3D this will most likely be set to the y coordinate, but in 2D (top down) it should in most cases be set to 0 since
+		/// all characters are always in the same plane, however it may be set to some other value, for example if the game
+		/// is 2D isometric.
+		///
+		/// The position is assumed to be at the base of the character (near the feet).
+		/// </summary>
 		float ElevationCoordinate { get; set; }
 
-		/** Optimal point to move towards to avoid collisions.
-		 * The movement script should move towards this point with a speed of #CalculatedSpeed.
-		 *
-		 * \note This is a Vector2, not a Vector3 as that is what the #SetTarget method accepts.
-		 *
-		 * \see RVOController.CalculateMovementDelta.
-		 */
+		/// <summary>
+		/// Optimal point to move towards to avoid collisions.
+		/// The movement script should move towards this point with a speed of <see cref="CalculatedSpeed"/>.
+		///
+		/// Note: This is a Vector2, not a Vector3 as that is what the <see cref="SetTarget"/> method accepts.
+		///
+		/// See: RVOController.CalculateMovementDelta.
+		/// </summary>
 		Vector2 CalculatedTargetPoint { get; }
 
-		/** Optimal speed of the agent to avoid collisions.
-		 * The movement script should move towards #CalculatedTargetPoint with this speed.
-		 */
+		/// <summary>
+		/// Optimal speed of the agent to avoid collisions.
+		/// The movement script should move towards <see cref="CalculatedTargetPoint"/> with this speed.
+		/// </summary>
 		float CalculatedSpeed { get; }
 
-		/** Point towards which the agent should move.
-		 * Usually you set this once per frame. The agent will try move as close to the target point as possible.
-		 * Will take effect at the next simulation step.
-		 *
-		 * \note The system assumes that the agent will stop when it reaches the target point
-		 * so if you just want to move the agent in a particular direction, make sure that you set the target point
-		 * a good distance in front of the character as otherwise the system may not avoid colisions that well.
-		 * What would happen is that the system (in simplified terms) would think that the agents would stop
-		 * before the collision and thus it wouldn't slow down or change course. See the image below.
-		 * In the image the desiredSpeed is the length of the blue arrow and the target point
-		 * is the point where the black arrows point to.
-		 * In the upper case the agent does not avoid the red agent (you can assume that the red
-		 * agent has a very small velocity for simplicity) while in the lower case it does.\n
-		 * If you are following a path a good way to pick the target point is to set it to
-		 * \code
-		 * targetPoint = directionToNextWaypoint.normalized * remainingPathDistance
-		 * \endcode
-		 * Where remainingPathDistance is the distance until the character would reach the end of the path.
-		 * This works well because at the end of the path the direction to the next waypoint will just be the
-		 * direction to the last point on the path and remainingPathDistance will be the distance to the last point
-		 * in the path, so targetPoint will be set to simply the last point in the path. However when remainingPathDistance
-		 * is large the target point will be so far away that the agent will essentially be told to move in a particular
-		 * direction, which is precisely what we want.
-		 * \shadowimage{rvo/rvo_target_point.png}
-		 *
-		 * \param targetPoint
-		 *      Target point in world space (XZ plane or XY plane depending on if the simulation is configured for 2D or 3D).
-		 *      Note that this is a Vector2, not a Vector3 since the system simulates everything internally in 2D. So if your agents move in the
-		 *      XZ plane you will have to supply it as a Vector2 with (x,z) coordinates.
-		 * \param desiredSpeed
-		 *      Desired speed of the agent. In world units per second. The agent will try to move with this
-		 *      speed if possible.
-		 * \param maxSpeed
-		 *      Max speed of the agent. In world units per second. If necessary (for example if another agent
-		 *      is on a collision trajectory towards this agent) the agent can move at this speed.
-		 *      Should be at least as high as desiredSpeed, but it is recommended to use a slightly
-		 *      higher value than desiredSpeed (for example desiredSpeed*1.2).
-		 */
+		/// <summary>
+		/// Point towards which the agent should move.
+		/// Usually you set this once per frame. The agent will try move as close to the target point as possible.
+		/// Will take effect at the next simulation step.
+		///
+		/// Note: The system assumes that the agent will stop when it reaches the target point
+		/// so if you just want to move the agent in a particular direction, make sure that you set the target point
+		/// a good distance in front of the character as otherwise the system may not avoid colisions that well.
+		/// What would happen is that the system (in simplified terms) would think that the agents would stop
+		/// before the collision and thus it wouldn't slow down or change course. See the image below.
+		/// In the image the desiredSpeed is the length of the blue arrow and the target point
+		/// is the point where the black arrows point to.
+		/// In the upper case the agent does not avoid the red agent (you can assume that the red
+		/// agent has a very small velocity for simplicity) while in the lower case it does.\n
+		/// If you are following a path a good way to pick the target point is to set it to
+		/// <code>
+		/// targetPoint = directionToNextWaypoint.normalized * remainingPathDistance
+		/// </code>
+		/// Where remainingPathDistance is the distance until the character would reach the end of the path.
+		/// This works well because at the end of the path the direction to the next waypoint will just be the
+		/// direction to the last point on the path and remainingPathDistance will be the distance to the last point
+		/// in the path, so targetPoint will be set to simply the last point in the path. However when remainingPathDistance
+		/// is large the target point will be so far away that the agent will essentially be told to move in a particular
+		/// direction, which is precisely what we want.
+		/// [Open online documentation to see images]
+		/// </summary>
+		/// <param name="targetPoint">Target point in world space (XZ plane or XY plane depending on if the simulation is configured for 2D or 3D).
+		///      Note that this is a Vector2, not a Vector3 since the system simulates everything internally in 2D. So if your agents move in the
+		///      XZ plane you will have to supply it as a Vector2 with (x,z) coordinates.</param>
+		/// <param name="desiredSpeed">Desired speed of the agent. In world units per second. The agent will try to move with this
+		///      speed if possible.</param>
+		/// <param name="maxSpeed">Max speed of the agent. In world units per second. If necessary (for example if another agent
+		///      is on a collision trajectory towards this agent) the agent can move at this speed.
+		///      Should be at least as high as desiredSpeed, but it is recommended to use a slightly
+		///      higher value than desiredSpeed (for example desiredSpeed*1.2).</param>
 		void SetTarget (Vector2 targetPoint, float desiredSpeed, float maxSpeed);
 
-		/** Locked agents will be assumed not to move */
+		/// <summary>Locked agents will be assumed not to move</summary>
 		bool Locked { get; set; }
 
-		/** Radius of the agent in world units.
-		 * Agents are modelled as circles/cylinders.
-		 */
+		/// <summary>
+		/// Radius of the agent in world units.
+		/// Agents are modelled as circles/cylinders.
+		/// </summary>
 		float Radius { get; set; }
 
-		/** Height of the agent in world units.
-		 * Agents are modelled as circles/cylinders.
-		 */
+		/// <summary>
+		/// Height of the agent in world units.
+		/// Agents are modelled as circles/cylinders.
+		/// </summary>
 		float Height { get; set; }
 
-		/** Max number of estimated seconds to look into the future for collisions with agents.
-		 * As it turns out, this variable is also very good for controling agent avoidance priorities.
-		 * Agents with lower values will avoid other agents less and thus you can make 'high priority agents' by
-		 * giving them a lower value.
-		 */
+		/// <summary>
+		/// Max number of estimated seconds to look into the future for collisions with agents.
+		/// As it turns out, this variable is also very good for controling agent avoidance priorities.
+		/// Agents with lower values will avoid other agents less and thus you can make 'high priority agents' by
+		/// giving them a lower value.
+		/// </summary>
 		float AgentTimeHorizon { get; set; }
 
-		/** Max number of estimated seconds to look into the future for collisions with obstacles */
+		/// <summary>Max number of estimated seconds to look into the future for collisions with obstacles</summary>
 		float ObstacleTimeHorizon { get; set; }
 
-		/** Max number of agents to take into account.
-		 * Decreasing this value can lead to better performance, increasing it can lead to better quality of the simulation.
-		 */
+		/// <summary>
+		/// Max number of agents to take into account.
+		/// Decreasing this value can lead to better performance, increasing it can lead to better quality of the simulation.
+		/// </summary>
 		int MaxNeighbours { get; set; }
 
-		/** Number of neighbours that the agent took into account during the last simulation step */
+		/// <summary>Number of neighbours that the agent took into account during the last simulation step</summary>
 		int NeighbourCount { get; }
 
-		/** Specifies the avoidance layer for this agent.
-		 * The #CollidesWith mask on other agents will determine if they will avoid this agent.
-		 */
+		/// <summary>
+		/// Specifies the avoidance layer for this agent.
+		/// The <see cref="CollidesWith"/> mask on other agents will determine if they will avoid this agent.
+		/// </summary>
 		RVOLayer Layer { get; set; }
 
-		/** Layer mask specifying which layers this agent will avoid.
-		 * You can set it as CollidesWith = RVOLayer.DefaultAgent | RVOLayer.Layer3 | RVOLayer.Layer6 ...
-		 *
-		 * \see http://en.wikipedia.org/wiki/Mask_(computing)
-		 */
+		/// <summary>
+		/// Layer mask specifying which layers this agent will avoid.
+		/// You can set it as CollidesWith = RVOLayer.DefaultAgent | RVOLayer.Layer3 | RVOLayer.Layer6 ...
+		///
+		/// See: http://en.wikipedia.org/wiki/Mask_(computing)
+		/// </summary>
 		RVOLayer CollidesWith { get; set; }
 
-		/** Draw debug information.
-		 *
-		 * \note Will always draw debug info in the XZ plane even if #Pathfinding.RVO.Simulator.movementPlane is set to XY.
-		 * \note Ignored if multithreading on the simulator component has been enabled
-		 * since Unity's Debug API can only be called from the main thread.
-		 */
+		/// <summary>
+		/// Draw debug information.
+		///
+		/// Note: Will always draw debug info in the XZ plane even if <see cref="Pathfinding.RVO.Simulator.movementPlane"/> is set to XY.
+		/// Note: Ignored if multithreading on the simulator component has been enabled
+		/// since Unity's Debug API can only be called from the main thread.
+		/// </summary>
 		bool DebugDraw { get; set; }
 
-		/** List of obstacle segments which were close to the agent during the last simulation step.
-		 * Can be used to apply additional wall avoidance forces for example.
-		 * Segments are formed by the obstacle vertex and its .next property.
-		 *
-		 * \bug Always returns null
-		 */
+		/// <summary>
+		/// List of obstacle segments which were close to the agent during the last simulation step.
+		/// Can be used to apply additional wall avoidance forces for example.
+		/// Segments are formed by the obstacle vertex and its .next property.
+		///
+		/// \bug Always returns null
+		/// </summary>
 		[System.Obsolete()]
 		List<ObstacleVertex> NeighbourObstacles { get; }
 
-		/** How strongly other agents will avoid this agent.
-		 * Usually a value between 0 and 1.
-		 * Agents with similar priorities will avoid each other with an equal strength.
-		 * If an agent sees another agent with a higher priority than itself it will avoid that agent more strongly.
-		 * In the extreme case (e.g this agent has a priority of 0 and the other agent has a priority of 1) it will treat the other agent as being a moving obstacle.
-		 * Similarly if an agent sees another agent with a lower priority than itself it will avoid that agent less.
-		 *
-		 * In general the avoidance strength for this agent is:
-		 * \code
-		 * if this.priority > 0 or other.priority > 0:
-		 *     avoidanceStrength = other.priority / (this.priority + other.priority);
-		 * else:
-		 *     avoidanceStrength = 0.5
-		 * \endcode
-		 */
+		/// <summary>
+		/// How strongly other agents will avoid this agent.
+		/// Usually a value between 0 and 1.
+		/// Agents with similar priorities will avoid each other with an equal strength.
+		/// If an agent sees another agent with a higher priority than itself it will avoid that agent more strongly.
+		/// In the extreme case (e.g this agent has a priority of 0 and the other agent has a priority of 1) it will treat the other agent as being a moving obstacle.
+		/// Similarly if an agent sees another agent with a lower priority than itself it will avoid that agent less.
+		///
+		/// In general the avoidance strength for this agent is:
+		/// <code>
+		/// if this.priority > 0 or other.priority > 0:
+		///     avoidanceStrength = other.priority / (this.priority + other.priority);
+		/// else:
+		///     avoidanceStrength = 0.5
+		/// </code>
+		/// </summary>
 		float Priority { get; set; }
 
-		/** Callback which will be called right before avoidance calculations are started.
-		 * Used to update the other properties with the most up to date values
-		 */
+		/// <summary>
+		/// Callback which will be called right before avoidance calculations are started.
+		/// Used to update the other properties with the most up to date values
+		/// </summary>
 		System.Action PreCalculationCallback { set; }
 
-		/** Set the normal of a wall (or something else) the agent is currently colliding with.
-		 * This is used to make the RVO system aware of things like physics or an agent being clamped to the navmesh.
-		 * The velocity of this agent that other agents observe will be modified so that there is no component
-		 * into the wall. The agent will however not start to avoid the wall, for that you will need to add RVO obstacles.
-		 *
-		 * This value will be cleared after the next simulation step, normally it should be set every frame
-		 * when the collision is still happening.
-		 */
+		/// <summary>
+		/// Set the normal of a wall (or something else) the agent is currently colliding with.
+		/// This is used to make the RVO system aware of things like physics or an agent being clamped to the navmesh.
+		/// The velocity of this agent that other agents observe will be modified so that there is no component
+		/// into the wall. The agent will however not start to avoid the wall, for that you will need to add RVO obstacles.
+		///
+		/// This value will be cleared after the next simulation step, normally it should be set every frame
+		/// when the collision is still happening.
+		/// </summary>
 		void SetCollisionNormal (Vector2 normal);
 
-		/** Set the current velocity of the agent.
-		 * This will override the local avoidance input completely.
-		 * It is useful if you have a player controlled character and want other agents to avoid it.
-		 *
-		 * Calling this method will mark the agent as being externally controlled for 1 simulation step.
-		 * Local avoidance calculations will be skipped for the next simulation step but will be resumed
-		 * after that unless this method is called again.
-		 */
+		/// <summary>
+		/// Set the current velocity of the agent.
+		/// This will override the local avoidance input completely.
+		/// It is useful if you have a player controlled character and want other agents to avoid it.
+		///
+		/// Calling this method will mark the agent as being externally controlled for 1 simulation step.
+		/// Local avoidance calculations will be skipped for the next simulation step but will be resumed
+		/// after that unless this method is called again.
+		/// </summary>
 		void ForceSetVelocity (Vector2 velocity);
 	}
 
-	/** Plane which movement is primarily happening in */
+	/// <summary>Plane which movement is primarily happening in</summary>
 	public enum MovementPlane {
-		/** Movement happens primarily in the XZ plane (3D) */
+		/// <summary>Movement happens primarily in the XZ plane (3D)</summary>
 		XZ,
-		/** Movement happens primarily in the XY plane (2D) */
+		/// <summary>Movement happens primarily in the XY plane (2D)</summary>
 		XY
 	}
 
@@ -245,48 +257,51 @@ namespace Pathfinding.RVO {
 		Layer30 = 1 << 30
 	}
 
-	/** Local Avoidance %Simulator.
-	 * This class handles local avoidance simulation for a number of agents using
-	 * Reciprocal Velocity Obstacles (RVO) and Optimal Reciprocal Collision Avoidance (ORCA).
-	 *
-	 * This class will handle calculation of velocities from desired velocities supplied by a script.
-	 * It is, however, not responsible for moving any objects in a Unity Scene. For that there are other scripts (see below).
-	 *
-	 * Obstacles can be added and removed from the simulation, agents can also be added and removed at any time.
-	 * \see RVOSimulator
-	 * \see RVOAgent
-	 * \see Pathfinding.RVO.IAgent
-	 *
-	 * The implementation uses a sampling based algorithm with gradient descent to find the avoidance velocities.
-	 *
-	 * You will most likely mostly use the wrapper class RVOSimulator.
-	 *
-	 * \astarpro
-	 */
+	/// <summary>
+	/// Local Avoidance %Simulator.
+	/// This class handles local avoidance simulation for a number of agents using
+	/// Reciprocal Velocity Obstacles (RVO) and Optimal Reciprocal Collision Avoidance (ORCA).
+	///
+	/// This class will handle calculation of velocities from desired velocities supplied by a script.
+	/// It is, however, not responsible for moving any objects in a Unity Scene. For that there are other scripts (see below).
+	///
+	/// Obstacles can be added and removed from the simulation, agents can also be added and removed at any time.
+	/// See: RVOSimulator
+	/// See: RVOAgent
+	/// See: Pathfinding.RVO.IAgent
+	///
+	/// The implementation uses a sampling based algorithm with gradient descent to find the avoidance velocities.
+	///
+	/// You will most likely mostly use the wrapper class RVOSimulator.
+	/// </summary>
 	public class Simulator {
-		/** Use Double Buffering.
-		* \see DoubleBuffering */
+		/// <summary>
+		/// Use Double Buffering.
+		/// See: DoubleBuffering
+		/// </summary>
 		private readonly bool doubleBuffering = true;
 
-		/** Inverse desired simulation fps.
-		 * \see DesiredDeltaTime
-		 */
+		/// <summary>
+		/// Inverse desired simulation fps.
+		/// See: DesiredDeltaTime
+		/// </summary>
 		private float desiredDeltaTime = 0.05f;
 
-		/** Worker threads */
+		/// <summary>Worker threads</summary>
 		readonly Worker[] workers;
 
-		/** Agents in this simulation */
+		/// <summary>Agents in this simulation</summary>
 		List<Agent> agents;
 
-		/** Obstacles in this simulation */
+		/// <summary>Obstacles in this simulation</summary>
 		public List<ObstacleVertex> obstacles;
 
-		/** Quadtree for this simulation.
-		 * Used internally by the simulation to perform fast neighbour lookups for each agent.
-		 * Please only read from this tree, do not rebuild it since that can interfere with the simulation.
-		 * It is rebuilt when necessary.
-		 */
+		/// <summary>
+		/// Quadtree for this simulation.
+		/// Used internally by the simulation to perform fast neighbour lookups for each agent.
+		/// Please only read from this tree, do not rebuild it since that can interfere with the simulation.
+		/// It is rebuilt when necessary.
+		/// </summary>
 		public RVOQuadtree Quadtree { get; private set; }
 
 		private float deltaTime;
@@ -297,75 +312,79 @@ namespace Pathfinding.RVO {
 
 		public float DeltaTime { get { return deltaTime; } }
 
-		/** Is using multithreading */
+		/// <summary>Is using multithreading</summary>
 		public bool Multithreading { get { return workers != null && workers.Length > 0; } }
 
-		/** Time in seconds between each simulation step.
-		 * This is the desired delta time, the simulation will never run at a higher fps than
-		 * the rate at which the Update function is called.
-		 */
+		/// <summary>
+		/// Time in seconds between each simulation step.
+		/// This is the desired delta time, the simulation will never run at a higher fps than
+		/// the rate at which the Update function is called.
+		/// </summary>
 		public float DesiredDeltaTime { get { return desiredDeltaTime; } set { desiredDeltaTime = System.Math.Max(value, 0.0f); } }
 
-		/** Bias agents to pass each other on the right side.
-		 * If the desired velocity of an agent puts it on a collision course with another agent or an obstacle
-		 * its desired velocity will be rotated this number of radians (1 radian is approximately 57°) to the right.
-		 * This helps to break up symmetries and makes it possible to resolve some situations much faster.
-		 *
-		 * When many agents have the same goal this can however have the side effect that the group
-		 * clustered around the target point may as a whole start to spin around the target point.
-		 *
-		 * Recommended values are in the range of 0 to 0.2.
-		 *
-		 * If this value is negative, the agents will be biased towards passing each other on the left side instead.
-		 */
+		/// <summary>
+		/// Bias agents to pass each other on the right side.
+		/// If the desired velocity of an agent puts it on a collision course with another agent or an obstacle
+		/// its desired velocity will be rotated this number of radians (1 radian is approximately 57°) to the right.
+		/// This helps to break up symmetries and makes it possible to resolve some situations much faster.
+		///
+		/// When many agents have the same goal this can however have the side effect that the group
+		/// clustered around the target point may as a whole start to spin around the target point.
+		///
+		/// Recommended values are in the range of 0 to 0.2.
+		///
+		/// If this value is negative, the agents will be biased towards passing each other on the left side instead.
+		/// </summary>
 		public float symmetryBreakingBias = 0.1f;
 
-		/** Determines if the XY (2D) or XZ (3D) plane is used for movement */
+		/// <summary>Determines if the XY (2D) or XZ (3D) plane is used for movement</summary>
 		public readonly MovementPlane movementPlane = MovementPlane.XZ;
 
-		/** Get a list of all agents.
-		 *
-		 * This is an internal list.
-		 * I'm not going to be restrictive so you may access it since it is better for performance
-		 * but please do not modify it since that can cause errors in the simulation.
-		 *
-		 * \warning Do not modify this list!
-		 */
+		/// <summary>
+		/// Get a list of all agents.
+		///
+		/// This is an internal list.
+		/// I'm not going to be restrictive so you may access it since it is better for performance
+		/// but please do not modify it since that can cause errors in the simulation.
+		///
+		/// Warning: Do not modify this list!
+		/// </summary>
 		public List<Agent> GetAgents () {
 			return agents;
 		}
 
-		/** Get a list of all obstacles.
-		 * This is a list of obstacle vertices.
-		 * Each vertex is part of a doubly linked list loop
-		 * forming an obstacle polygon.
-		 *
-		 * \warning Do not modify this list!
-		 *
-		 * \see AddObstacle
-		 * \see RemoveObstacle
-		 */
+		/// <summary>
+		/// Get a list of all obstacles.
+		/// This is a list of obstacle vertices.
+		/// Each vertex is part of a doubly linked list loop
+		/// forming an obstacle polygon.
+		///
+		/// Warning: Do not modify this list!
+		///
+		/// See: AddObstacle
+		/// See: RemoveObstacle
+		/// </summary>
 		public List<ObstacleVertex> GetObstacles () {
 			return obstacles;
 		}
 
-		/** Create a new simulator.
-		 *
-		 * \param workers Use the specified number of worker threads.\n
-		 * When the number zero is specified, no multithreading will be used.
-		 * A good number is the number of cores on the machine.
-		 * \param doubleBuffering Use Double Buffering for calculations.
-		 * Testing done with 5000 agents and 0.1 desired delta time showed that with double buffering enabled
-		 * the game ran at 50 fps for most frames, dropping to 10 fps during calculation frames. But without double buffering
-		 * it ran at around 10 fps all the time.\n
-		 * This will let threads calculate while the game progresses instead of waiting for the calculations
-		 * to finish.
-		 * \param movementPlane The plane that the movement happens in. XZ for 3D games, XY for 2D games.
-		 *
-		 * \note Will only have effect if using multithreading
-		 *
-		 * \see #Multithreading
-		 */
+		/// <summary>
+		/// Create a new simulator.
+		///
+		/// Note: Will only have effect if using multithreading
+		///
+		/// See: <see cref="Multithreading"/>
+		/// </summary>
+		/// <param name="workers">Use the specified number of worker threads.\n
+		/// When the number zero is specified, no multithreading will be used.
+		/// A good number is the number of cores on the machine.</param>
+		/// <param name="doubleBuffering">Use Double Buffering for calculations.
+		/// Testing done with 5000 agents and 0.1 desired delta time showed that with double buffering enabled
+		/// the game ran at 50 fps for most frames, dropping to 10 fps during calculation frames. But without double buffering
+		/// it ran at around 10 fps all the time.\n
+		/// This will let threads calculate while the game progresses instead of waiting for the calculations
+		/// to finish.</param>
+		/// <param name="movementPlane">The plane that the movement happens in. XZ for 3D games, XY for 2D games.</param>
 		public Simulator (int workers, bool doubleBuffering, MovementPlane movementPlane) {
 			this.workers = new Simulator.Worker[workers];
 			this.doubleBuffering = doubleBuffering;
@@ -379,7 +398,7 @@ namespace Pathfinding.RVO {
 			obstacles = new List<ObstacleVertex>();
 		}
 
-		/** Removes all agents from the simulation */
+		/// <summary>Removes all agents from the simulation</summary>
 		public void ClearAgents () {
 			//Bad to update agents while processing of current agents might be done
 			//Don't interfere with ongoing calculations
@@ -391,23 +410,23 @@ namespace Pathfinding.RVO {
 			agents.Clear();
 		}
 
+		/// <summary>
+		/// Terminates all worker threads.
+		/// Warning: You must call this when you are done with the simulator, otherwise some threads can linger and lead to memory leaks.
+		/// </summary>
 		public void OnDestroy () {
 			if (workers != null) {
 				for (int i = 0; i < workers.Length; i++) workers[i].Terminate();
 			}
 		}
 
-		/** Terminates any worker threads */
-		~Simulator () {
-			OnDestroy();
-		}
-
-		/** Add a previously removed agent to the simulation.
-		 * An agent can only be in one simulation at a time, any attempt to add an agent to two simulations
-		 * or multiple times to the same simulation will result in an exception being thrown.
-		 *
-		 * \see RemoveAgent
-		 */
+		/// <summary>
+		/// Add a previously removed agent to the simulation.
+		/// An agent can only be in one simulation at a time, any attempt to add an agent to two simulations
+		/// or multiple times to the same simulation will result in an exception being thrown.
+		///
+		/// See: RemoveAgent
+		/// </summary>
 		public IAgent AddAgent (IAgent agent) {
 			if (agent == null) throw new System.ArgumentNullException("Agent must not be null");
 
@@ -425,36 +444,38 @@ namespace Pathfinding.RVO {
 			return agent;
 		}
 
-		/** Add an agent at the specified position.
-		 * You can use the returned interface to read several parameters such as position and velocity
-		 * and set for example radius and desired velocity.
-		 *
-		 * \deprecated Use AddAgent(Vector2,float) instead
-		 */
+		/// <summary>
+		/// Add an agent at the specified position.
+		/// You can use the returned interface to read several parameters such as position and velocity
+		/// and set for example radius and desired velocity.
+		///
+		/// Deprecated: Use AddAgent(Vector2,float) instead
+		/// </summary>
 		[System.Obsolete("Use AddAgent(Vector2,float) instead")]
 		public IAgent AddAgent (Vector3 position) {
 			return AddAgent(new Vector2(position.x, position.z), position.y);
 		}
 
-		/** Add an agent at the specified position.
-		 * You can use the returned interface to read and write parameters
-		 * and set for example radius and desired point to move to.
-		 *
-		 * \see RemoveAgent
-		 *
-		 * \param position See IAgent.Position
-		 * \param elevationCoordinate See IAgent.ElevationCoordinate
-		 */
+		/// <summary>
+		/// Add an agent at the specified position.
+		/// You can use the returned interface to read and write parameters
+		/// and set for example radius and desired point to move to.
+		///
+		/// See: RemoveAgent
+		/// </summary>
+		/// <param name="position">See IAgent.Position</param>
+		/// <param name="elevationCoordinate">See IAgent.ElevationCoordinate</param>
 		public IAgent AddAgent (Vector2 position, float elevationCoordinate) {
 			return AddAgent(new Agent(position, elevationCoordinate));
 		}
 
-		/** Removes a specified agent from this simulation.
-		 * The agent can be added again later by using AddAgent.
-		 *
-		 * \see AddAgent(IAgent)
-		 * \see ClearAgents
-		 */
+		/// <summary>
+		/// Removes a specified agent from this simulation.
+		/// The agent can be added again later by using AddAgent.
+		///
+		/// See: AddAgent(IAgent)
+		/// See: ClearAgents
+		/// </summary>
 		public void RemoveAgent (IAgent agent) {
 			if (agent == null) throw new System.ArgumentNullException("Agent must not be null");
 
@@ -473,11 +494,12 @@ namespace Pathfinding.RVO {
 			}
 		}
 
-		/** Adds a previously removed obstacle.
-		 * This does not check if the obstacle is already added to the simulation, so please do not add an obstacle multiple times.
-		 *
-		 * It is assumed that this is a valid obstacle.
-		 */
+		/// <summary>
+		/// Adds a previously removed obstacle.
+		/// This does not check if the obstacle is already added to the simulation, so please do not add an obstacle multiple times.
+		///
+		/// It is assumed that this is a valid obstacle.
+		/// </summary>
 		public ObstacleVertex AddObstacle (ObstacleVertex v) {
 			if (v == null) throw new System.ArgumentNullException("Obstacle must not be null");
 
@@ -489,18 +511,20 @@ namespace Pathfinding.RVO {
 			return v;
 		}
 
-		/** Adds an obstacle described by the vertices.
-		 *
-		 * \see RemoveObstacle
-		 */
+		/// <summary>
+		/// Adds an obstacle described by the vertices.
+		///
+		/// See: RemoveObstacle
+		/// </summary>
 		public ObstacleVertex AddObstacle (Vector3[] vertices, float height, bool cycle = true) {
 			return AddObstacle(vertices, height, Matrix4x4.identity, RVOLayer.DefaultObstacle, cycle);
 		}
 
-		/** Adds an obstacle described by the vertices.
-		 *
-		 * \see RemoveObstacle
-		 */
+		/// <summary>
+		/// Adds an obstacle described by the vertices.
+		///
+		/// See: RemoveObstacle
+		/// </summary>
 		public ObstacleVertex AddObstacle (Vector3[] vertices, float height, Matrix4x4 matrix, RVOLayer layer = RVOLayer.DefaultObstacle, bool cycle = true) {
 			if (vertices == null) throw new System.ArgumentNullException("Vertices must not be null");
 			if (vertices.Length < 2) throw new System.ArgumentException("Less than 2 vertices in an obstacle");
@@ -534,11 +558,11 @@ namespace Pathfinding.RVO {
 			return first;
 		}
 
-		/**
-		 * Adds a line obstacle with a specified height.
-		 *
-		 * \see RemoveObstacle
-		 */
+		/// <summary>
+		/// Adds a line obstacle with a specified height.
+		///
+		/// See: RemoveObstacle
+		/// </summary>
 		public ObstacleVertex AddObstacle (Vector3 a, Vector3 b, float height) {
 			ObstacleVertex first = new ObstacleVertex();
 			ObstacleVertex second = new ObstacleVertex();
@@ -569,13 +593,14 @@ namespace Pathfinding.RVO {
 			return first;
 		}
 
-		/** Updates the vertices of an obstacle.
-		 * \param obstacle %Obstacle to update
-		 * \param vertices New vertices for the obstacle, must have at least the number of vertices in the original obstacle
-		 * \param matrix %Matrix to multiply vertices with before updating obstacle
-		 *
-		 * The number of vertices in an obstacle cannot be changed, existing vertices can only be moved.
-		 */
+		/// <summary>
+		/// Updates the vertices of an obstacle.
+		///
+		/// The number of vertices in an obstacle cannot be changed, existing vertices can only be moved.
+		/// </summary>
+		/// <param name="obstacle">%Obstacle to update</param>
+		/// <param name="vertices">New vertices for the obstacle, must have at least the number of vertices in the original obstacle</param>
+		/// <param name="matrix">%Matrix to multiply vertices with before updating obstacle</param>
 		public void UpdateObstacle (ObstacleVertex obstacle, Vector3[] vertices, Matrix4x4 matrix) {
 			if (vertices == null) throw new System.ArgumentNullException("Vertices must not be null");
 			if (obstacle == null) throw new System.ArgumentNullException("Obstacle must not be null");
@@ -626,11 +651,12 @@ namespace Pathfinding.RVO {
 		private void CleanObstacles () {
 		}
 
-		/** Removes the obstacle identified by the vertex.
-		 * This must be the same vertex as the one returned by the AddObstacle call.
-		 *
-		 * \see AddObstacle
-		 */
+		/// <summary>
+		/// Removes the obstacle identified by the vertex.
+		/// This must be the same vertex as the one returned by the AddObstacle call.
+		///
+		/// See: AddObstacle
+		/// </summary>
 		public void RemoveObstacle (ObstacleVertex v) {
 			if (v == null) throw new System.ArgumentNullException("Vertex must not be null");
 
@@ -641,9 +667,10 @@ namespace Pathfinding.RVO {
 			UpdateObstacles();
 		}
 
-		/** Rebuilds the obstacle tree at next simulation frame.
-		 * Add and remove obstacle functions call this automatically.
-		 */
+		/// <summary>
+		/// Rebuilds the obstacle tree at next simulation frame.
+		/// Add and remove obstacle functions call this automatically.
+		/// </summary>
 		public void UpdateObstacles () {
 			// Update obstacles at next frame
 			doUpdateObstacles = true;
@@ -669,9 +696,10 @@ namespace Pathfinding.RVO {
 			Quadtree.CalculateSpeeds();
 		}
 
-		/** Blocks until separate threads have finished with the current simulation step.
-		 * When double buffering is done, the simulation is performed in between frames.
-		 */
+		/// <summary>
+		/// Blocks until separate threads have finished with the current simulation step.
+		/// When double buffering is done, the simulation is performed in between frames.
+		/// </summary>
 		void BlockUntilSimulationStepIsDone () {
 			if (Multithreading && doubleBuffering) for (int j = 0; j < workers.Length; j++) workers[j].WaitOne();
 		}
@@ -694,7 +722,7 @@ namespace Pathfinding.RVO {
 			}
 		}
 
-		/** Should be called once per frame */
+		/// <summary>Should be called once per frame</summary>
 		public void Update () {
 			// Initialize last step
 			if (lastStep < 0) {
@@ -770,7 +798,7 @@ namespace Pathfinding.RVO {
 			public float[] sampleSize = new float[50];
 		}
 
-		/** Worker thread for RVO simulation */
+		/// <summary>Worker thread for RVO simulation</summary>
 		class Worker {
 			public int start, end;
 			readonly AutoResetEvent runFlag = new AutoResetEvent(false);

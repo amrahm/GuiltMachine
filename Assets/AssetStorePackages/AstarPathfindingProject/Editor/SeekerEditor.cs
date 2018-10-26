@@ -54,7 +54,7 @@ namespace Pathfinding {
 				}
 			}
 
-			Mask("graphMask", graphLabels, "Traversable Graphs");
+			Mask("graphMask.value", graphLabels, "Traversable Graphs");
 
 			tagPenaltiesOpen = EditorGUILayout.Foldout(tagPenaltiesOpen, new GUIContent("Tags", "Settings for each tag"));
 			if (tagPenaltiesOpen) {

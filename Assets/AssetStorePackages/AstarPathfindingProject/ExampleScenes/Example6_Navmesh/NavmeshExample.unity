@@ -395,7 +395,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   version: 1
   data:
-    dataString: UEsDBBQAAAgIAAAIIexF0+fxHwEAAPUBAAALACQAZ3JhcGgwLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQGFUU1vwjAM/StVzhtKQXTVjpsmToNJ3aRpl8lLHIiUOlU+gIL470tKJ9Au5GLHz89+to/M2+gEvqLfsMfiyJbQYnIYwbZNsW/cQ9sZrMY/uyvYe98NKR+kQ/9Ca004GfinBFqlPIZcqmD7ZHiK9aM9ZFvkLGcDBG3pVp4XYHKvMvnKJp3yyUaSvtEHvHCn5aTm6ZXlvyLldDKbnwtt7C5rXMVgkt6EBRdxBJZW4rMlQpE1+QQqMB6vaE10CsQVjRAc+tAkIzYrMv3n1wVcRy3P6rZg4rArWUtZV5I/CDkH+OH3XNZciVlZo6oqUXM2yNRppRrMGxKY8DeJ7ZCuOo8HWsI2K1s46IarSAe7hT601l9yNSnbCIdIq3ONYa7TL1BLAwQUAAAICAAACCHsSXTLG28AAAB6AAAACQAkAG1ldGEuanNvbgoAIAAAAAAAAQAYAACAPtXesZ0BAIA+1d6xnQEAgD7V3rGdAatWKkstKs7Mz1OyUjDRM9Az0FFQSi9KLMgoBgoYgjilmSkgdrRSikVKioVZioF5coppYmKSga5BioVBWrKxoUVqmplZsoWBUixQfUllQapfYm4qRE9AYklGWmZeSmZeup5fYplvanGGO8h0pdhaAFBLAQItABQAAAgIAAAIIexF0+fxHwEAAPUBAAALACQAAAAAAAAAAAAAAAAAAABncmFwaDAuanNvbgoAIAAAAAAAAQAYAACAPtXesZ0BAIA+1d6xnQEAgD7V3rGdAVBLAQItABQAAAgIAAAIIexJdMsbbwAAAHoAAAAJACQAAAAAAAAAAAAAAGwBAABtZXRhLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQFQSwUGAAAAAAIAAgC4AAAAJgIAAAAA
+    dataString: UEsDBBQAAAgIAAAIIexbMTKeSwEAAFECAAALACQAZ3JhcGgwLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQGFUcFOwzAM/ZUqZ5jaTSsVR6ZpJzqkgoS4IJM4W6Q0qdJkWzft33HaQSsu5OIkz8/Pz76w1gbH8RnbPXtMLqyEGunCDBxq+vvEE9SNxvz2ZncJe+2aPuXNKN+tzU4ZnPX8K4FWyhZ9LJWwE4WU/rpbPMeYxCxnPXhlzX95LQcdtbLIQXrwoMFjaV0NuiXAu4CESUsexJMNRrSVOuNYd57NipROlv0RyOazxXIQ2dtj7H8bvCYvY9UIlFbgyhqDPPYbJSUp44RWBSeBT2gGwWHrKwp8vzW6e/8YQTTwpbEcprkK3iuzG9FdUGLo/QA69FMWhRBFLtIHLpYAX+l9KopU8kVWoMxzXqSsN6FoGQr0C9XX/senbdBM+rqtlsRj3xsHTb9P4eC4UefaTgaqjLQVd4hmO9T4dY2OZGjEYi2Ut67C3kKkssuVXb8BUEsDBBQAAAgIAAAIIeyYgTOtcAAAAHsAAAAJACQAbWV0YS5qc29uCgAgAAAAAAABABgAAIA+1d6xnQEAgD7V3rGdAQCAPtXesZ0Bq1YqSy0qzszPU7JSMNEz1DMy0lFQSi9KLMgoBooYgjilmSkgdrRSikVKioVZioF5coppYmKSga5BioVBWrKxoUVqmplZsoWBUixQfUllQapfYm4qRE9AYklGWmZeSmZeup5fYplvanGGO8h0pdhaAFBLAQItABQAAAgIAAAIIexbMTKeSwEAAFECAAALACQAAAAAAAAAAAAAAAAAAABncmFwaDAuanNvbgoAIAAAAAAAAQAYAACAPtXesZ0BAIA+1d6xnQEAgD7V3rGdAVBLAQItABQAAAgIAAAIIeyYgTOtcAAAAHsAAAAJACQAAAAAAAAAAAAAAJgBAABtZXRhLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQFQSwUGAAAAAAIAAgC4AAAAUwIAAAAA
     upgradeData: 
     file_cachedStartup: {fileID: 0}
     data_cachedStartup: 
@@ -415,7 +415,7 @@ MonoBehaviour:
   prioritizeGraphs: 0
   prioritizeGraphsLimit: 1
   colorSettings:
-    _NodeConnection: {r: 0, g: 1, b: 0, a: .5}
+    _SolidColor: {r: .117647059, g: .400000006, b: .788235307, a: .899999976}
     _UnwalkableNode: {r: 1, g: 0, b: 0, a: .5}
     _BoundsHandles: {r: .289999992, g: .453999996, b: .740999997, a: .899999976}
     _ConnectionLowLerp: {r: 0, g: 1, b: 0, a: .5}
@@ -459,7 +459,6 @@ MonoBehaviour:
   heuristicScale: 1
   threadCount: 0
   maxFrameTime: 1
-  minAreaSize: 10
   batchGraphUpdates: 0
   graphUpdateBatchingInterval: .200000003
   euclideanEmbedding:
@@ -542,8 +541,8 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 578526423}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: .687573671, y: .687573731, z: .687573671}
+  m_LocalPosition: {x: 0, y: .600000024, z: 0}
+  m_LocalScale: {x: .600000024, y: .600000024, z: .600000024}
   m_Children: []
   m_Father: {fileID: 1797897903}
   m_RootOrder: 1
@@ -756,7 +755,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1797897902}
   m_LocalRotation: {x: 0, y: .0654783249, z: 0, w: -.997853994}
-  m_LocalPosition: {x: -1.32024384, y: 1.06129861, z: .482648253}
+  m_LocalPosition: {x: -1.32024384, y: .256000012, z: .482648253}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1552443640}
@@ -775,6 +774,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 2
+  radius: .300000012
+  height: 1.20000005
   repathRate: .100000001
   canSearch: 1
   canMove: 1
@@ -783,9 +784,11 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  centerOffset: 1
-  rotationIn2D: 0
+  centerOffsetCompatibility: NaN
+  orientation: 0
+  enableRotation: 1
   targetCompatibility: {fileID: 0}
+  maxAcceleration: -2.5
   rotationSpeed: 720
   slowdownDistance: .200000003
   pickNextWaypointDist: .699999988
@@ -793,6 +796,7 @@ MonoBehaviour:
   alwaysDrawGizmos: 0
   slowWhenNotFacingTarget: 1
   whenCloseToDestination: 0
+  constrainInsideGraph: 0
 --- !u!114 &1797897905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -866,6 +870,7 @@ MonoBehaviour:
     useGraphRaycasting: 0
   traversableTags: -1
   tagPenalties: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  graphMask: -1
 --- !u!143 &1797897909
 CharacterController:
   m_ObjectHideFlags: 0
@@ -876,10 +881,10 @@ CharacterController:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Height: .699999988
-  m_Radius: .342999995
+  m_Height: 1.20000005
+  m_Radius: .300000012
   m_SlopeLimit: 90
   m_StepOffset: .200000003
   m_SkinWidth: .00999999978
   m_MinMoveDistance: 0
-  m_Center: {x: 0, y: -.389999986, z: 0}
+  m_Center: {x: 0, y: .600000024, z: 0}

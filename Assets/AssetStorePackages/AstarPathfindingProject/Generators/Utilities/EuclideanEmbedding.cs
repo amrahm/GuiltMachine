@@ -10,20 +10,24 @@ namespace Pathfinding {
 		Custom
 	}
 
-	/** Implements heuristic optimizations.
-	 *
-	 * \see heuristic-opt
-	 * \see Game AI Pro - Pathfinding Architecture Optimizations by Steve Rabin and Nathan R. Sturtevant
-	 *
-	 * \astarpro
-	 */
+	/// <summary>
+	/// Implements heuristic optimizations.
+	///
+	/// See: heuristic-opt
+	/// See: Game AI Pro - Pathfinding Architecture Optimizations by Steve Rabin and Nathan R. Sturtevant
+	/// </summary>
 	[System.Serializable]
 	public class EuclideanEmbedding {
+		/// <summary>
+		/// If heuristic optimization should be used and how to place the pivot points.
+		/// See: heuristic-opt
+		/// See: Game AI Pro - Pathfinding Architecture Optimizations by Steve Rabin and Nathan R. Sturtevant
+		/// </summary>
 		public HeuristicOptimizationMode mode;
 
 		public int seed;
 
-		/** All children of this transform will be used as pivot points */
+		/// <summary>All children of this transform will be used as pivot points</summary>
 		public Transform pivotPointRoot;
 
 		public int spreadOutCount = 1;

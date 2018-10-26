@@ -3,19 +3,20 @@ using System.Collections;
 
 namespace Pathfinding.Util {
 	public static class MovementUtilities {
-		/** Clamps the velocity to the max speed and optionally the forwards direction.
-		 * \param velocity Desired velocity of the character. In world units per second.
-		 * \param maxSpeed Max speed of the character. In world units per second.
-		 * \param slowdownFactor Value between 0 and 1 which determines how much slower the character should move than normal.
-		 *      Normally 1 but should go to 0 when the character approaches the end of the path.
-		 * \param slowWhenNotFacingTarget Prevent the velocity from being too far away from the forward direction of the character
-		 *      and slow the character down if the desired velocity is not in the same direction as the forward vector.
-		 * \param forward Forward direction of the character. Used together with the \a slowWhenNotFacingTarget parameter.
-		 *
-		 * Note that all vectors are 2D vectors, not 3D vectors.
-		 *
-		 * \returns The clamped velocity in world units per second.
-		 */
+		/// <summary>
+		/// Clamps the velocity to the max speed and optionally the forwards direction.
+		///
+		/// Note that all vectors are 2D vectors, not 3D vectors.
+		///
+		/// Returns: The clamped velocity in world units per second.
+		/// </summary>
+		/// <param name="velocity">Desired velocity of the character. In world units per second.</param>
+		/// <param name="maxSpeed">Max speed of the character. In world units per second.</param>
+		/// <param name="slowdownFactor">Value between 0 and 1 which determines how much slower the character should move than normal.
+		///      Normally 1 but should go to 0 when the character approaches the end of the path.</param>
+		/// <param name="slowWhenNotFacingTarget">Prevent the velocity from being too far away from the forward direction of the character
+		///      and slow the character down if the desired velocity is not in the same direction as the forward vector.</param>
+		/// <param name="forward">Forward direction of the character. Used together with the slowWhenNotFacingTarget parameter.</param>
 		public static Vector2 ClampVelocity (Vector2 velocity, float maxSpeed, float slowdownFactor, bool slowWhenNotFacingTarget, Vector2 forward) {
 			// Max speed to use for this frame
 			var currentMaxSpeed = maxSpeed * slowdownFactor;
@@ -58,7 +59,7 @@ namespace Pathfinding.Util {
 			}
 		}
 
-		/** Calculate an acceleration to move deltaPosition units and get there with approximately a velocity of targetVelocity */
+		/// <summary>Calculate an acceleration to move deltaPosition units and get there with approximately a velocity of targetVelocity</summary>
 		public static Vector2 CalculateAccelerationToReachPoint (Vector2 deltaPosition, Vector2 targetVelocity, Vector2 currentVelocity, float forwardsAcceleration, float rotationSpeed, float maxSpeed, Vector2 forwardsVector) {
 			// Guard against div by zero
 			if (forwardsAcceleration <= 0) return Vector2.zero;
@@ -72,7 +73,6 @@ namespace Pathfinding.Util {
 			// To avoid weird behaviour when the rotation speed is very low we allow the agent to accelerate sideways without rotating much
 			// if the rotation speed is very small. Also guards against division by zero.
 			sidewaysAcceleration = Mathf.Max(sidewaysAcceleration, forwardsAcceleration);
-			sidewaysAcceleration = forwardsAcceleration;
 
 			// Transform coordinates to local space where +X is the forwards direction
 			// This is essentially equivalent to Transform.InverseTransformDirection.

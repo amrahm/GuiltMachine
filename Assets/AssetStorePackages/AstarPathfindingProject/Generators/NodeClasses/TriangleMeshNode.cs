@@ -2,48 +2,50 @@ using UnityEngine;
 using Pathfinding.Serialization;
 
 namespace Pathfinding {
-	/** Interface for something that holds a triangle based navmesh */
+	/// <summary>Interface for something that holds a triangle based navmesh</summary>
 	public interface INavmeshHolder : ITransformedGraph, INavmesh {
-		/** Position of vertex number i in the world */
+		/// <summary>Position of vertex number i in the world</summary>
 		Int3 GetVertex (int i);
 
-		/** Position of vertex number i in coordinates local to the graph.
-		 * The up direction is always the +Y axis for these coordinates.
-		 */
+		/// <summary>
+		/// Position of vertex number i in coordinates local to the graph.
+		/// The up direction is always the +Y axis for these coordinates.
+		/// </summary>
 		Int3 GetVertexInGraphSpace (int i);
 
 		int GetVertexArrayIndex (int index);
 
-		/** Transforms coordinates from graph space to world space */
+		/// <summary>Transforms coordinates from graph space to world space</summary>
 		void GetTileCoordinates (int tileIndex, out int x, out int z);
 	}
 
-	/** Node represented by a triangle */
+	/// <summary>Node represented by a triangle</summary>
 	public class TriangleMeshNode : MeshNode {
 		public TriangleMeshNode (AstarPath astar) : base(astar) {}
 
-		/** Internal vertex index for the first vertex */
+		/// <summary>Internal vertex index for the first vertex</summary>
 		public int v0;
 
-		/** Internal vertex index for the second vertex */
+		/// <summary>Internal vertex index for the second vertex</summary>
 		public int v1;
 
-		/** Internal vertex index for the third vertex */
+		/// <summary>Internal vertex index for the third vertex</summary>
 		public int v2;
 
-		/** Holds INavmeshHolder references for all graph indices to be able to access them in a performant manner */
+		/// <summary>Holds INavmeshHolder references for all graph indices to be able to access them in a performant manner</summary>
 		protected static INavmeshHolder[] _navmeshHolders = new INavmeshHolder[0];
 
-		/** Used for synchronised access to the #_navmeshHolders array */
+		/// <summary>Used for synchronised access to the <see cref="_navmeshHolders"/> array</summary>
 		protected static readonly System.Object lockObject = new System.Object();
 
 		public static INavmeshHolder GetNavmeshHolder (uint graphIndex) {
 			return _navmeshHolders[(int)graphIndex];
 		}
 
-		/** Sets the internal navmesh holder for a given graph index.
-		 * \warning Internal method
-		 */
+		/// <summary>
+		/// Sets the internal navmesh holder for a given graph index.
+		/// Warning: Internal method
+		/// </summary>
 		public static void SetNavmeshHolder (int graphIndex, INavmeshHolder graph) {
 			// We need to lock to make sure that
 			// the resize operation is thread safe
@@ -57,7 +59,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Set the position of this node to the average of its 3 vertices */
+		/// <summary>Set the position of this node to the average of its 3 vertices</summary>
 		public void UpdatePositionFromVertices () {
 			Int3 a, b, c;
 
@@ -65,23 +67,25 @@ namespace Pathfinding {
 			position = (a + b + c) * 0.333333f;
 		}
 
-		/** Return a number identifying a vertex.
-		 * This number does not necessarily need to be a index in an array but two different vertices (in the same graph) should
-		 * not have the same vertex numbers.
-		 */
+		/// <summary>
+		/// Return a number identifying a vertex.
+		/// This number does not necessarily need to be a index in an array but two different vertices (in the same graph) should
+		/// not have the same vertex numbers.
+		/// </summary>
 		public int GetVertexIndex (int i) {
 			return i == 0 ? v0 : (i == 1 ? v1 : v2);
 		}
 
-		/** Return a number specifying an index in the source vertex array.
-		 * The vertex array can for example be contained in a recast tile, or be a navmesh graph, that is graph dependant.
-		 * This is slower than GetVertexIndex, if you only need to compare vertices, use GetVertexIndex.
-		 */
+		/// <summary>
+		/// Return a number specifying an index in the source vertex array.
+		/// The vertex array can for example be contained in a recast tile, or be a navmesh graph, that is graph dependant.
+		/// This is slower than GetVertexIndex, if you only need to compare vertices, use GetVertexIndex.
+		/// </summary>
 		public int GetVertexArrayIndex (int i) {
 			return GetNavmeshHolder(GraphIndex).GetVertexArrayIndex(i == 0 ? v0 : (i == 1 ? v1 : v2));
 		}
 
-		/** Returns all 3 vertices of this node in world space */
+		/// <summary>Returns all 3 vertices of this node in world space</summary>
 		public void GetVertices (out Int3 v0, out Int3 v1, out Int3 v2) {
 			// Get the object holding the vertex data for this node
 			// This is usually a graph or a recast graph tile
@@ -92,7 +96,7 @@ namespace Pathfinding {
 			v2 = holder.GetVertex(this.v2);
 		}
 
-		/** Returns all 3 vertices of this node in graph space */
+		/// <summary>Returns all 3 vertices of this node in graph space</summary>
 		public void GetVerticesInGraphSpace (out Int3 v0, out Int3 v1, out Int3 v2) {
 			// Get the object holding the vertex data for this node
 			// This is usually a graph or a recast graph tile
@@ -123,17 +127,18 @@ namespace Pathfinding {
 			return Pathfinding.Polygon.ClosestPointOnTriangle((Vector3)a, (Vector3)b, (Vector3)c, p);
 		}
 
-		/** Closest point on the node when seen from above.
-		 * This method is mostly for internal use as the #Pathfinding.NavmeshBase.Linecast methods use it.
-		 *
-		 * - The returned point is the closest one on the node to \a p when seen from above (relative to the graph).
-		 *   This is important mostly for sloped surfaces.
-		 * - The returned point is an Int3 point in graph space.
-		 * - It is guaranteed to be inside the node, so if you call #ContainsPointInGraphSpace with the return value from this method the result is guaranteed to be true.
-		 *
-		 * This method is slower than e.g #ClosestPointOnNode or #ClosestPointOnNodeXZ.
-		 * However they do not have the same guarantees as this method has.
-		 */
+		/// <summary>
+		/// Closest point on the node when seen from above.
+		/// This method is mostly for internal use as the <see cref="Pathfinding.NavmeshBase.Linecast"/> methods use it.
+		///
+		/// - The returned point is the closest one on the node to p when seen from above (relative to the graph).
+		///   This is important mostly for sloped surfaces.
+		/// - The returned point is an Int3 point in graph space.
+		/// - It is guaranteed to be inside the node, so if you call <see cref="ContainsPointInGraphSpace"/> with the return value from this method the result is guaranteed to be true.
+		///
+		/// This method is slower than e.g <see cref="ClosestPointOnNode"/> or <see cref="ClosestPointOnNodeXZ"/>.
+		/// However they do not have the same guarantees as this method has.
+		/// </summary>
 		internal Int3 ClosestPointOnNodeXZInGraphSpace (Vector3 p) {
 			// Get the vertices that make up the triangle
 			Int3 a, b, c;
@@ -284,20 +289,21 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Returns the edge which is shared with \a other.
-		 * If no edge is shared, -1 is returned.
-		 * If there is a connection with the other node, but the connection is not marked as using a particular edge of the shape of the node
-		 * then 0xFF will be returned.
-		 *
-		 * The vertices in the edge can be retrieved using
-		 * \code
-		 * var edge = node.SharedEdge(other);
-		 * var a = node.GetVertex(edge);
-		 * var b = node.GetVertex((edge+1) % node.GetVertexCount());
-		 * \endcode
-		 *
-		 * \see #GetPortal which also handles edges that are shared over tile borders and some types of node links
-		 */
+		/// <summary>
+		/// Returns the edge which is shared with other.
+		/// If no edge is shared, -1 is returned.
+		/// If there is a connection with the other node, but the connection is not marked as using a particular edge of the shape of the node
+		/// then 0xFF will be returned.
+		///
+		/// The vertices in the edge can be retrieved using
+		/// <code>
+		/// var edge = node.SharedEdge(other);
+		/// var a = node.GetVertex(edge);
+		/// var b = node.GetVertex((edge+1) % node.GetVertexCount());
+		/// </code>
+		///
+		/// See: <see cref="GetPortal"/> which also handles edges that are shared over tile borders and some types of node links
+		/// </summary>
 		public int SharedEdge (GraphNode other) {
 			var edge = -1;
 
@@ -407,7 +413,7 @@ namespace Pathfinding {
 			return true;
 		}
 
-		/** \todo This is the area in XZ space, use full 3D space for higher correctness maybe? */
+		/// <summary>TODO: This is the area in XZ space, use full 3D space for higher correctness maybe?</summary>
 		public override float SurfaceArea () {
 			var holder = GetNavmeshHolder(GraphIndex);
 

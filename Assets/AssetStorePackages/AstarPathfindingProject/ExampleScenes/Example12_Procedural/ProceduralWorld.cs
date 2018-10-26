@@ -3,64 +3,78 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Pathfinding.Examples {
-	/** Example script for generating an infinite procedural world */
+	/// <summary>Example script for generating an infinite procedural world</summary>
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_examples_1_1_procedural_world.php")]
 	public class ProceduralWorld : MonoBehaviour {
 		public Transform target;
 
 		public ProceduralPrefab[] prefabs;
 
-		/** How far away to generate tiles */
+		/// <summary>How far away to generate tiles</summary>
 		public int range = 1;
 
-		/** World size of tiles */
+		public int disableAsyncLoadWithinRange = 1;
+
+		/// <summary>World size of tiles</summary>
 		public float tileSize = 100;
 		public int subTiles = 20;
 
-		/** Enable static batching on generated tiles.
-		 * Will improve overall FPS, but might cause FPS drops on
-		 * some frames when static batching is done
-		 */
+		/// <summary>
+		/// Enable static batching on generated tiles.
+		/// Will improve overall FPS, but might cause FPS drops on
+		/// some frames when static batching is done
+		/// </summary>
 		public bool staticBatching = false;
 
 		Queue<IEnumerator> tileGenerationQueue = new Queue<IEnumerator>();
 
+		public enum RotationRandomness {
+			AllAxes,
+			Y
+		}
+
 		[System.Serializable]
 		public class ProceduralPrefab {
-			/** Prefab to use */
+			/// <summary>Prefab to use</summary>
 			public GameObject prefab;
 
-			/** Number of objects per square world unit */
+			/// <summary>Number of objects per square world unit</summary>
 			public float density = 0;
 
-			/** Multiply by [perlin noise].
-			 * Value from 0 to 1 indicating weight.
-			 */
+			/// <summary>
+			/// Multiply by [perlin noise].
+			/// Value from 0 to 1 indicating weight.
+			/// </summary>
 			public float perlin = 0;
 
-			/** Perlin will be raised to this power.
-			 * A higher value gives more distinct edges
-			 */
+			/// <summary>
+			/// Perlin will be raised to this power.
+			/// A higher value gives more distinct edges
+			/// </summary>
 			public float perlinPower = 1;
 
-			/** Some offset to avoid identical density maps */
+			/// <summary>Some offset to avoid identical density maps</summary>
 			public Vector2 perlinOffset = Vector2.zero;
 
-			/** Perlin noise scale.
-			 * A higher value spreads out the maximums and minimums of the density.
-			 */
+			/// <summary>
+			/// Perlin noise scale.
+			/// A higher value spreads out the maximums and minimums of the density.
+			/// </summary>
 			public float perlinScale = 1;
 
-			/** Multiply by [random].
-			 * Value from 0 to 1 indicating weight.
-			 */
+			/// <summary>
+			/// Multiply by [random].
+			/// Value from 0 to 1 indicating weight.
+			/// </summary>
 			public float random = 1;
 
-			/** If checked, a single object will be created in the center of each tile */
+			public RotationRandomness randomRotation = RotationRandomness.AllAxes;
+
+			/// <summary>If checked, a single object will be created in the center of each tile</summary>
 			public bool singleFixed = false;
 		}
 
-		/** All tiles */
+		/// <summary>All tiles</summary>
 		Dictionary<Int2, ProceduralTile> tiles = new Dictionary<Int2, ProceduralTile>();
 
 		// Use this for initialization
@@ -114,8 +128,8 @@ namespace Pathfinding.Examples {
 			// The ones directly adjacent to the current one
 			// should always be completely calculated
 			// make sure they are
-			for (int x = p.x-1; x <= p.x+1; x++) {
-				for (int z = p.y-1; z <= p.y+1; z++) {
+			for (int x = p.x-disableAsyncLoadWithinRange; x <= p.x+disableAsyncLoadWithinRange; x++) {
+				for (int z = p.y-disableAsyncLoadWithinRange; z <= p.y+disableAsyncLoadWithinRange; z++) {
 					tiles[new Int2(x, z)].ForceFinish();
 				}
 			}
@@ -178,8 +192,8 @@ namespace Pathfinding.Examples {
 				return v;
 			}
 
-			Quaternion RandomYRot () {
-				return Quaternion.Euler(360*(float)rnd.NextDouble(), 0, 360*(float)rnd.NextDouble());
+			Quaternion RandomYRot (ProceduralPrefab prefab) {
+				return prefab.randomRotation == RotationRandomness.AllAxes ? Quaternion.Euler(360*(float)rnd.NextDouble(), 360*(float)rnd.NextDouble(), 360*(float)rnd.NextDouble()) : Quaternion.Euler(0, 360 * (float)rnd.NextDouble(), 0);
 			}
 
 			IEnumerator InternalGenerate () {
@@ -228,7 +242,7 @@ namespace Pathfinding.Examples {
 								for (int j = 0; j < count; j++) {
 									// Find a random position inside the current sub-tile
 									Vector3 p = RandomInside(px, pz);
-									GameObject ob = GameObject.Instantiate(pref.prefab, p, RandomYRot()) as GameObject;
+									GameObject ob = GameObject.Instantiate(pref.prefab, p, RandomYRot(pref)) as GameObject;
 									ob.transform.parent = root;
 									//ob.SetActive ( false );
 									//objs.Add ( ob );

@@ -1,13 +1,13 @@
 using UnityEngine;
 
 namespace Pathfinding {
-	/** Pruning of recast navmesh regions.
-	 * A RelevantGraphSurface component placed in the scene specifies that
-	 * the navmesh region it is inside should be included in the navmesh.
-	 *
-	 * \see Pathfinding.RecastGraph.relevantGraphSurfaceMode
-	 *
-	 */
+	/// <summary>
+	/// Pruning of recast navmesh regions.
+	/// A RelevantGraphSurface component placed in the scene specifies that
+	/// the navmesh region it is inside should be included in the navmesh.
+	///
+	/// See: Pathfinding.RecastGraph.relevantGraphSurfaceMode
+	/// </summary>
 	[AddComponentMenu("Pathfinding/Navmesh/RelevantGraphSurface")]
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_relevant_graph_surface.php")]
 	public class RelevantGraphSurface : VersionedMonoBehaviour {
@@ -62,9 +62,10 @@ namespace Pathfinding {
 			next = null;
 		}
 
-		/** Updates the positions of all relevant graph surface components.
-		 * Required to be able to use the position property reliably.
-		 */
+		/// <summary>
+		/// Updates the positions of all relevant graph surface components.
+		/// Required to be able to use the position property reliably.
+		/// </summary>
 		public static void UpdateAllPositions () {
 			RelevantGraphSurface c = root;
 

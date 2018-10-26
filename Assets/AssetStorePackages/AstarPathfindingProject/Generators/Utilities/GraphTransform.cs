@@ -1,34 +1,36 @@
 using UnityEngine;
 
 namespace Pathfinding.Util {
-	/** Transforms to and from world space to a 2D movement plane.
-	 * The transformation is guaranteed to be purely a rotation
-	 * so no scale or offset is used. This interface is primarily
-	 * used to make it easier to write movement scripts which can
-	 * handle movement both in the XZ plane and in the XY plane.
-	 *
-	 * \see #Pathfinding.Util.GraphTransform
-	 */
+	/// <summary>
+	/// Transforms to and from world space to a 2D movement plane.
+	/// The transformation is guaranteed to be purely a rotation
+	/// so no scale or offset is used. This interface is primarily
+	/// used to make it easier to write movement scripts which can
+	/// handle movement both in the XZ plane and in the XY plane.
+	///
+	/// See: <see cref="Pathfinding.Util.GraphTransform"/>
+	/// </summary>
 	public interface IMovementPlane {
 		Vector2 ToPlane (Vector3 p);
 		Vector2 ToPlane (Vector3 p, out float elevation);
 		Vector3 ToWorld (Vector2 p, float elevation = 0);
 	}
 
-	/** Generic 3D coordinate transformation */
+	/// <summary>Generic 3D coordinate transformation</summary>
 	public interface ITransform {
 		Vector3 Transform (Vector3 position);
 		Vector3 InverseTransform (Vector3 position);
 	}
 
-	/** Defines a transformation from graph space to world space.
-	 * This is essentially just a simple wrapper around a matrix, but it has several utilities that are useful.
-	 */
+	/// <summary>
+	/// Defines a transformation from graph space to world space.
+	/// This is essentially just a simple wrapper around a matrix, but it has several utilities that are useful.
+	/// </summary>
 	public class GraphTransform : IMovementPlane, ITransform {
-		/** True if this transform is the identity transform (i.e it does not do anything) */
+		/// <summary>True if this transform is the identity transform (i.e it does not do anything)</summary>
 		public readonly bool identity;
 
-		/** True if this transform is a pure translation without any scaling or rotation */
+		/// <summary>True if this transform is a pure translation without any scaling or rotation</summary>
 		public readonly bool onlyTranslational;
 
 		readonly bool isXY;
@@ -171,15 +173,16 @@ namespace Pathfinding.Util {
 
 		#region IMovementPlane implementation
 
-		/** Transforms from world space to the 'ground' plane of the graph.
-		 * The transformation is purely a rotation so no scale or offset is used.
-		 *
-		 * For a graph rotated with the rotation (-90, 0, 0) this will transform
-		 * a coordinate (x,y,z) to (x,y). For a graph with the rotation (0,0,0)
-		 * this will tranform a coordinate (x,y,z) to (x,z). More generally for
-		 * a graph with a quaternion rotation R this will transform a vector V
-		 * to R * V (i.e rotate the vector V using the rotation R).
-		 */
+		/// <summary>
+		/// Transforms from world space to the 'ground' plane of the graph.
+		/// The transformation is purely a rotation so no scale or offset is used.
+		///
+		/// For a graph rotated with the rotation (-90, 0, 0) this will transform
+		/// a coordinate (x,y,z) to (x,y). For a graph with the rotation (0,0,0)
+		/// this will tranform a coordinate (x,y,z) to (x,z). More generally for
+		/// a graph with a quaternion rotation R this will transform a vector V
+		/// to R * V (i.e rotate the vector V using the rotation R).
+		/// </summary>
 		Vector2 IMovementPlane.ToPlane (Vector3 point) {
 			// These special cases cover most graph orientations used in practice.
 			// Having them here improves performance in those cases by a factor of
@@ -189,18 +192,20 @@ namespace Pathfinding.Util {
 			return new Vector2(point.x, point.z);
 		}
 
-		/** Transforms from world space to the 'ground' plane of the graph.
-		 * The transformation is purely a rotation so no scale or offset is used.
-		 */
+		/// <summary>
+		/// Transforms from world space to the 'ground' plane of the graph.
+		/// The transformation is purely a rotation so no scale or offset is used.
+		/// </summary>
 		Vector2 IMovementPlane.ToPlane (Vector3 point, out float elevation) {
 			if (!isXZ) point = inverseRotation * point;
 			elevation = point.y;
 			return new Vector2(point.x, point.z);
 		}
 
-		/** Transforms from the 'ground' plane of the graph to world space.
-		 * The transformation is purely a rotation so no scale or offset is used.
-		 */
+		/// <summary>
+		/// Transforms from the 'ground' plane of the graph to world space.
+		/// The transformation is purely a rotation so no scale or offset is used.
+		/// </summary>
 		Vector3 IMovementPlane.ToWorld (Vector2 point, float elevation) {
 			return rotation * new Vector3(point.x, elevation, point.y);
 		}

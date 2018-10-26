@@ -6,11 +6,12 @@ namespace Pathfinding.RVO.Sampled {
 	using Pathfinding.RVO;
 	using Pathfinding.Util;
 
-	/** Internal agent for the RVO system.
-	 * Usually you will interface with the IAgent interface instead.
-	 *
-	 * \see IAgent
-	 */
+	/// <summary>
+	/// Internal agent for the RVO system.
+	/// Usually you will interface with the IAgent interface instead.
+	///
+	/// See: IAgent
+	/// </summary>
 	public class Agent : IAgent {
 		//Current values for double buffer calculation
 
@@ -24,7 +25,7 @@ namespace Pathfinding.RVO.Sampled {
 		float elevationCoordinate;
 		Vector2 currentVelocity;
 
-		/** Desired target point - position */
+		/// <summary>Desired target point - position</summary>
 		Vector2 desiredTargetPointInVelocitySpace;
 		Vector2 desiredVelocity;
 
@@ -37,46 +38,46 @@ namespace Pathfinding.RVO.Sampled {
 
 		#region IAgent Properties
 
-		/** \copydoc Pathfinding::RVO::IAgent::Position */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::Position</summary>
 		public Vector2 Position { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::ElevationCoordinate */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::ElevationCoordinate</summary>
 		public float ElevationCoordinate { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::CalculatedTargetPoint */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::CalculatedTargetPoint</summary>
 		public Vector2 CalculatedTargetPoint { get; private set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::CalculatedSpeed */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::CalculatedSpeed</summary>
 		public float CalculatedSpeed { get; private set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::Locked */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::Locked</summary>
 		public bool Locked { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::Radius */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::Radius</summary>
 		public float Radius { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::Height */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::Height</summary>
 		public float Height { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::AgentTimeHorizon */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::AgentTimeHorizon</summary>
 		public float AgentTimeHorizon { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::ObstacleTimeHorizon */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::ObstacleTimeHorizon</summary>
 		public float ObstacleTimeHorizon { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::MaxNeighbours */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::MaxNeighbours</summary>
 		public int MaxNeighbours { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::NeighbourCount */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::NeighbourCount</summary>
 		public int NeighbourCount { get; private set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::Layer */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::Layer</summary>
 		public RVOLayer Layer { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::CollidesWith */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::CollidesWith</summary>
 		public RVOLayer CollidesWith { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::DebugDraw */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::DebugDraw</summary>
 		public bool DebugDraw {
 			get {
 				return debugDraw;
@@ -86,17 +87,17 @@ namespace Pathfinding.RVO.Sampled {
 			}
 		}
 
-		/** \copydoc Pathfinding::RVO::IAgent::Priority */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::Priority</summary>
 		public float Priority { get; set; }
 
-		/** \copydoc Pathfinding::RVO::IAgent::PreCalculationCallback */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::PreCalculationCallback</summary>
 		public System.Action PreCalculationCallback { private get; set; }
 
 		#endregion
 
 		#region IAgent Methods
 
-		/** \copydoc Pathfinding::RVO::IAgent::SetTarget */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::SetTarget</summary>
 		public void SetTarget (Vector2 targetPoint, float desiredSpeed, float maxSpeed) {
 			maxSpeed = System.Math.Max(maxSpeed, 0);
 			desiredSpeed = System.Math.Min(System.Math.Max(desiredSpeed, 0), maxSpeed);
@@ -106,12 +107,12 @@ namespace Pathfinding.RVO.Sampled {
 			nextMaxSpeed = maxSpeed;
 		}
 
-		/** \copydoc Pathfinding::RVO::IAgent::SetCollisionNormal */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::SetCollisionNormal</summary>
 		public void SetCollisionNormal (Vector2 normal) {
 			collisionNormal = normal;
 		}
 
-		/** \copydoc Pathfinding::RVO::IAgent::ForceSetVelocity */
+		/// <summary>\copydoc Pathfinding::RVO::IAgent::ForceSetVelocity</summary>
 		public void ForceSetVelocity (Vector2 velocity) {
 			// A bit hacky, but it is approximately correct
 			// assuming the agent does not move significantly
@@ -122,16 +123,17 @@ namespace Pathfinding.RVO.Sampled {
 
 		#endregion
 
-		/** Used internally for a linked list */
+		/// <summary>Used internally for a linked list</summary>
 		internal Agent next;
 
 		float calculatedSpeed;
 		Vector2 calculatedTargetPoint;
 
-		/** Simulator which handles this agent.
-		 * Used by this script as a reference and to prevent
-		 * adding this agent to multiple simulations.
-		 */
+		/// <summary>
+		/// Simulator which handles this agent.
+		/// Used by this script as a reference and to prevent
+		/// adding this agent to multiple simulations.
+		/// </summary>
 		internal Simulator simulator;
 
 		List<Agent> neighbours = new List<Agent>();
@@ -141,7 +143,7 @@ namespace Pathfinding.RVO.Sampled {
 
 		const float DesiredVelocityWeight = 0.1f;
 
-		/** Extra weight that walls will have */
+		/// <summary>Extra weight that walls will have</summary>
 		const float WallWeight = 5;
 
 		public List<ObstacleVertex> NeighbourObstacles {
@@ -167,14 +169,15 @@ namespace Pathfinding.RVO.Sampled {
 			SetTarget(pos, 0, 0);
 		}
 
-		/** Reads public properties and stores them in internal fields.
-		 * This is required because multithreading is used and if another script
-		 * updated the fields at the same time as this class used them in another thread
-		 * weird things could happen.
-		 *
-		 * Will also set CalculatedTargetPoint and CalculatedSpeed to the result
-		 * which was last calculated.
-		 */
+		/// <summary>
+		/// Reads public properties and stores them in internal fields.
+		/// This is required because multithreading is used and if another script
+		/// updated the fields at the same time as this class used them in another thread
+		/// weird things could happen.
+		///
+		/// Will also set CalculatedTargetPoint and CalculatedSpeed to the result
+		/// which was last calculated.
+		/// </summary>
 		public void BufferSwitch () {
 			// <== Read public properties
 			radius = Radius;
@@ -243,7 +246,7 @@ namespace Pathfinding.RVO.Sampled {
 			manuallyControlled = false;
 		}
 
-		/** Populate the neighbours and neighbourDists lists with the closest agents to this agent */
+		/// <summary>Populate the neighbours and neighbourDists lists with the closest agents to this agent</summary>
 		public void CalculateNeighbours () {
 			neighbours.Clear();
 			neighbourDists.Clear();
@@ -253,14 +256,15 @@ namespace Pathfinding.RVO.Sampled {
 			NeighbourCount = neighbours.Count;
 		}
 
-		/** Square a number */
+		/// <summary>Square a number</summary>
 		static float Sqr (float x) {
 			return x*x;
 		}
 
-		/** Used by the Quadtree.
-		 * \see CalculateNeighbours
-		 */
+		/// <summary>
+		/// Used by the Quadtree.
+		/// See: CalculateNeighbours
+		/// </summary>
 		internal float InsertAgentNeighbour (Agent agent, float rangeSq) {
 			// Check if this agent collides with the other agent
 			if (this == agent || (agent.layer & collidesWith) == 0) return rangeSq;
@@ -294,22 +298,23 @@ namespace Pathfinding.RVO.Sampled {
 		}
 
 
-		/** (x, 0, y) */
+		/// <summary>(x, 0, y)</summary>
 		static Vector3 FromXZ (Vector2 p) {
 			return new Vector3(p.x, 0, p.y);
 		}
 
-		/** (x, z) */
+		/// <summary>(x, z)</summary>
 		static Vector2 ToXZ (Vector3 p) {
 			return new Vector2(p.x, p.z);
 		}
 
-		/** Converts a 3D vector to a 2D vector in the movement plane.
-		 * If movementPlane is XZ it will be projected onto the XZ plane
-		 * and the elevation coordinate will be the Y coordinate
-		 * otherwise it will be projected onto the XY plane and elevation
-		 * will be the Z coordinate.
-		 */
+		/// <summary>
+		/// Converts a 3D vector to a 2D vector in the movement plane.
+		/// If movementPlane is XZ it will be projected onto the XZ plane
+		/// and the elevation coordinate will be the Y coordinate
+		/// otherwise it will be projected onto the XY plane and elevation
+		/// will be the Z coordinate.
+		/// </summary>
 		Vector2 To2D (Vector3 p, out float elevation) {
 			if (simulator.movementPlane == MovementPlane.XY) {
 				elevation = -p.z;
@@ -338,11 +343,12 @@ namespace Pathfinding.RVO.Sampled {
 			Debug.DrawRay(FromXZ(p2), FromXZ(p2t).normalized*100, Color.black);
 		}
 
-		/** Velocity Obstacle.
-		 * This is a struct to avoid too many allocations.
-		 *
-		 * \see https://en.wikipedia.org/wiki/Velocity_obstacle
-		 */
+		/// <summary>
+		/// Velocity Obstacle.
+		/// This is a struct to avoid too many allocations.
+		///
+		/// See: https://en.wikipedia.org/wiki/Velocity_obstacle
+		/// </summary>
 		internal struct VO {
 			Vector2 line1, line2, dir1, dir2;
 
@@ -357,13 +363,12 @@ namespace Pathfinding.RVO.Sampled {
 			Vector2 segmentStart, segmentEnd;
 			bool segment;
 
-			/** Creates a VO for avoiding another agent.
-			 * \param center The position of the other agent relative to this agent.
-			 * \param offset Offset of the velocity obstacle. For example to account for the agents' relative velocities.
-			 * \param radius Combined radius of the two agents (radius1 + radius2).
-			 * \param inverseDt 1 divided by the local avoidance time horizon (e.g avoid agents that we will hit within the next 2 seconds).
-			 * \param inverseDeltaTime 1 divided by the time step length.
-			 */
+			/// <summary>Creates a VO for avoiding another agent.</summary>
+			/// <param name="center">The position of the other agent relative to this agent.</param>
+			/// <param name="offset">Offset of the velocity obstacle. For example to account for the agents' relative velocities.</param>
+			/// <param name="radius">Combined radius of the two agents (radius1 + radius2).</param>
+			/// <param name="inverseDt">1 divided by the local avoidance time horizon (e.g avoid agents that we will hit within the next 2 seconds).</param>
+			/// <param name="inverseDeltaTime">1 divided by the time step length.</param>
 			public VO (Vector2 center, Vector2 offset, float radius, float inverseDt, float inverseDeltaTime) {
 				// Adjusted so that a parameter weightFactor of 1 will be the default ("natural") weight factor
 				this.weightFactor = 1;
@@ -434,9 +439,10 @@ namespace Pathfinding.RVO.Sampled {
 				segment = false;
 			}
 
-			/** Creates a VO for avoiding another agent.
-			 * Note that the segment is directed, the agent will want to be on the left side of the segment.
-			 */
+			/// <summary>
+			/// Creates a VO for avoiding another agent.
+			/// Note that the segment is directed, the agent will want to be on the left side of the segment.
+			/// </summary>
 			public static VO SegmentObstacle (Vector2 segmentStart, Vector2 segmentEnd, Vector2 offset, float radius, float inverseDt, float inverseDeltaTime) {
 				var vo = new VO();
 
@@ -499,18 +505,20 @@ namespace Pathfinding.RVO.Sampled {
 				return vo;
 			}
 
-			/** Returns a negative number of if \a p lies on the left side of a line which with one point in \a a and has a tangent in the direction of \a dir.
-			 * The number can be seen as the double signed area of the triangle {a, a+dir, p} multiplied by the length of \a dir.
-			 * If dir.magnitude=1 this is also the distance from p to the line {a, a+dir}.
-			 */
+			/// <summary>
+			/// Returns a negative number of if p lies on the left side of a line which with one point in a and has a tangent in the direction of dir.
+			/// The number can be seen as the double signed area of the triangle {a, a+dir, p} multiplied by the length of dir.
+			/// If dir.magnitude=1 this is also the distance from p to the line {a, a+dir}.
+			/// </summary>
 			public static float SignedDistanceFromLine (Vector2 a, Vector2 dir, Vector2 p) {
 				return (p.x - a.x) * (dir.y) - (dir.x) * (p.y - a.y);
 			}
 
-			/** Gradient and value of the cost function of this VO.
-			 * Very similar to the #Gradient method however the gradient
-			 * and value have been scaled and tweaked slightly.
-			 */
+			/// <summary>
+			/// Gradient and value of the cost function of this VO.
+			/// Very similar to the <see cref="Gradient"/> method however the gradient
+			/// and value have been scaled and tweaked slightly.
+			/// </summary>
 			public Vector2 ScaledGradient (Vector2 p, out float weight) {
 				var grad = Gradient(p, out weight);
 
@@ -524,18 +532,19 @@ namespace Pathfinding.RVO.Sampled {
 				return grad;
 			}
 
-			/** Gradient and value of the cost function of this VO.
-			 * The VO has a cost function which is 0 outside the VO
-			 * and increases inside it as the point moves further into
-			 * the VO.
-			 *
-			 * This is the negative gradient of that function as well as its
-			 * value (the weight). The negative gradient points in the direction
-			 * where the function decreases the fastest.
-			 *
-			 * The value of the function is the distance to the closest edge
-			 * of the VO and the gradient is normalized.
-			 */
+			/// <summary>
+			/// Gradient and value of the cost function of this VO.
+			/// The VO has a cost function which is 0 outside the VO
+			/// and increases inside it as the point moves further into
+			/// the VO.
+			///
+			/// This is the negative gradient of that function as well as its
+			/// value (the weight). The negative gradient points in the direction
+			/// where the function decreases the fastest.
+			///
+			/// The value of the function is the distance to the closest edge
+			/// of the VO and the gradient is normalized.
+			/// </summary>
 			public Vector2 Gradient (Vector2 p, out float weight) {
 				if (colliding) {
 					// Calculate double signed area of the triangle consisting of the points
@@ -617,11 +626,12 @@ namespace Pathfinding.RVO.Sampled {
 			}
 		}
 
-		/** Very simple list.
-		 * Cannot use a List<T> because when indexing into a List<T> and T is
-		 * a struct (which VO is) then the whole struct will be copied.
-		 * When indexing into an array, that copy can be skipped.
-		 */
+		/// <summary>
+		/// Very simple list.
+		/// Cannot use a List<T> because when indexing into a List<T> and T is
+		/// a struct (which VO is) then the whole struct will be copied.
+		/// When indexing into an array, that copy can be skipped.
+		/// </summary>
 		internal class VOBuffer {
 			public VO[] buffer;
 			public int length;
@@ -826,17 +836,18 @@ namespace Pathfinding.RVO.Sampled {
 		}
 
 
-		/** Bias towards the right side of agents.
-		 * Rotate desiredVelocity at most [value] number of radians. 1 radian ≈ 57°
-		 * This breaks up symmetries.
-		 *
-		 * The desired velocity will only be rotated if it is inside a velocity obstacle (VO).
-		 * If it is inside one, it will not be rotated further than to the edge of it
-		 *
-		 * The targetPointInVelocitySpace will be rotated by the same amount as the desired velocity
-		 *
-		 * \returns True if the desired velocity was inside any VO
-		 */
+		/// <summary>
+		/// Bias towards the right side of agents.
+		/// Rotate desiredVelocity at most [value] number of radians. 1 radian ≈ 57°
+		/// This breaks up symmetries.
+		///
+		/// The desired velocity will only be rotated if it is inside a velocity obstacle (VO).
+		/// If it is inside one, it will not be rotated further than to the edge of it
+		///
+		/// The targetPointInVelocitySpace will be rotated by the same amount as the desired velocity
+		///
+		/// Returns: True if the desired velocity was inside any VO
+		/// </summary>
 		static bool BiasDesiredVelocity (VOBuffer vos, ref Vector2 desiredVelocity, ref Vector2 targetPointInVelocitySpace, float maxBiasRadians) {
 			var desiredVelocityMagn = desiredVelocity.magnitude;
 			var maxValue = 0f;
@@ -867,7 +878,7 @@ namespace Pathfinding.RVO.Sampled {
 			return inside;
 		}
 
-		/** Evaluate gradient and value of the cost function at velocity p */
+		/// <summary>Evaluate gradient and value of the cost function at velocity p</summary>
 		Vector2 EvaluateGradient (VOBuffer vos, Vector2 p, out float value) {
 			Vector2 gradient = Vector2.zero;
 
@@ -914,11 +925,12 @@ namespace Pathfinding.RVO.Sampled {
 			return gradient;
 		}
 
-		/** Traces the vector field constructed out of the velocity obstacles.
-		 * Returns the position which gives the minimum score (approximately).
-		 *
-		 * \see https://en.wikipedia.org/wiki/Gradient_descent
-		 */
+		/// <summary>
+		/// Traces the vector field constructed out of the velocity obstacles.
+		/// Returns the position which gives the minimum score (approximately).
+		///
+		/// See: https://en.wikipedia.org/wiki/Gradient_descent
+		/// </summary>
 		Vector2 Trace (VOBuffer vos, Vector2 p, out float score) {
 			// Pick a reasonable initial step size
 			float stepSize = Mathf.Max(radius, 0.2f * desiredSpeed);
