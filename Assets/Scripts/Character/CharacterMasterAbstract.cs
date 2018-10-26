@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
 
 public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
@@ -21,7 +22,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [CanBeNull] protected CharacterPhysics characterPhysics;
 
     /// <summary> Reference to this gameObject's Control script </summary>
-    public CharacterControlAbstract control;
+    [NonSerialized] public CharacterControlAbstract control;
 
 
 
