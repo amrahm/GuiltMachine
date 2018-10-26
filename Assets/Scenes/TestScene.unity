@@ -2147,7 +2147,7 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2195,7 +2195,7 @@ MonoBehaviour:
   m_SpriteMesh: {fileID: 11400000, guid: 306afed91f4c7437ca1a3ee815b3c17d, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_SortingLayerID: -646028971
   m_SortingOrder: 2
   m_Bones: []
@@ -2486,7 +2486,7 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2533,7 +2533,7 @@ MonoBehaviour:
   m_SpriteMesh: {fileID: 11400000, guid: 9d1f180df791a436d8bcf2f82abb980a, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_SortingLayerID: -646028971
   m_SortingOrder: 2
   m_Bones: []
@@ -5077,7 +5077,7 @@ GameObject:
   - component: {fileID: 1253923405}
   - component: {fileID: 1253923404}
   m_Layer: 13
-  m_Name: SwordTemp
+  m_Name: ProjectileSpell
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5108,6 +5108,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f25bc3310a27d340b24e7e7ab391f98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _damage: 17
+  _knockback: 50
 --- !u!114 &1253923405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5115,7 +5117,7 @@ MonoBehaviour:
     type: 2}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1253923402}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 02c676bb8bfc8124693d980acd43be3b, type: 3}
   m_Name: 
@@ -7082,7 +7084,7 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7134,7 +7136,7 @@ MonoBehaviour:
   m_SpriteMesh: {fileID: 11400000, guid: ea7bd0d3ef37b3c49a3034426f5bf900, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_SortingLayerID: -646028971
   m_SortingOrder: 1
   m_Bones: []
@@ -7190,7 +7192,7 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7238,7 +7240,7 @@ MonoBehaviour:
   m_SpriteMesh: {fileID: 11400000, guid: 8f2d88511598f4add92d31587c5125e4, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_SortingLayerID: -646028971
   m_SortingOrder: 0
   m_Bones: []
