@@ -69,7 +69,7 @@ public class HumanoidMovement : MovementAbstract {
     private bool _crouching;
 
     /// <summary> Position of the foot last frame when crouching </summary>
-    private float _lastFootPos;
+    private float _lastHipsDelta;
 
     /// <summary> Used to zero out friction when moving. True if the Player's feet have no friction. </summary>
     private bool _frictionZero;
@@ -127,6 +127,13 @@ public class HumanoidMovement : MovementAbstract {
         Move(control.moveHorizontal, control.hPressed, control.sprint);
         Jump(control.upPressed);
         Crouch(control.downPressed);
+        
+        if(grounded) {
+            //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
+            float hipsDelta = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
+            rb.transform.position += new Vector3(0, (hipsDelta - _lastHipsDelta) / 2);
+            _lastHipsDelta = hipsDelta;
+        }
     }
 
     /// <summary> Update whether or not this character is touching the ground </summary>
@@ -158,13 +165,7 @@ public class HumanoidMovement : MovementAbstract {
         }
 #endif
 
-        anim.SetFloat(_vSpeedAnim, rb.velocity.y); //Set the vertical animation for moving up/down through the air
-
-        if(grounded) {
-            //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
-            rb.transform.position += new Vector3(0, (_parts.hips.transform.position.y - _parts.footR.transform.position.y - _lastFootPos) / 2);
-            _lastFootPos = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
-        }
+        anim.SetFloat(_vSpeedAnim, rb.velocity.y); //Set the vertical animation for moving up/down through the air //TODO unused rn
     }
 
     /// <summary> Handles player walking and running </summary>

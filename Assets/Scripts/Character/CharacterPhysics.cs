@@ -24,9 +24,13 @@ public class CharacterPhysics : MonoBehaviour {
 
     [Tooltip("A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
     public GameObject[] nonLegBendParts;
+    /// <summary> A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend </summary>
+    private GameObject[] _nonLegBendParts;
 
     [Tooltip("The amount that the corresponding part should rotate from -1 to 1")]
     public float[] nonLegBendAmounts;
+    /// <summary> The amount that the corresponding part should rotate from -1 to 1 </summary>
+    private float[] _nonLegBendAmounts;
 
 
     /// <summary> A list of all the BodyPartClasses that make up this character </summary>
@@ -95,6 +99,10 @@ public class CharacterPhysics : MonoBehaviour {
         _movement = GetComponent<MovementAbstract>();
         _parts = GetComponent<PartsAbstract>();
         _rb = GetComponent<Rigidbody2D>();
+
+        _nonLegBendParts = (GameObject[]) nonLegBendParts.Clone();
+        _nonLegBendAmounts = (float[]) nonLegBendAmounts.Clone();
+
         foreach(var part in bodyParts) part.Initialize(this);
     }
 
@@ -128,8 +136,8 @@ public class CharacterPhysics : MonoBehaviour {
         _crouchAmount = _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed, 1, Time.fixedDeltaTime); //Quickly move towards crouchAmount
 
         //Bend all the bendy parts
-        for(int i = 0; i < nonLegBendParts.Length; i++)
-            nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * nonLegBendAmounts[i], Space.Self);
+        for(int i = 0; i < _nonLegBendParts.Length; i++)
+            _nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * _nonLegBendAmounts[i], Space.Self);
 
         _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, 1, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
     }
@@ -261,12 +269,6 @@ public class CharacterPhysics : MonoBehaviour {
             if(parentPart != null) _parent = _pp.bodyParts.First(part => part.bodyPart == parentPart);
             _rb = _pp.gameObject.GetComponent<Rigidbody2D>();
             _root = _pp.transform;
-            List<GameObject> partsTemp = _pp.nonLegBendParts.ToList();
-            List<float> amountsTemp = _pp.nonLegBendAmounts.ToList();
-            partsTemp.AddRange(bendParts);
-            amountsTemp.AddRange(bendAmounts);
-            _pp.nonLegBendParts = partsTemp.ToArray();
-            _pp.nonLegBendAmounts = amountsTemp.ToArray();
 
             Vector3 objPos = bodyPart.transform.position;
             Vector3 farPoint = objPos;
@@ -285,7 +287,6 @@ public class CharacterPhysics : MonoBehaviour {
                            ? bodyPart.transform.InverseTransformPoint(farPoint - farColl.bounds.extents)
                            : bodyPart.transform.InverseTransformPoint(farPoint + farColl.bounds.extents);
             _topVector = new Vector3(farPoint.x, 0);
-            if(isLeg) _pp.StartCoroutine(CheckStep());
 
             if(lowerLimit < -360) {
                 float old = lowerLimit;
@@ -296,6 +297,16 @@ public class CharacterPhysics : MonoBehaviour {
                 float old = upperLimit;
                 upperLimit = upperLimit % 360;
                 lowerLimit += upperLimit - old;
+            }
+            if(isLeg) {
+                _pp.StartCoroutine(CheckStep());
+
+                List<GameObject> partsTemp = _pp._nonLegBendParts.ToList();
+                List<float> amountsTemp = _pp._nonLegBendAmounts.ToList();
+                partsTemp.AddRange(bendParts);
+                amountsTemp.AddRange(bendAmounts);
+                _pp._nonLegBendParts = partsTemp.ToArray();
+                _pp._nonLegBendAmounts = amountsTemp.ToArray();
             }
         }
 
@@ -495,7 +506,7 @@ public class CharacterPhysics : MonoBehaviour {
         if(!_wasAnimationMode && animationMode) SwapPartsWithTargets(_parts.parts, _parts.targets);
         if(_wasAnimationMode && !animationMode) SwapPartsWithTargets(_parts.targets, _parts.parts);
         _wasAnimationMode = animationMode;
-        
+
         for(int i = 0; i < _parts.parts.Length; i++) {
             //Rotate actual part to animated target in edit mode too
             _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
