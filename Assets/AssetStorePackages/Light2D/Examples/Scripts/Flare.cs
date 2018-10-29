@@ -1,40 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Light2D.Examples
-{
-    public class Flare : MonoBehaviour
-    {
-        public float Lifetime;
-        public LightSprite Light;
-        public float AlphaGrowTime = 0.5f;
-        private float _lifetimeElapsed = 0;
+namespace Light2D.Examples {
+    public class Flare : MonoBehaviour {
+        private float _lifetimeElapsed;
         private Color _startColor;
+        public float alphaGrowTime = 0.5f;
+        public float lifetime;
+        public LightSprite lightSprite;
 
-        void Start()
-        {
-            _startColor = Light.color;
-            Light.color = _startColor.WithAlpha(0);
+        private void Start() {
+            _startColor = lightSprite.color;
+            lightSprite.color = _startColor.WithAlpha(0);
         }
 
-        void Update()
-        {
+        private void Update() {
             _lifetimeElapsed += Time.deltaTime;
 
-            
 
-            if (_lifetimeElapsed > Lifetime)
-            {
-                _lifetimeElapsed = Lifetime;
+            if(_lifetimeElapsed > lifetime) {
+                _lifetimeElapsed = lifetime;
                 Destroy(gameObject);
             }
 
 
-            var alpha = Mathf.Lerp(0, _startColor.a, Mathf.Min(_lifetimeElapsed, AlphaGrowTime)/AlphaGrowTime);
-            Light.color = Color.Lerp(_startColor.WithAlpha(alpha), _startColor.WithAlpha(0), _lifetimeElapsed/Lifetime);
+            float alpha = Mathf.Lerp(0, _startColor.a, Mathf.Min(_lifetimeElapsed, alphaGrowTime) / alphaGrowTime);
+            lightSprite.color = Color.Lerp(_startColor.WithAlpha(alpha), _startColor.WithAlpha(0), _lifetimeElapsed / lifetime);
         }
     }
 }

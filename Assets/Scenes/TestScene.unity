@@ -214,7 +214,7 @@ MonoBehaviour:
   prioritizeGraphs: 0
   prioritizeGraphsLimit: 1
   colorSettings:
-    _NodeConnection: {r: 1, g: 1, b: 1, a: 0.9}
+    _SolidColor: {r: 0.11764706, g: 0.4, b: 0.7882353, a: 0.9}
     _UnwalkableNode: {r: 1, g: 0, b: 0, a: 0.5}
     _BoundsHandles: {r: 0.29, g: 0.454, b: 0.741, a: 0.9}
     _ConnectionLowLerp: {r: 0, g: 1, b: 0, a: 0.5}
@@ -258,7 +258,6 @@ MonoBehaviour:
   heuristicScale: 1
   threadCount: 1
   maxFrameTime: 1
-  minAreaSize: 0
   batchGraphUpdates: 0
   graphUpdateBatchingInterval: 0.2
   euclideanEmbedding:
@@ -2801,7 +2800,7 @@ Transform:
   m_GameObject: {fileID: 1028137798}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -7.4300003, y: 4.9423094, z: 0}
-  m_LocalScale: {x: 68, y: 68, z: 68}
+  m_LocalScale: {x: 40, y: 40, z: 1}
   m_Children: []
   m_Father: {fileID: 319481415}
   m_RootOrder: 0
@@ -4349,7 +4348,7 @@ Transform:
   m_GameObject: {fileID: 1418561112}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0.97, y: 8.82, z: 0}
-  m_LocalScale: {x: 50.057484, y: 17.200195, z: 50}
+  m_LocalScale: {x: 40, y: 17, z: 1}
   m_Children: []
   m_Father: {fileID: 319481415}
   m_RootOrder: 1

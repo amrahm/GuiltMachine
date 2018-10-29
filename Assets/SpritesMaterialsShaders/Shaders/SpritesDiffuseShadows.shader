@@ -9,7 +9,7 @@ Shader "Sprites/Diffuse with Shadows" {
     SubShader {
         Tags{ "Queue" = "AlphaTest" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
         LOD 300
-        Blend SrcAlpha OneMinusSrcAlpha
+//        Blend SrcAlpha OneMinusSrcAlpha
         Lighting On
         ZWrite Off
         Fog{ Mode Off }

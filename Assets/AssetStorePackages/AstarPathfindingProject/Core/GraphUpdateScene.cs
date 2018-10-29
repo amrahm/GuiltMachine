@@ -124,8 +124,6 @@ namespace Pathfinding {
 		/// <summary>
 		/// Use world space for coordinates.
 		/// If true, the shape will not follow when moving around the transform.
-		///
-		/// See: <see cref="ToggleUseWorldSpace"/>
 		/// </summary>
 		[SerializeField]
 		[UnityEngine.Serialization.FormerlySerializedAs("useWorldSpace")]

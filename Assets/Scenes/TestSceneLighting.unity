@@ -170,6 +170,11 @@ Prefab:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 20722037113801508, guid: 1b82f01fb7a3f874ca4bfa06b42c2680,
+        type: 2}
+      propertyPath: far clip plane
+      value: 300
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1b82f01fb7a3f874ca4bfa06b42c2680, type: 2}
   m_IsPrefabAsset: 0
@@ -222,7 +227,7 @@ MonoBehaviour:
   prioritizeGraphs: 0
   prioritizeGraphsLimit: 1
   colorSettings:
-    _NodeConnection: {r: 1, g: 1, b: 1, a: 0.9}
+    _SolidColor: {r: 0.11764706, g: 0.4, b: 0.7882353, a: 0.9}
     _UnwalkableNode: {r: 1, g: 0, b: 0, a: 0.5}
     _BoundsHandles: {r: 0.29, g: 0.454, b: 0.741, a: 0.9}
     _ConnectionLowLerp: {r: 0, g: 1, b: 0, a: 0.5}
@@ -266,7 +271,6 @@ MonoBehaviour:
   heuristicScale: 1
   threadCount: 1
   maxFrameTime: 1
-  minAreaSize: 0
   batchGraphUpdates: 0
   graphUpdateBatchingInterval: 0.2
   euclideanEmbedding:

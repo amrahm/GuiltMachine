@@ -1,39 +1,27 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Light2D
-{
+namespace Light2D {
     /// <summary>
-    /// This class apply post processing effect to light obstacles texture.
-    /// It is drawing one pixel wide white border on light obstacles texture.
-    /// Whithout it light sources with off screen origin may not work.
+    ///     This class apply post processing effect to light obstacles texture.
+    ///     It is drawing one pixel wide white border on light obstacles texture.
+    ///     Whithout it light sources with off screen origin may not work.
     /// </summary>
-    public class ObstacleCameraPostPorcessor
-    {
+    public class ObstacleCameraPostPorcessor {
+        private readonly List<Color32> _colors32 = new List<Color32>();
+        private readonly List<int> _indices = new List<int>();
+        private readonly Material _material;
         private Mesh _mesh;
-        private Material _material;
         private Point2 _oldCameraSize;
-        private List<Color32> _colors32 = new List<Color32>();
-        private List<Vector3> _vertices = new List<Vector3>();
-        private List<int> _indices = new List<int>();
+        private readonly List<Vector3> _vertices = new List<Vector3>();
 
-        public ObstacleCameraPostPorcessor()
-        {
-            if (_material == null)
-            {
-                _material = new Material(Shader.Find("Light2D/Obstacle Texture Post Porcessor"));
-            }
+        public ObstacleCameraPostPorcessor() {
+            if(_material == null) _material = new Material(Shader.Find("Light2D/Obstacle Texture Post Porcessor"));
         }
 
-        public void DrawMesh(Camera camera, float pixelWidth)
-        {
-            var camSize = new Point2(Mathf.RoundToInt(camera.pixelWidth), Mathf.RoundToInt(camera.pixelHeight));
-            if (_oldCameraSize != camSize || _mesh == null)
-            {
+        public void DrawMesh(Camera camera, float pixelWidth) {
+            Point2 camSize = new Point2(Mathf.RoundToInt(camera.pixelWidth), Mathf.RoundToInt(camera.pixelHeight));
+            if(_oldCameraSize != camSize || _mesh == null) {
                 _oldCameraSize = camSize;
                 CreateMesh(camera, pixelWidth);
             }
@@ -43,11 +31,10 @@ namespace Light2D
         }
 
         /// <summary>
-        /// Generating mesh with one pixel wide white border.
+        ///     Generating mesh with one pixel wide white border.
         /// </summary>
-        private void CreateMesh(Camera camera, float pixelWidth)
-        {
-            var pixelSize = new Vector2(1f/camera.pixelWidth, 1f/camera.pixelHeight)*pixelWidth;
+        private void CreateMesh(Camera camera, float pixelWidth) {
+            Vector2 pixelSize = new Vector2(1f / camera.pixelWidth, 1f / camera.pixelHeight) * pixelWidth;
 
             _vertices.Clear();
             _colors32.Clear();
@@ -59,7 +46,7 @@ namespace Light2D
             CreateQuad(Color.white, Vector2.zero, new Vector2(1, pixelSize.y)); // bottom
             CreateQuad(Color.white, new Vector2(0, 1 - pixelSize.y), Vector2.one); // top
 
-            if (_mesh == null)
+            if(_mesh == null)
                 _mesh = new Mesh();
 
             _mesh.Clear();
@@ -68,10 +55,9 @@ namespace Light2D
             _mesh.colors32 = _colors32.ToArray();
         }
 
-        private void CreateQuad(Color32 color, Vector2 min, Vector2 max)
-        {
-            min = min*2 - Vector2.one;
-            max = max*2 - Vector2.one;
+        private void CreateQuad(Color32 color, Vector2 min, Vector2 max) {
+            min = min * 2 - Vector2.one;
+            max = max * 2 - Vector2.one;
 
             int startVertex = _vertices.Count;
 
@@ -87,7 +73,7 @@ namespace Light2D
             _vertices.Add(new Vector3(max.x, max.y, 1));
             _vertices.Add(new Vector3(max.x, min.y, 1));
 
-            for (int i = 0; i < 4; i++)
+            for(int i = 0; i < 4; i++)
                 _colors32.Add(color);
         }
     }

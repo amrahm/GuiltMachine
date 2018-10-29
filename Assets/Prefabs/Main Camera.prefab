@@ -56,7 +56,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4032710339449348}
   - component: {fileID: 212092225780763862}
-  m_Layer: 15
+  m_Layer: 10
   m_Name: AmbientLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -316,7 +316,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 300
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -577,7 +577,7 @@ MonoBehaviour:
   lightCameraFovAdd: 30
   enableAmbientLight: 1
   blurLightSources: 1
-  blurAmbientLight: 1
+  blurAmbientLight: 0
   hdr: 0
   lightObstaclesAntialiasing: 0
   lightObstaclesDistance: 10
@@ -693,7 +693,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -2
   m_Sprite: {fileID: 21300000, guid: 4be3f85df7931d74888537fd9c73dec8, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.8039216}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.39215687}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

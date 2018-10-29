@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Light2D
-{
+namespace Light2D {
+    /// <inheritdoc />
     /// <summary>
     /// Some configuration for LightingSystem. Containd in lighting system prefab, destroyed after ininial setup.
     /// </summary>
-    public class LightingSystemPrefabConfig : MonoBehaviour
-    {
-        public Material AmbientLightComputeMaterial;
-        public Material LightOverlayMaterial;
-        public Material BlurMaterial;
+    public class LightingSystemPrefabConfig : MonoBehaviour {
+        public Material ambientLightComputeMaterial;
+        public Material lightOverlayMaterial;
+        public Material blurMaterial;
     }
 }
