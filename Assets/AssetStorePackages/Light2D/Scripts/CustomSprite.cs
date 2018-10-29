@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Light2D {
     /// <inheritdoc />
@@ -15,31 +16,39 @@ namespace Light2D {
     public class CustomSprite : MonoBehaviour {
         private const string GeneratedMaterialName = "Generated Material (DONT change it)";
         private const string GeneratedMeshName = "Generated Mesh (DONT change it)";
-        public static Dictionary<MaterialKey, MaterialValue> materialMap = new Dictionary<MaterialKey, MaterialValue>();
+        public static readonly Dictionary<MaterialKey, MaterialValue> MaterialMap = new Dictionary<MaterialKey, MaterialValue>();
         private Color _oldColor;
         private Material _oldMaterial;
         private MaterialKey _oldMaterialKey;
         private Sprite _oldSprite;
 
-        /// <summary> Vertex color of mesh. </summary>
+        /// <summary>
+        ///     Vertex color of mesh.
+        /// </summary>
         public Color color = Color.white;
 
         // mesh data
-        protected Color[] colors;
+        private Color[] _colors;
 
         protected bool isMeshDirty;
 
-        /// <summary> Material to be used. </summary>
+        /// <summary>
+        ///     Material to be used.
+        /// </summary>
         public Material material;
 
         protected Mesh mesh;
         protected MeshFilter meshFilter;
         protected MeshRenderer meshRenderer;
 
-        /// <summary> Sorting order of MeshRenderer. </summary>
+        /// <summary>
+        ///     Sorting order of MeshRenderer.
+        /// </summary>
         public int sortingOrder;
 
-        /// <summary> Sprite from which mesh will be generated. </summary>
+        /// <summary>
+        ///     Sprite from which mesh will be generated.
+        /// </summary>
         public Sprite sprite;
 
         protected Vector4[] tangents;
@@ -50,11 +59,13 @@ namespace Light2D {
 
         public bool RendererEnabled { get; private set; }
 
-        /// <summary> Is that sprite is staticaly batched? </summary>
+        /// <summary>
+        ///     Is that sprite is staticaly batched?
+        /// </summary>
         public bool IsPartOfStaticBatch => meshRenderer != null && meshRenderer.isPartOfStaticBatch;
 
         protected virtual void OnEnable() {
-            colors = new Color[4];
+            _colors = new Color[4];
             uv1 = new Vector2[4];
             uv0 = new Vector2[4];
             vertices = new Vector3[4];
@@ -62,19 +73,28 @@ namespace Light2D {
             meshRenderer = GetComponent<MeshRenderer>();
             meshFilter = GetComponent<MeshFilter>();
 
-            if(meshRenderer == null)
+            if(meshRenderer == null) {
                 meshRenderer = gameObject.AddComponent<MeshRenderer>();
+                meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                meshRenderer.receiveShadows = false;
+                meshRenderer.lightProbeUsage = LightProbeUsage.Off;
+                meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+                meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+            }
 
             if(meshFilter == null)
                 meshFilter = gameObject.AddComponent<MeshFilter>();
+
             if(meshRenderer.sharedMaterials.Length > 1)
                 meshRenderer.sharedMaterials = new[] {meshRenderer.sharedMaterials[0]};
 
+            if(material == null) {
 #if UNITY_EDITOR
-            if(material == null) material = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
+                material = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
 #else
-            if(material == null) material = Resources.GetBuiltinResource<Material>("Sprites-Default.mat");
+                material = Resources.GetBuiltinResource<Material>("Sprites-Default.mat");
 #endif
+            }
 
             TryReleaseMesh();
             meshFilter.sharedMesh = mesh = new Mesh();
@@ -88,6 +108,7 @@ namespace Light2D {
             UpdateMeshData(true);
 
             RendererEnabled = meshRenderer.enabled;
+
 #if UNITY_EDITOR
             if(!Application.isPlaying) {
                 DestroyImmediate(meshRenderer);
@@ -102,7 +123,7 @@ namespace Light2D {
 
         private void OnWillRenderObject() {
             UpdateMeshData();
-            if(Application.isPlaying && LightingSystem.Instance.enableNormalMapping && material.shader == Shader.Find("Transparent Normal Mapped")) {
+            if(Application.isPlaying && LightingSystem.Instance.enableNormalMapping) {
                 RendererEnabled = meshRenderer.enabled;
                 meshRenderer.enabled = false;
             }
@@ -112,8 +133,10 @@ namespace Light2D {
             if(Application.isPlaying && LightingSystem.Instance.enableNormalMapping) meshRenderer.enabled = RendererEnabled;
         }
 
-        /// <summary> Getting material from cache or instantiating new one. </summary>
-        /// <returns>The material</returns>
+        /// <summary>
+        ///     Getting material from cache or instantiating new one.
+        /// </summary>
+        /// <returns></returns>
         public Material GetOrCreateMaterial() {
             TryReleaseMaterial();
 
@@ -123,11 +146,11 @@ namespace Light2D {
             MaterialValue matValue;
             MaterialKey key = new MaterialKey(material, sprite.texture);
 
-            if(!materialMap.TryGetValue(key, out matValue)) {
+            if(!MaterialMap.TryGetValue(key, out matValue)) {
                 Material mat = Instantiate(material);
                 mat.name = GeneratedMaterialName;
                 mat.mainTexture = sprite.texture;
-                materialMap[key] = matValue = new MaterialValue(mat, 1);
+                MaterialMap[key] = matValue = new MaterialValue(mat, 1);
             } else {
                 matValue.usageCount++;
             }
@@ -137,8 +160,10 @@ namespace Light2D {
             return matValue.material;
         }
 
-        /// <summary> Getting material from cache or instantiating new one. </summary>
-        /// <returns>The material</returns>
+        /// <summary>
+        ///     Getting material from cache or instantiating new one.
+        /// </summary>
+        /// <returns></returns>
         public static Material GetOrCreateMaterial(Material baseMaterial, Texture2D texture, out MaterialKey materialKey) {
             if(baseMaterial == null || texture == null) {
                 materialKey = null;
@@ -148,11 +173,11 @@ namespace Light2D {
             MaterialValue matValue;
             MaterialKey key = materialKey = new MaterialKey(baseMaterial, texture);
 
-            if(!materialMap.TryGetValue(key, out matValue)) {
+            if(!MaterialMap.TryGetValue(key, out matValue)) {
                 Material mat = Instantiate(baseMaterial);
                 mat.name = GeneratedMaterialName;
                 mat.mainTexture = texture;
-                materialMap[key] = matValue = new MaterialValue(mat, 1);
+                MaterialMap[key] = matValue = new MaterialValue(mat, 1);
             } else {
                 matValue.usageCount++;
             }
@@ -160,19 +185,21 @@ namespace Light2D {
             return matValue.material;
         }
 
-        /// <summary> Deleting material from cache with reference counting. </summary>
+        /// <summary>
+        ///     Deleting material from cache with reference counting.
+        /// </summary>
         /// <param name="key"></param>
         public static void ReleaseMaterial(MaterialKey key) {
             MaterialValue matValue;
 
-            if(!materialMap.TryGetValue(key, out matValue))
+            if(!MaterialMap.TryGetValue(key, out matValue))
                 return;
 
             matValue.usageCount--;
 
             if(matValue.usageCount <= 0) {
                 Util.Destroy(matValue.material);
-                materialMap.Remove(key);
+                MaterialMap.Remove(key);
             }
         }
 
@@ -197,8 +224,8 @@ namespace Light2D {
         }
 
         protected virtual void UpdateColor() {
-            for(int i = 0; i < colors.Length; i++)
-                colors[i] = color;
+            for(int i = 0; i < _colors.Length; i++)
+                _colors[i] = color;
         }
 
         /// <summary>
@@ -236,7 +263,7 @@ namespace Light2D {
             uv0[2] = new Vector2(rect.xMin / realSize.x, rect.yMax / realSize.y); // 0, 1
             uv0[3] = new Vector2(rect.xMax / realSize.x, rect.yMax / realSize.y); // 1, 1
 
-            for(int i = 0; i < 4; i++) colors[i] = color;
+            for(int i = 0; i < 4; i++) _colors[i] = color;
 
             meshRenderer.sharedMaterial = GetOrCreateMaterial();
         }
@@ -250,7 +277,7 @@ namespace Light2D {
             mesh.triangles = triangles;
             mesh.uv = uv0;
             mesh.uv2 = uv1;
-            mesh.colors = colors;
+            mesh.colors = _colors;
             mesh.tangents = tangents;
         }
 

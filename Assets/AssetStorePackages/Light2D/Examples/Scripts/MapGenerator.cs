@@ -2,120 +2,84 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Light2D;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-
-namespace Light2D.Examples
-{
-    public class MapGenerator : MonoBehaviour
-    {
-        private struct CollMapPoint
-        {
-            public float Noise;
-            public BlockSetProfile.BlockInfo BlockInfo;
-            public BlockSetProfile.BlockType BlockType;
-
-            public CollMapPoint(float noise)
-            {
-                Noise = noise;
-                BlockInfo = null;
-                BlockType = BlockSetProfile.BlockType.Empty;
-            }
-        }
-
-        public BlockSetProfile BlockSet;
-        public bool RandomSeed;
-        public int Seed;
-
-        public GameObject MeshObjectPrefab;
-        public GameObject LightObstaclesPrefab;
-        public GameObject AmbientLightPrefab;
-        public Transform Container;
+namespace Light2D.Examples {
+    public class MapGenerator : MonoBehaviour {
+        private const int ChunkSize = 32;
+        private readonly Dictionary<Point2, CollMapPoint> _collMapPoints = new Dictionary<Point2, CollMapPoint>();
+        private readonly List<Color> _colors = new List<Color>();
+        private readonly List<Color> _lightAbsorptionColors = new List<Color>();
+        private readonly List<Color> _lightEmissionColors = new List<Color>();
+        private readonly Dictionary<Point2, GameObject> _tiles = new Dictionary<Point2, GameObject>();
+        private readonly List<int> _triangles = new List<int>();
+        private readonly List<Vector2> _uvs = new List<Vector2>();
+        private readonly List<Vector3> _vertices = new List<Vector3>();
         private Camera _mainCamera;
         private float _randFirstAddX;
         private float _randFirstAddY;
         private float _randSecondAddX;
         private float _randSecondAddY;
-        private const int ChunkSize = 32;
-        private Dictionary<Point2, GameObject> _tiles = new Dictionary<Point2, GameObject>();
-        private Dictionary<Point2, CollMapPoint> _collMapPoints = new Dictionary<Point2, CollMapPoint>();
-        private List<Vector3> _vertices = new List<Vector3>();
-        private List<Vector2> _uvs = new List<Vector2>();
-        private List<int> _triangles = new List<int>();
-        private List<Color> _lightAbsorptionColors = new List<Color>();
-        private List<Color> _lightEmissionColors = new List<Color>();
-        private List<Color> _colors = new List<Color>();
+        public GameObject ambientLightPrefab;
 
-        private void Awake()
-        {
+        public BlockSetProfile blockSet;
+        public Transform container;
+        public GameObject lightObstaclesPrefab;
+
+        public GameObject meshObjectPrefab;
+        public bool randomSeed;
+        public int seed;
+
+        private void Awake() {
             _mainCamera = Camera.main;
 
-            if (RandomSeed)
-            {
+            if(randomSeed) {
                 Point2 spawnPoint = Point2.Round(FindObjectOfType<Spacecraft>().MainRigidbody.position);
-                do
-                {
-                    Seed = Random.Range(-9999999, 9999999);
+                do {
+                    seed = Random.Range(-9999999, 9999999);
                     InitRandom();
                     _collMapPoints.Clear();
-                } while (!IsGoodSpawnPoint(spawnPoint));
-            }
-            else
-            {
+                } while(!IsGoodSpawnPoint(spawnPoint));
+            } else {
                 InitRandom();
             }
         }
 
-        void InitRandom()
-        {
-            var rand = new SimpleRNG(Seed);
+        private void InitRandom() {
+            SimpleRNG rand = new SimpleRNG(seed);
             _randFirstAddX = (rand.value - 0.5f) * 1000f;
             _randFirstAddY = (rand.value - 0.5f) * 10000;
             _randSecondAddX = (rand.value - 0.5f) * 1000f;
             _randSecondAddY = (rand.value - 0.5f) * 1000f;
         }
 
-        private void Start()
-        {
-            foreach (var transf in Container.Cast<Transform>().ToArray())
-            {
-                Util.Destroy(transf.gameObject);
-            }
+        private void Start() {
+            foreach(Transform transf in container.Cast<Transform>().ToArray()) Util.Destroy(transf.gameObject);
             StartCoroutine(ChunkCreatorCoroutine());
             StartCoroutine(ChunkDestroyerCoroutine());
         }
 
-        private void Update()
-        {
-        }
-
-        private IEnumerator ChunkCreatorCoroutine()
-        {
+        private IEnumerator ChunkCreatorCoroutine() {
             bool firstRun = true;
-            while (true)
-            {
-                var camPos = _mainCamera.transform.position;
-                var camChunk = Point2.Round(camPos.x/ChunkSize, camPos.y/ChunkSize);
-                var camHalfHeight = Mathf.CeilToInt(_mainCamera.orthographicSize/ChunkSize) + 2;
-                var camHalfWidth = Mathf.CeilToInt(_mainCamera.orthographicSize*_mainCamera.aspect/ChunkSize) + 2;
+            while(true) {
+                Vector3 camPos = _mainCamera.transform.position;
+                Point2 camChunk = Point2.Round(camPos.x / ChunkSize, camPos.y / ChunkSize);
+                int camHalfHeight = Mathf.CeilToInt(_mainCamera.orthographicSize / ChunkSize) + 2;
+                int camHalfWidth = Mathf.CeilToInt(_mainCamera.orthographicSize * _mainCamera.aspect / ChunkSize) + 2;
 
-                for (int x = camChunk.x - camHalfWidth; x <= camChunk.x + camHalfWidth; x++)
-                {
-                    for (int y = camChunk.y - camHalfHeight; y <= camChunk.y + camHalfHeight; y++)
-                    {
+                for(int x = camChunk.x - camHalfWidth; x <= camChunk.x + camHalfWidth; x++) {
+                    for(int y = camChunk.y - camHalfHeight; y <= camChunk.y + camHalfHeight; y++) {
                         camPos = _mainCamera.transform.position;
-                        camChunk = Point2.Round(camPos.x/ChunkSize, camPos.y/ChunkSize);
+                        camChunk = Point2.Round(camPos.x / ChunkSize, camPos.y / ChunkSize);
 
-                        if (_tiles.ContainsKey(new Point2(x, y)))
+                        if(_tiles.ContainsKey(new Point2(x, y)))
                             continue;
 
-                        var chunk = GenerateChunk(x, y);
+                        GameObject chunk = GenerateChunk(x, y);
                         _tiles[new Point2(x, y)] = chunk;
 
-                        if (!firstRun)
+                        if(!firstRun)
                             yield return null;
                     }
                     yield return null;
@@ -124,40 +88,33 @@ namespace Light2D.Examples
             }
         }
 
-        private IEnumerator ChunkDestroyerCoroutine()
-        {
-            var removedChunks = new List<Point2>();
-            while (true)
-            {
+        private IEnumerator ChunkDestroyerCoroutine() {
+            List<Point2> removedChunks = new List<Point2>();
+            while(true) {
                 removedChunks.Clear();
-                foreach (var chunk in _tiles)
-                {
-                    var camPos = _mainCamera.transform.position;
-                    var camChunk = Point2.Round(camPos.x/ChunkSize, camPos.y/ChunkSize);
-                    var camHalfHeight = Mathf.CeilToInt(_mainCamera.orthographicSize/ChunkSize) + 20;
-                    var camHalfWidth = Mathf.CeilToInt(_mainCamera.orthographicSize*_mainCamera.aspect/ChunkSize) + 20;
+                foreach(KeyValuePair<Point2, GameObject> chunk in _tiles) {
+                    Vector3 camPos = _mainCamera.transform.position;
+                    Point2 camChunk = Point2.Round(camPos.x / ChunkSize, camPos.y / ChunkSize);
+                    int camHalfHeight = Mathf.CeilToInt(_mainCamera.orthographicSize / ChunkSize) + 20;
+                    int camHalfWidth = Mathf.CeilToInt(_mainCamera.orthographicSize * _mainCamera.aspect / ChunkSize) + 20;
 
-                    var pos = chunk.Key;
-                    if (pos.x < camChunk.x - camHalfWidth || pos.x > camChunk.x + camHalfWidth ||
-                        pos.y < camChunk.y - camHalfHeight || pos.y > camChunk.y + camHalfHeight)
-                    {
+                    Point2 pos = chunk.Key;
+                    if(pos.x < camChunk.x - camHalfWidth || pos.x > camChunk.x + camHalfWidth ||
+                       pos.y < camChunk.y - camHalfHeight || pos.y > camChunk.y + camHalfHeight)
                         removedChunks.Add(pos);
-                    }
                 }
 
                 yield return null;
 
-                foreach (var pos in removedChunks)
-                {
-                    var camPos = _mainCamera.transform.position;
-                    var camChunk = Point2.Round(camPos.x/ChunkSize, camPos.y/ChunkSize);
-                    var camHalfHeight = Mathf.CeilToInt(_mainCamera.orthographicSize/ChunkSize) + 2;
-                    var camHalfWidth = Mathf.CeilToInt(_mainCamera.orthographicSize*_mainCamera.aspect/ChunkSize) + 2;
+                foreach(Point2 pos in removedChunks) {
+                    Vector3 camPos = _mainCamera.transform.position;
+                    Point2 camChunk = Point2.Round(camPos.x / ChunkSize, camPos.y / ChunkSize);
+                    int camHalfHeight = Mathf.CeilToInt(_mainCamera.orthographicSize / ChunkSize) + 2;
+                    int camHalfWidth = Mathf.CeilToInt(_mainCamera.orthographicSize * _mainCamera.aspect / ChunkSize) + 2;
 
-                    var chunk = _tiles[pos];
-                    if (pos.x < camChunk.x - camHalfWidth || pos.x > camChunk.x + camHalfWidth ||
-                        pos.y < camChunk.y - camHalfHeight || pos.y > camChunk.y + camHalfHeight)
-                    {
+                    GameObject chunk = _tiles[pos];
+                    if(pos.x < camChunk.x - camHalfWidth || pos.x > camChunk.x + camHalfWidth ||
+                       pos.y < camChunk.y - camHalfHeight || pos.y > camChunk.y + camHalfHeight) {
                         Destroy(chunk);
                         _tiles.Remove(pos);
                         yield return null;
@@ -168,14 +125,12 @@ namespace Light2D.Examples
             }
         }
 
-        private GameObject GenerateChunk(int chunkX, int chunkY)
-        {
-            return GenerateBlocksJoined(chunkX*ChunkSize, chunkY*ChunkSize);
+        private GameObject GenerateChunk(int chunkX, int chunkY) {
+            return GenerateBlocksJoined(chunkX * ChunkSize, chunkY * ChunkSize);
         }
 
-        private GameObject GenerateBlocksJoined(int xOffest, int yOffest)
-        {
-            var rand = new SimpleRNG(Util.Hash(Seed, xOffest, yOffest));
+        private GameObject GenerateBlocksJoined(int xOffest, int yOffest) {
+            SimpleRNG rand = new SimpleRNG(Util.Hash(seed, xOffest, yOffest));
 
             _vertices.Clear();
             _uvs.Clear();
@@ -183,157 +138,137 @@ namespace Light2D.Examples
             _lightAbsorptionColors.Clear();
             _lightEmissionColors.Clear();
 
-            var meshObj = (GameObject) Instantiate(MeshObjectPrefab);
-            meshObj.name = "Block Mesh { X = " + xOffest/ChunkSize + "; Y = " + yOffest/ChunkSize + " }";
-            var meshObjTransform = meshObj.transform;
-            meshObjTransform.position = meshObjTransform.position.WithXY(xOffest, yOffest);
-            meshObjTransform.parent = Container;
+            GameObject meshObj = Instantiate(meshObjectPrefab);
+            meshObj.name = "Block Mesh { X = " + xOffest / ChunkSize + "; Y = " + yOffest / ChunkSize + " }";
+            Transform meshObjTransform = meshObj.transform;
+            meshObjTransform.position = meshObjTransform.position.WithXy(xOffest, yOffest);
+            meshObjTransform.parent = container;
 
-            var collMap = new CollMapPoint[ChunkSize, ChunkSize];
+            CollMapPoint[,] collMap = new CollMapPoint[ChunkSize, ChunkSize];
 
-            for (int x = 0; x < ChunkSize; x++)
-            {
-                for (int y = 0; y < ChunkSize; y++)
-                {
-                    collMap[x, y] = GetCollMapPoint(x + xOffest, y + yOffest);
+            for(int x = 0; x < ChunkSize; x++)
+            for(int y = 0; y < ChunkSize; y++)
+                collMap[x, y] = GetCollMapPoint(x + xOffest, y + yOffest);
+
+            for(int x = 0; x < ChunkSize; x++)
+            for(int y = 0; y < ChunkSize; y++) {
+                BlockSetProfile.BlockInfo blockInfo = collMap[x, y].blockInfo;
+
+                if(blockInfo.AditionalObjectPrefab != null && blockInfo.AditionalObjectProbability >= rand.value) {
+                    GameObject addObj = Instantiate(blockInfo.AditionalObjectPrefab);
+
+                    addObj.transform.parent = meshObjTransform;
+                    addObj.transform.localPosition = blockInfo.AditionalObjectPrefab
+                        .transform.position.WithXy(x + 0.5f, y + 0.5f);
                 }
+
+                if(blockInfo.SpriteInfo.Length == 0) {
+                    Debug.LogError("Sprite Info is broken");
+                    continue;
+                }
+
+                int compactInfo =
+                    (SafeIndex(collMap, x, y + 1, ChunkSize, ChunkSize,
+                             () => GetCollMapPoint(x + xOffest, y + yOffest))
+                         .blockType == BlockSetProfile.BlockType.CollidingWall
+                         ? 1
+                         : 0) +
+                    (SafeIndex(collMap, x + 1, y, ChunkSize, ChunkSize,
+                             () => GetCollMapPoint(x + xOffest, y + yOffest))
+                         .blockType == BlockSetProfile.BlockType.CollidingWall
+                         ? 2
+                         : 0) +
+                    (SafeIndex(collMap, x, y - 1, ChunkSize, ChunkSize,
+                             () => GetCollMapPoint(x + xOffest, y + yOffest))
+                         .blockType == BlockSetProfile.BlockType.CollidingWall
+                         ? 4
+                         : 0) +
+                    (SafeIndex(collMap, x - 1, y, ChunkSize, ChunkSize,
+                             () => GetCollMapPoint(x + xOffest, y + yOffest))
+                         .blockType == BlockSetProfile.BlockType.CollidingWall
+                         ? 8
+                         : 0);
+
+                CreatePoint(x, y, blockInfo, compactInfo, false, rand);
             }
 
-            for (int x = 0; x < ChunkSize; x++)
-            {
-                for (int y = 0; y < ChunkSize; y++)
-                {
-                    var blockInfo = collMap[x, y].BlockInfo;
-
-                    if (blockInfo.AditionalObjectPrefab != null && blockInfo.AditionalObjectProbability >= rand.value)
-                    {
-                        var addObj = (GameObject) Instantiate(blockInfo.AditionalObjectPrefab);
-
-                        addObj.transform.parent = meshObjTransform;
-                        addObj.transform.localPosition = blockInfo.AditionalObjectPrefab
-                            .transform.position.WithXY(x + 0.5f, y + 0.5f);
-                    }
-
-                    if (blockInfo.SpriteInfo.Length == 0)
-                    {
-                        Debug.LogError("Sprite Info is broken");
-                        continue;
-                    }
-
-                    var compactInfo =
-                        (SafeIndex(collMap, x, y + 1, ChunkSize, ChunkSize,
-                            () => GetCollMapPoint(x + xOffest, y + yOffest))
-                            .BlockType == BlockSetProfile.BlockType.CollidingWall
-                            ? 1
-                            : 0) +
-                        (SafeIndex(collMap, x + 1, y, ChunkSize, ChunkSize,
-                            () => GetCollMapPoint(x + xOffest, y + yOffest))
-                            .BlockType == BlockSetProfile.BlockType.CollidingWall
-                            ? 2
-                            : 0) +
-                        (SafeIndex(collMap, x, y - 1, ChunkSize, ChunkSize,
-                            () => GetCollMapPoint(x + xOffest, y + yOffest))
-                            .BlockType == BlockSetProfile.BlockType.CollidingWall
-                            ? 4
-                            : 0) +
-                        (SafeIndex(collMap, x - 1, y, ChunkSize, ChunkSize,
-                            () => GetCollMapPoint(x + xOffest, y + yOffest))
-                            .BlockType == BlockSetProfile.BlockType.CollidingWall
-                            ? 8
-                            : 0);
-
-                    CreatePoint(x, y, blockInfo, compactInfo, false, rand);
-                }
-            }
-
-            var blockMesh = new Mesh();
-            blockMesh.vertices = _vertices.ToArray();
-            blockMesh.uv = _uvs.ToArray();
-            blockMesh.triangles = _triangles.ToArray();
+            Mesh blockMesh = new Mesh {
+                vertices = _vertices.ToArray(),
+                uv = _uvs.ToArray(),
+                triangles = _triangles.ToArray()
+            };
             blockMesh.RecalculateBounds();
             ;
 
-            var meshFilter = meshObj.GetComponent<MeshFilter>();
+            MeshFilter meshFilter = meshObj.GetComponent<MeshFilter>();
             meshFilter.mesh = blockMesh;
 
-            var meshRenderer = meshObj.GetComponent<MeshRenderer>();
-            var texture = BlockSet.BlockInfos
+            MeshRenderer meshRenderer = meshObj.GetComponent<MeshRenderer>();
+            Texture2D texture = blockSet.BlockInfos
                 .First(bi => bi.SpriteInfo.Any(si => si != null))
                 .SpriteInfo.First(ti => ti != null)
                 .texture;
-            var mpb = new MaterialPropertyBlock();
+            MaterialPropertyBlock mpb = new MaterialPropertyBlock();
             mpb.SetTexture("_MainTex", texture);
             meshRenderer.SetPropertyBlock(mpb);
 
-            for (int x = 0; x < ChunkSize; x++)
-            {
-                var yStart = 0;
-                for (int y = 0; y < ChunkSize; y++)
-                {
-                    if (collMap[x, y].BlockInfo.BlockType != BlockSetProfile.BlockType.CollidingWall)
-                    {
-                        if (y - yStart > 0)
-                        {
-                            var obj = new GameObject();
-                            obj.layer = meshObj.layer;
+            for(int x = 0; x < ChunkSize; x++) {
+                int yStart = 0;
+                for(int y = 0; y < ChunkSize; y++)
+                    if(collMap[x, y].blockInfo.BlockType != BlockSetProfile.BlockType.CollidingWall) {
+                        if(y - yStart > 0) {
+                            GameObject obj = new GameObject {layer = meshObj.layer};
                             obj.transform.parent = meshObjTransform;
                             obj.transform.localPosition = new Vector3(x, 0);
                             obj.name = "Collider x = " + x;
-                            var coll = obj.AddComponent<BoxCollider2D>();
-                            coll.size = new Vector2(1, (y - yStart));
-                            coll.offset = new Vector2(0.5f, yStart + coll.size.y/2f);
+                            BoxCollider2D coll = obj.AddComponent<BoxCollider2D>();
+                            coll.size = new Vector2(1, y - yStart);
+                            coll.offset = new Vector2(0.5f, yStart + coll.size.y / 2f);
                         }
                         yStart = y + 1;
                     }
-                }
-                if (ChunkSize - yStart > 0)
-                {
-                    var obj = new GameObject();
-                    obj.layer = meshObj.layer;
+                if(ChunkSize - yStart > 0) {
+                    GameObject obj = new GameObject {layer = meshObj.layer};
                     obj.transform.parent = meshObjTransform;
                     obj.transform.localPosition = new Vector3(x, 0);
                     obj.name = "Collider x = " + x;
-                    var coll = obj.AddComponent<BoxCollider2D>();
-                    coll.size = new Vector2(1, (ChunkSize - yStart));
-                    coll.offset = new Vector2(0.5f, yStart + coll.size.y/2f);
+                    BoxCollider2D coll = obj.AddComponent<BoxCollider2D>();
+                    coll.size = new Vector2(1, ChunkSize - yStart);
+                    coll.offset = new Vector2(0.5f, yStart + coll.size.y / 2f);
                 }
             }
 
-            var lightObstaclesObject = (GameObject) Instantiate(LightObstaclesPrefab);
+            GameObject lightObstaclesObject = Instantiate(lightObstaclesPrefab);
             lightObstaclesObject.transform.parent = meshObjTransform;
             lightObstaclesObject.transform.localPosition = Vector3.zero;
             //lightObstaclesObject.transform.localPosition += new Vector3(0, 0, -10);
-            var lightObstaclesMeshFilter = lightObstaclesObject.GetComponent<MeshFilter>();
+            MeshFilter lightObstaclesMeshFilter = lightObstaclesObject.GetComponent<MeshFilter>();
             lightObstaclesMeshFilter.mesh = ChunkMeshFromColors(_lightAbsorptionColors);
 
-            var ambientLightObject = (GameObject) Instantiate(AmbientLightPrefab);
+            GameObject ambientLightObject = Instantiate(ambientLightPrefab);
             ambientLightObject.transform.parent = meshObjTransform;
             ambientLightObject.transform.localPosition = Vector3.zero;
             //ambientLightObject.transform.localPosition += new Vector3(0, 0, -5);
-            var ambientLightMeshFilter = ambientLightObject.GetComponent<MeshFilter>();
+            MeshFilter ambientLightMeshFilter = ambientLightObject.GetComponent<MeshFilter>();
             ambientLightMeshFilter.mesh = ChunkMeshFromColors(_lightEmissionColors);
 
             return meshObj;
         }
 
-        private Mesh ChunkMeshFromColors(List<Color> colors)
-        {
+        private Mesh ChunkMeshFromColors(List<Color> colors) {
             _vertices.Clear();
             _triangles.Clear();
             _colors.Clear();
 
             const float add = 0;
 
-            for (int x = 0; x < ChunkSize; x++)
-            {
-                var yStart = 0;
-                var startC = colors[x*ChunkSize];
-                for (int y = 0; y < ChunkSize; y++)
-                {
-                    var currC = colors[y + x*ChunkSize];
-                    if (currC.r != startC.r || currC.g != startC.g || currC.b != startC.b || currC.a != startC.a)
-                    {
-                        var startVert = _vertices.Count;
+            for(int x = 0; x < ChunkSize; x++) {
+                int yStart = 0;
+                Color startC = colors[x * ChunkSize];
+                for(int y = 0; y < ChunkSize; y++) {
+                    Color currC = colors[y + x * ChunkSize];
+                    if(currC.r != startC.r || currC.g != startC.g || currC.b != startC.b || currC.a != startC.a) {
+                        int startVert = _vertices.Count;
 
                         _vertices.Add(new Vector3(x - add, yStart - add, 0));
                         _vertices.Add(new Vector3(x + 1 + add, yStart - add, 0));
@@ -347,7 +282,7 @@ namespace Light2D.Examples
                         _triangles.Add(startVert + 2);
                         _triangles.Add(startVert + 3);
 
-                        for (int i = 0; i < 4; i++)
+                        for(int i = 0; i < 4; i++)
                             _colors.Add(startC);
 
                         startC = currC;
@@ -355,9 +290,8 @@ namespace Light2D.Examples
                         yStart = y;
                     }
                 }
-                if (ChunkSize - yStart > 0)
-                {
-                    var startVert = _vertices.Count;
+                if(ChunkSize - yStart > 0) {
+                    int startVert = _vertices.Count;
 
                     _vertices.Add(new Vector3(x - add, yStart - add, 0));
                     _vertices.Add(new Vector3(x + 1 + add, yStart - add, 0));
@@ -371,23 +305,23 @@ namespace Light2D.Examples
                     _triangles.Add(startVert + 2);
                     _triangles.Add(startVert + 3);
 
-                    for (int i = 0; i < 4; i++)
+                    for(int i = 0; i < 4; i++)
                         _colors.Add(startC);
                 }
             }
 
-            var mesh = new Mesh();
-            mesh.vertices = _vertices.ToArray();
-            mesh.triangles = _triangles.ToArray();
-            mesh.colors = _colors.ToArray();
+            Mesh mesh = new Mesh {
+                vertices = _vertices.ToArray(),
+                triangles = _triangles.ToArray(),
+                colors = _colors.ToArray()
+            };
 
             return mesh;
         }
 
         private void CreatePoint(int x, int y, BlockSetProfile.BlockInfo blockInfo, int compactInfo,
-            bool noLightEffects, SimpleRNG rand, BlockSetProfile.BlockType? isColliding = null)
-        {
-            var sprite = blockInfo.SpriteInfo
+            bool noLightEffects, SimpleRNG rand, BlockSetProfile.BlockType? isColliding = null) {
+            Sprite sprite = blockInfo.SpriteInfo
                 .RandomElement(ti => 1, rand);
 
             //if (tilingInfo == null)
@@ -398,23 +332,21 @@ namespace Light2D.Examples
 
             //var sprite = tilingInfo.Sprite;
 
-            if (sprite == null)
-            {
+            if(sprite == null) {
                 Debug.LogError("Tiling info is broken");
                 return;
             }
 
-            CreatePoint(x, y, sprite, blockInfo, isColliding == null ? blockInfo.BlockType : isColliding.Value,
+            CreatePoint(x, y, sprite, blockInfo, isColliding ?? blockInfo.BlockType,
                 noLightEffects);
         }
 
         private void CreatePoint(int x, int y, Sprite sprite, BlockSetProfile.BlockInfo blockInfo,
-            BlockSetProfile.BlockType isColliding, bool noLightEffect)
-        {
-            var textureSize = new Vector2(sprite.texture.width, sprite.texture.height);
-            var uvRect = sprite.textureRect;
+            BlockSetProfile.BlockType isColliding, bool noLightEffect) {
+            Vector2 textureSize = new Vector2(sprite.texture.width, sprite.texture.height);
+            Rect uvRect = sprite.textureRect;
 
-            var startVert = _vertices.Count;
+            int startVert = _vertices.Count;
             const float add = 0.01f;
             float z = isColliding == BlockSetProfile.BlockType.CollidingWall ? 0 : 5;
             _vertices.Add(new Vector3(x - add, y - add, z));
@@ -422,10 +354,10 @@ namespace Light2D.Examples
             _vertices.Add(new Vector3(x - add, y + 1 + add, z));
             _vertices.Add(new Vector3(x + 1 + add, y + 1 + add, z));
 
-            _uvs.Add(new Vector2(uvRect.xMin/textureSize.x, uvRect.yMin/textureSize.y)); // 0, 0
-            _uvs.Add(new Vector2(uvRect.xMax/textureSize.x, uvRect.yMin/textureSize.y)); // 1, 0
-            _uvs.Add(new Vector2(uvRect.xMin/textureSize.x, uvRect.yMax/textureSize.y)); // 0, 1
-            _uvs.Add(new Vector2(uvRect.xMax/textureSize.x, uvRect.yMax/textureSize.y)); // 1, 1
+            _uvs.Add(new Vector2(uvRect.xMin / textureSize.x, uvRect.yMin / textureSize.y)); // 0, 0
+            _uvs.Add(new Vector2(uvRect.xMax / textureSize.x, uvRect.yMin / textureSize.y)); // 1, 0
+            _uvs.Add(new Vector2(uvRect.xMin / textureSize.x, uvRect.yMax / textureSize.y)); // 0, 1
+            _uvs.Add(new Vector2(uvRect.xMax / textureSize.x, uvRect.yMax / textureSize.y)); // 1, 1
 
             _triangles.Add(startVert + 2);
             _triangles.Add(startVert + 1);
@@ -441,83 +373,78 @@ namespace Light2D.Examples
             //}
         }
 
-        private CollMapPoint GetCollMapPoint(int x, int y, BlockSetProfile.BlockType? colliding = null)
-        {
+        private CollMapPoint GetCollMapPoint(int x, int y, BlockSetProfile.BlockType? colliding = null) {
             CollMapPoint cachedPoint;
-            if (_collMapPoints.TryGetValue(new Point2(x, y), out cachedPoint) &&
-                (colliding == null || colliding.Value == cachedPoint.BlockType))
-            {
+            if(_collMapPoints.TryGetValue(new Point2(x, y), out cachedPoint) &&
+               (colliding == null || colliding.Value == cachedPoint.blockType))
                 return cachedPoint;
-            }
 
-            var noise = GetNoise(x, y);
+            float noise = GetNoise(x, y);
 
-            var matchingBlockInfos = BlockSet.BlockInfos.FindAll(b =>
+            List<BlockSetProfile.BlockInfo> matchingBlockInfos = blockSet.BlockInfos.FindAll(b =>
                 b.MinNoise <= noise && b.MaxNoise >= noise &&
                 (colliding == null || colliding.Value == b.BlockType));
 
-            if (matchingBlockInfos.Count == 0 && colliding != null)
-            {
-                matchingBlockInfos = BlockSet.BlockInfos
+            if(matchingBlockInfos.Count == 0 && colliding != null)
+                matchingBlockInfos = blockSet.BlockInfos
                     .FindAll(b => colliding.Value == b.BlockType);
-            }
 
-            if (matchingBlockInfos.Count == 0)
-            {
+            if(matchingBlockInfos.Count == 0) {
                 Debug.LogError("No matching blocks found");
                 return default(CollMapPoint);
             }
 
-            var rand = new SimpleRNG(Util.Hash(Seed, x, y));
-            var blockInfo = matchingBlockInfos
+            SimpleRNG rand = new SimpleRNG(Util.Hash(seed, x, y));
+            BlockSetProfile.BlockInfo blockInfo = matchingBlockInfos
                 .RandomElement(bi => bi.Weight, rand);
 
-            var point = new CollMapPoint(noise) {BlockInfo = blockInfo, BlockType = blockInfo.BlockType};
+            CollMapPoint point = new CollMapPoint(noise) {blockInfo = blockInfo, blockType = blockInfo.BlockType};
             _collMapPoints[new Point2(x, y)] = point;
             return point;
         }
 
-        float GetNoise(int x, int y)
-        {
-            var noise1 = (Noise.Generate(
-                x * BlockSet.FirstNoiseScale + _randFirstAddX,
-                y * BlockSet.FirstNoiseScale + _randFirstAddY) - 0.5f) * 2f;
-            var noise2 = (Noise.Generate(
-                x * BlockSet.SecondNoiseScale + _randSecondAddX,
-                y * BlockSet.SecondNoiseScale + _randSecondAddY) - 0.5f) * 2f;
+        private float GetNoise(int x, int y) {
+            float noise1 = (Noise.Generate(
+                                x * blockSet.FirstNoiseScale + _randFirstAddX,
+                                y * blockSet.FirstNoiseScale + _randFirstAddY) - 0.5f) * 2f;
+            float noise2 = (Noise.Generate(
+                                x * blockSet.SecondNoiseScale + _randSecondAddX,
+                                y * blockSet.SecondNoiseScale + _randSecondAddY) - 0.5f) * 2f;
 
-            var noise = Mathf.Clamp01((noise1 + noise2 * BlockSet.SecondNoiseMul) / 2f + 0.5f);
+            float noise = Mathf.Clamp01((noise1 + noise2 * blockSet.SecondNoiseMul) / 2f + 0.5f);
 
             return noise;
         }
 
-        bool IsGoodSpawnPoint(Point2 point)
-        {
-            for (int x = point.x - 10; x <= point.x + 10; x++)
-            {
-                for (int y = point.y - 10; y < point.y + 10; y++)
-                {
-                    if (GetCollMapPoint(x, y).BlockType == BlockSetProfile.BlockType.CollidingWall)
-                        return false;
-                }
-            }
+        private bool IsGoodSpawnPoint(Point2 point) {
+            for(int x = point.x - 10; x <= point.x + 10; x++)
+            for(int y = point.y - 10; y < point.y + 10; y++)
+                if(GetCollMapPoint(x, y).blockType == BlockSetProfile.BlockType.CollidingWall)
+                    return false;
             return true;
         }
 
         [ContextMenu("Recreate map")]
-        private void RecreateMap()
-        {
-            foreach (var tile in _tiles)
-            {
-                Destroy(tile.Value);
-            }
+        private void RecreateMap() {
+            foreach(KeyValuePair<Point2, GameObject> tile in _tiles) Destroy(tile.Value);
             _tiles.Clear();
         }
 
-        private T SafeIndex<T>(T[,] arr, int x, int y, int w, int h, Func<T> noneFunc)
-        {
-            if (x < 0 || y < 0 || x >= w || y >= h) return noneFunc();
+        private T SafeIndex<T>(T[,] arr, int x, int y, int w, int h, Func<T> noneFunc) {
+            if(x < 0 || y < 0 || x >= w || y >= h) return noneFunc();
             return arr[x, y];
+        }
+
+        private struct CollMapPoint {
+            public float noise;
+            public BlockSetProfile.BlockInfo blockInfo;
+            public BlockSetProfile.BlockType blockType;
+
+            public CollMapPoint(float noise) {
+                this.noise = noise;
+                blockInfo = null;
+                blockType = BlockSetProfile.BlockType.Empty;
+            }
         }
     }
 }

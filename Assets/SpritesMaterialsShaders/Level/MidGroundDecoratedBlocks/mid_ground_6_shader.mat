@@ -7,17 +7,17 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: mid_ground_6_shader
-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _EMISSION _GLOSSYREFLECTIONS_OFF
-    _METALLICGLOSSMAP _NORMALMAP
+  m_Shader: {fileID: 4800000, guid: f1c332c0884ef2b4bb26584f688eac3a, type: 3}
+  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _ALPHA_CLIP _EMISSION _GLOSSYREFLECTIONS_OFF
+    _METALLICGLOSSMAP _NORMALMAP _SPECULAR_GLOSSMAP
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2450
   stringTagMap:
-    AlphaDepth: true
+    AlphaDepth: False
     IGNOREPROJECTOR: true
-    RenderType: Transparent
+    RenderType: TransparentCutout
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -51,7 +51,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
-        m_Texture: {fileID: 2800000, guid: 18a53c32e661a4ce3b0cee358bb74d78, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7c8e77fcf5b554d3bae2d908216e1f40, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -75,14 +75,14 @@ Material:
     - _BlendAmount: 0
     - _Brightness: 1
     - _BumpScale: 1
-    - _Cull: 0
+    - _Cull: 2
     - _CustomRenderQueue: 0
-    - _Cutoff: 0.228
+    - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
     - _EmissionPower: 1
     - _EnableExternalAlpha: 0
-    - _GlossMapScale: 0.678
+    - _GlossMapScale: 0.376
     - _Glossiness: 0.616
     - _GlossyReflections: 0
     - _Hue: 0
@@ -91,14 +91,14 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _RenderQueue: 0
-    - _RimPower: 2
+    - _RimPower: 14.09
     - _Saturation: 1
     - _ShadowAlphaCutoff: 0.1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SrcBlend: 5
+    - _SrcBlend: 1
     - _UVSec: 0
-    - _ZWrite: 0
+    - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.9734455, g: 0.017641952, b: 0.042311423, a: 1}

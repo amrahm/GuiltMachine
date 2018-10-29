@@ -42,7 +42,7 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
         ENDCG
 
         LOD 300
-        Cull Off
+        Cull Back
 
         CGPROGRAM
             #pragma target 3.0

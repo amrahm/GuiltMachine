@@ -20,6 +20,7 @@ namespace Light2D {
         private SerializedProperty _lightSourcesLayer;
         private SerializedProperty _ambientLightLayer;
         private SerializedProperty _lightObstaclesLayer;
+        private SerializedProperty _lightObstaclesReplacementShaderLayer;
         private SerializedProperty _lightObstaclesDistance;
         private SerializedProperty _lightTexturesFilterMode;
         private SerializedProperty _enableNormalMapping;
@@ -30,26 +31,27 @@ namespace Light2D {
 #endif
 
         private void OnEnable() {
-            _lightPixelSize = serializedObject.FindProperty("lightPixelSize");
-            _lightCameraSizeAdd = serializedObject.FindProperty("lightCameraSizeAdd");
-            _lightCameraFovAdd = serializedObject.FindProperty("lightCameraFovAdd");
-            _enableAmbientLight = serializedObject.FindProperty("enableAmbientLight");
-            _blurLightSources = serializedObject.FindProperty("blurLightSources");
-            _blurAmbientLight = serializedObject.FindProperty("blurAmbientLight");
-            _hdr = serializedObject.FindProperty("hdr");
-            _lightObstaclesAntialiasing = serializedObject.FindProperty("lightObstaclesAntialiasing");
-            _ambientLightComputeMaterial = serializedObject.FindProperty("ambientLightComputeMaterial");
-            _lightOverlayMaterial = serializedObject.FindProperty("lightOverlayMaterial");
-            _lightSourcesBlurMaterial = serializedObject.FindProperty("lightSourcesBlurMaterial");
-            _ambientLightBlurMaterial = serializedObject.FindProperty("ambientLightBlurMaterial");
-            _lightCamera = serializedObject.FindProperty("lightCamera");
-            _lightSourcesLayer = serializedObject.FindProperty("lightSourcesLayer");
-            _ambientLightLayer = serializedObject.FindProperty("ambientLightLayer");
-            _lightObstaclesLayer = serializedObject.FindProperty("lightObstaclesLayer");
-            _lightObstaclesDistance = serializedObject.FindProperty("lightObstaclesDistance");
-            _lightTexturesFilterMode = serializedObject.FindProperty("lightTexturesFilterMode");
-            _enableNormalMapping = serializedObject.FindProperty("enableNormalMapping");
-            _affectOnlyThisCamera = serializedObject.FindProperty("affectOnlyThisCamera");
+            _lightPixelSize = serializedObject.FindProperty(nameof(LightingSystem.lightPixelSize));
+            _lightCameraSizeAdd = serializedObject.FindProperty(nameof(LightingSystem.lightCameraSizeAdd));
+            _lightCameraFovAdd = serializedObject.FindProperty(nameof(LightingSystem.lightCameraFovAdd));
+            _enableAmbientLight = serializedObject.FindProperty(nameof(LightingSystem.enableAmbientLight));
+            _blurLightSources = serializedObject.FindProperty(nameof(LightingSystem.blurLightSources));
+            _blurAmbientLight = serializedObject.FindProperty(nameof(LightingSystem.blurAmbientLight));
+            _hdr = serializedObject.FindProperty(nameof(LightingSystem.hdr));
+            _lightObstaclesAntialiasing = serializedObject.FindProperty(nameof(LightingSystem.lightObstaclesAntialiasing));
+            _ambientLightComputeMaterial = serializedObject.FindProperty(nameof(LightingSystem.ambientLightComputeMaterial));
+            _lightOverlayMaterial = serializedObject.FindProperty(nameof(LightingSystem.lightOverlayMaterial));
+            _lightSourcesBlurMaterial = serializedObject.FindProperty(nameof(LightingSystem.lightSourcesBlurMaterial));
+            _ambientLightBlurMaterial = serializedObject.FindProperty(nameof(LightingSystem.ambientLightBlurMaterial));
+            _lightCamera = serializedObject.FindProperty(nameof(LightingSystem.lightCamera));
+            _lightSourcesLayer = serializedObject.FindProperty(nameof(LightingSystem.lightSourcesLayer));
+            _ambientLightLayer = serializedObject.FindProperty(nameof(LightingSystem.ambientLightLayer));
+            _lightObstaclesLayer = serializedObject.FindProperty(nameof(LightingSystem.lightObstaclesLayer));
+            _lightObstaclesDistance = serializedObject.FindProperty(nameof(LightingSystem.lightObstaclesDistance));
+            _lightTexturesFilterMode = serializedObject.FindProperty(nameof(LightingSystem.lightTexturesFilterMode));
+            _enableNormalMapping = serializedObject.FindProperty(nameof(LightingSystem.enableNormalMapping));
+            _affectOnlyThisCamera = serializedObject.FindProperty(nameof(LightingSystem.affectOnlyThisCamera));
+            _lightObstaclesReplacementShaderLayer = serializedObject.FindProperty(nameof(LightingSystem.lightObstaclesReplacementShaderLayer));
         }
 
         public override void OnInspectorGUI() {
@@ -158,6 +160,7 @@ namespace Light2D {
             _lightSourcesLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Light Sources Layer"), _lightSourcesLayer.intValue);
             _lightObstaclesLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Light Obstacles Layer"), _lightObstaclesLayer.intValue);
             _ambientLightLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Ambient Light Layer"), _ambientLightLayer.intValue);
+            EditorGUILayout.PropertyField(_lightObstaclesReplacementShaderLayer);
 
             // Apply changes to the serializedProperty - always do this in the end of OnInspectorGUI.
             serializedObject.ApplyModifiedProperties();

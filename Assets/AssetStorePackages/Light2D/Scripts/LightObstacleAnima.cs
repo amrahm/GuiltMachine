@@ -1,5 +1,4 @@
-﻿using System;
-using Anima2D;
+﻿using Anima2D;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -7,6 +6,7 @@ using UnityEditor;
 #endif
 
 namespace Light2D {
+    /// <inheritdoc />
     /// <summary> Sprite with dual color support. Grabs sprite from GameSpriteRenderer field. </summary>
     [ExecuteInEditMode]
     public class LightObstacleAnima : CustomSprite {
@@ -22,7 +22,7 @@ namespace Light2D {
 
         protected override void OnEnable() {
 #if UNITY_EDITOR
-            if(material == null) material = (Material) AssetDatabase.LoadAssetAtPath("Assets/Light2D/Materials/DualColor.mat", typeof(Material));
+            if(material == null) material = (Material) AssetDatabase.LoadAssetAtPath("Assets/AssetStorePackages/Light2D/Materials/DualColor.mat", typeof(Material));
 #endif
 
             base.OnEnable();
@@ -37,8 +37,8 @@ namespace Light2D {
 
         private void UpdateSecondaryColor() {
             Vector2 uv1L = new Vector2(
-                Util.DecodeFloatRGBA((Vector4) additiveColor),
-                Util.DecodeFloatRGBA(new Vector4(additiveColor.a, 0, 0)));
+                Util.DecodeFloatRgba((Vector4) additiveColor),
+                Util.DecodeFloatRgba(new Vector4(additiveColor.a, 0, 0)));
             for(int i = 0; i < uv1.Length; i++) uv1[i] = uv1L;
         }
 
