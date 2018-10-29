@@ -4,7 +4,7 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: BackgroundWall
   m_Shader: {fileID: 4800000, guid: ef07a7f598004f5408b0c30c532b0bb3, type: 3}
@@ -81,7 +81,7 @@ Material:
     - _BlendAmount: 0
     - _BlurDistance: 4
     - _Brightness: 1
-    - _BumpScale: 0.8
+    - _BumpScale: -0.8
     - _Cull: 0
     - _CustomRenderQueue: 0
     - _Cutoff: 0
