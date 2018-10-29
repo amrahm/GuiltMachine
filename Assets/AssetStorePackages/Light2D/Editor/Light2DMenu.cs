@@ -41,7 +41,7 @@ namespace Light2D {
             if(LightingSystem.Instance != null)
                 obj.layer = LightingSystem.Instance.lightSourcesLayer;
             LightSprite light = obj.AddComponent<LightSprite>();
-            light.material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Light2D/Materials/Light60Points.mat");
+            light.material = AssetDatabase.LoadAssetAtPath<Material>("Assets/AssetStorePackages/Light2D/Materials/Light60Points.mat");
             light.sprite = Resources.Load<Sprite>("DefaultLight");
             light.color = new Color(1, 1, 1, 0.5f);
             Selection.activeObject = obj;
