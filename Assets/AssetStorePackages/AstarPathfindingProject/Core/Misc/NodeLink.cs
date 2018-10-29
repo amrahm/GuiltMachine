@@ -6,25 +6,27 @@ using UnityEditor;
 namespace Pathfinding {
 	using Pathfinding.Util;
 
-	/** Connects two nodes with a direct connection.
-	 * It is not possible to detect this link when following a path (which may be good or bad), for that you can use NodeLink2.
-	 */
+	/// <summary>
+	/// Connects two nodes with a direct connection.
+	/// It is not possible to detect this link when following a path (which may be good or bad), for that you can use NodeLink2.
+	/// </summary>
 	[AddComponentMenu("Pathfinding/Link")]
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_node_link.php")]
 	public class NodeLink : GraphModifier {
-		/** End position of the link */
+		/// <summary>End position of the link</summary>
 		public Transform end;
 
-		/** The connection will be this times harder/slower to traverse.
-		 * Note that values lower than one will not always make the pathfinder choose this path instead of another path even though this one should
-		 * lead to a lower total cost unless you also adjust the Heuristic Scale in A* Inspector -> Settings -> Pathfinding or disable the heuristic altogether.
-		 */
+		/// <summary>
+		/// The connection will be this times harder/slower to traverse.
+		/// Note that values lower than one will not always make the pathfinder choose this path instead of another path even though this one should
+		/// lead to a lower total cost unless you also adjust the Heuristic Scale in A* Inspector -> Settings -> Pathfinding or disable the heuristic altogether.
+		/// </summary>
 		public float costFactor = 1.0f;
 
-		/** Make a one-way connection */
+		/// <summary>Make a one-way connection</summary>
 		public bool oneWay = false;
 
-		/** Delete existing connection instead of adding one */
+		/// <summary>Delete existing connection instead of adding one</summary>
 		public bool deleteConnection = false;
 
 		public Transform Start {

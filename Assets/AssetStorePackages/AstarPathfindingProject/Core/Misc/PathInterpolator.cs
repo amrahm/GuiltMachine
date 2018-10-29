@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 namespace Pathfinding.Util {
-	/** Interpolates along a sequence of points */
+	/// <summary>Interpolates along a sequence of points</summary>
 	public class PathInterpolator {
 		List<Vector3> path;
 
@@ -11,7 +11,7 @@ namespace Pathfinding.Util {
 		float currentSegmentLength = float.PositiveInfinity;
 		float totalDistance = float.PositiveInfinity;
 
-		/** Current position */
+		/// <summary>Current position</summary>
 		public virtual Vector3 position {
 			get {
 				float t = currentSegmentLength > 0.0001f ? (currentDistance - distanceToSegmentStart) / currentSegmentLength : 0f;
@@ -19,14 +19,21 @@ namespace Pathfinding.Util {
 			}
 		}
 
-		/** Tangent of the curve at the current position */
+		/// <summary>Last point in the path</summary>
+		public Vector3 endPoint {
+			get {
+				return path[path.Count-1];
+			}
+		}
+
+		/// <summary>Tangent of the curve at the current position</summary>
 		public Vector3 tangent {
 			get {
 				return path[segmentIndex+1] - path[segmentIndex];
 			}
 		}
 
-		/** Remaining distance until the end of the path */
+		/// <summary>Remaining distance until the end of the path</summary>
 		public float remainingDistance {
 			get {
 				return totalDistance - distance;
@@ -36,7 +43,7 @@ namespace Pathfinding.Util {
 			}
 		}
 
-		/** Traversed distance from the start of the path */
+		/// <summary>Traversed distance from the start of the path</summary>
 		public float distance {
 			get {
 				return currentDistance;
@@ -49,23 +56,26 @@ namespace Pathfinding.Util {
 			}
 		}
 
-		/** Current segment.
-		 * The start and end points of the segment are path[value] and path[value+1].
-		 */
+		/// <summary>
+		/// Current segment.
+		/// The start and end points of the segment are path[value] and path[value+1].
+		/// </summary>
 		public int segmentIndex { get; private set; }
 
-		/** True if this instance has a path set.
-		 * \see SetPath
-		 */
+		/// <summary>
+		/// True if this instance has a path set.
+		/// See: SetPath
+		/// </summary>
 		public bool valid {
 			get {
 				return path != null;
 			}
 		}
 
-		/** Set the path to interpolate along.
-		 * This will reset all interpolation variables.
-		 */
+		/// <summary>
+		/// Set the path to interpolate along.
+		/// This will reset all interpolation variables.
+		/// </summary>
 		public void SetPath (List<Vector3> path) {
 			this.path = path;
 			currentDistance = 0;
@@ -91,7 +101,7 @@ namespace Pathfinding.Util {
 			}
 		}
 
-		/** Move to the specified segment and move a fraction of the way to the next segment */
+		/// <summary>Move to the specified segment and move a fraction of the way to the next segment</summary>
 		public void MoveToSegment (int index, float fractionAlongSegment) {
 			if (path == null) return;
 			if (index < 0 || index >= path.Count - 1) throw new System.ArgumentOutOfRangeException("index");
@@ -100,7 +110,7 @@ namespace Pathfinding.Util {
 			distance = distanceToSegmentStart + Mathf.Clamp01(fractionAlongSegment) * currentSegmentLength;
 		}
 
-		/** Move as close as possible to the specified point */
+		/// <summary>Move as close as possible to the specified point</summary>
 		public void MoveToClosestPoint (Vector3 point) {
 			if (path == null) return;
 

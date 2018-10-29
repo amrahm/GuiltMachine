@@ -1,50 +1,52 @@
 using UnityEngine;
 
 namespace Pathfinding {
-	/** Attach this script to any obstacle with a collider to enable dynamic updates of the graphs around it.
-	 * When the object has moved a certain distance (or actually when it's bounding box has changed by a certain amount) defined by #updateError
-	 * it will call AstarPath.UpdateGraphs and update the graph around it.
-	 *
-	 * Make sure that any children colliders do not extend beyond the bounds of the collider attached to the
-	 * GameObject that the DynamicGridObstacle component is attached to since this script only updates the graph
-	 * around the bounds of the collider on the same GameObject.
-	 *
-	 * This script works with both 2D colliders and normal 3D colliders.
-	 *
-	 * \note This script only works with GridGraph, PointGraph and LayerGridGraph
-	 *
-	 * \see AstarPath.UpdateGraphs
-	 * \see graph-updates
-	 */
+	/// <summary>
+	/// Attach this script to any obstacle with a collider to enable dynamic updates of the graphs around it.
+	/// When the object has moved a certain distance (or actually when it's bounding box has changed by a certain amount) defined by <see cref="updateError"/>
+	/// it will call AstarPath.UpdateGraphs and update the graph around it.
+	///
+	/// Make sure that any children colliders do not extend beyond the bounds of the collider attached to the
+	/// GameObject that the DynamicGridObstacle component is attached to since this script only updates the graph
+	/// around the bounds of the collider on the same GameObject.
+	///
+	/// This script works with both 2D colliders and normal 3D colliders.
+	///
+	/// Note: This script only works with GridGraph, PointGraph and LayerGridGraph
+	///
+	/// See: AstarPath.UpdateGraphs
+	/// See: graph-updates
+	/// </summary>
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_dynamic_grid_obstacle.php")]
 	public class DynamicGridObstacle : GraphModifier {
-		/** Collider to get bounds information from */
+		/// <summary>Collider to get bounds information from</summary>
 		Collider coll;
 
-		/** 2D Collider to get bounds information from */
+		/// <summary>2D Collider to get bounds information from</summary>
 		Collider2D coll2D;
 
-		/** Cached transform component */
+		/// <summary>Cached transform component</summary>
 		Transform tr;
 
-		/** The minimum change in world units along one of the axis of the bounding box of the collider to trigger a graph update */
+		/// <summary>The minimum change in world units along one of the axis of the bounding box of the collider to trigger a graph update</summary>
 		public float updateError = 1;
 
-		/** Time in seconds between bounding box checks.
-		 * If AstarPath.batchGraphUpdates is enabled, it is not beneficial to have a checkTime much lower
-		 * than AstarPath.graphUpdateBatchingInterval because that will just add extra unnecessary graph updates.
-		 *
-		 * In real time seconds (based on Time.realtimeSinceStartup).
-		 */
+		/// <summary>
+		/// Time in seconds between bounding box checks.
+		/// If AstarPath.batchGraphUpdates is enabled, it is not beneficial to have a checkTime much lower
+		/// than AstarPath.graphUpdateBatchingInterval because that will just add extra unnecessary graph updates.
+		///
+		/// In real time seconds (based on Time.realtimeSinceStartup).
+		/// </summary>
 		public float checkTime = 0.2F;
 
-		/** Bounds of the collider the last time the graphs were updated */
+		/// <summary>Bounds of the collider the last time the graphs were updated</summary>
 		Bounds prevBounds;
 
-		/** Rotation of the collider the last time the graphs were updated */
+		/// <summary>Rotation of the collider the last time the graphs were updated</summary>
 		Quaternion prevRotation;
 
-		/** True if the collider was enabled last time the graphs were updated */
+		/// <summary>True if the collider was enabled last time the graphs were updated</summary>
 		bool prevEnabled;
 
 		float lastCheckTime = -9999;
@@ -129,9 +131,10 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Revert graphs when disabled.
-		 * When the DynamicObstacle is disabled or destroyed, a last graph update should be done to revert nodes to their original state
-		 */
+		/// <summary>
+		/// Revert graphs when disabled.
+		/// When the DynamicObstacle is disabled or destroyed, a last graph update should be done to revert nodes to their original state
+		/// </summary>
 		protected override void OnDisable () {
 			base.OnDisable();
 			if (AstarPath.active != null && Application.isPlaying) {
@@ -141,11 +144,12 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Update the graphs around this object.
-		 * \note The graphs will not be updated immediately since the pathfinding threads need to be paused first.
-		 * If you want to guarantee that the graphs have been updated then call AstarPath.active.FlushGraphUpdates()
-		 * after the call to this method.
-		 */
+		/// <summary>
+		/// Update the graphs around this object.
+		/// Note: The graphs will not be updated immediately since the pathfinding threads need to be paused first.
+		/// If you want to guarantee that the graphs have been updated then call AstarPath.active.FlushGraphUpdates()
+		/// after the call to this method.
+		/// </summary>
 		public void DoUpdateGraphs () {
 			if (coll == null && coll2D == null) return;
 
@@ -180,7 +184,7 @@ namespace Pathfinding {
 			lastCheckTime = Time.realtimeSinceStartup;
 		}
 
-		/** Volume of a Bounds object. X*Y*Z */
+		/// <summary>Volume of a Bounds object. X*Y*Z</summary>
 		static float BoundsVolume (Bounds b) {
 			return System.Math.Abs(b.size.x * b.size.y * b.size.z);
 		}

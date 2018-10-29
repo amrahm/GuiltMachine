@@ -6,13 +6,12 @@ using UnityEngine;
 namespace Pathfinding {
 	using Pathfinding.Util;
 
-	/** Axis Aligned Bounding Box Tree.
-	 * Holds a bounding box tree of triangles.
-	 *
-	 * \astarpro
-	 */
+	/// <summary>
+	/// Axis Aligned Bounding Box Tree.
+	/// Holds a bounding box tree of triangles.
+	/// </summary>
 	public class BBTree : IAstarPooledObject {
-		/** Holds all tree nodes */
+		/// <summary>Holds all tree nodes</summary>
 		BBTreeBox[] tree = null;
 		TriangleMeshNode[] nodeLookup = null;
 		int count;
@@ -31,9 +30,10 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Clear the tree.
-		 * Note that references to old nodes will still be intact so the GC cannot immediately collect them.
-		 */
+		/// <summary>
+		/// Clear the tree.
+		/// Note that references to old nodes will still be intact so the GC cannot immediately collect them.
+		/// </summary>
 		public void Clear () {
 			count = 0;
 			leafNodes = 0;
@@ -77,7 +77,7 @@ namespace Pathfinding {
 			return count-1;
 		}
 
-		/** Rebuilds the tree using the specified nodes */
+		/// <summary>Rebuilds the tree using the specified nodes</summary>
 		public void RebuildFrom (TriangleMeshNode[] nodes) {
 			Clear();
 
@@ -205,7 +205,7 @@ namespace Pathfinding {
 			return box;
 		}
 
-		/** Calculates the bounding box in XZ space of all nodes between \a from (inclusive) and \a to (exclusive) */
+		/// <summary>Calculates the bounding box in XZ space of all nodes between from (inclusive) and to (exclusive)</summary>
 		static IntRect NodeBounds (int[] permutation, IntRect[] nodeBounds, int from, int to) {
 			var rect = nodeBounds[permutation[from]];
 
@@ -240,31 +240,32 @@ namespace Pathfinding {
 			Debug.DrawLine((Vector3)node.GetVertex(2) + Vector3.up*yoffset, (Vector3)node.GetVertex(0) + Vector3.up*yoffset, color);
 		}
 
-		/** Queries the tree for the closest node to \a p constrained by the NNConstraint.
-		 * Note that this function will only fill in the constrained node.
-		 * If you want a node not constrained by any NNConstraint, do an additional search with constraint = NNConstraint.None
-		 */
+		/// <summary>
+		/// Queries the tree for the closest node to p constrained by the NNConstraint.
+		/// Note that this function will only fill in the constrained node.
+		/// If you want a node not constrained by any NNConstraint, do an additional search with constraint = NNConstraint.None
+		/// </summary>
 		public NNInfoInternal QueryClosest (Vector3 p, NNConstraint constraint, out float distance) {
 			distance = float.PositiveInfinity;
 			return QueryClosest(p, constraint, ref distance, new NNInfoInternal(null));
 		}
 
-		/** Queries the tree for the closest node to \a p constrained by the NNConstraint trying to improve an existing solution.
-		 * Note that this function will only fill in the constrained node.
-		 * If you want a node not constrained by any NNConstraint, do an additional search with constraint = NNConstraint.None
-		 *
-		 * This method will completely ignore any Y-axis differences in positions.
-		 *
-		 * \param p Point to search around
-		 * \param constraint Optionally set to constrain which nodes to return
-		 * \param distance The best distance for the \a previous solution. Will be updated with the best distance
-		 * after this search. Will be positive infinity if no node could be found.
-		 * Set to positive infinity if there was no previous solution.
-		 * \param previous This search will start from the \a previous NNInfo and improve it if possible.
-		 * Even if the search fails on this call, the solution will never be worse than \a previous.
-		 * Note that the \a distance parameter need to be configured with the distance for the previous result
-		 * otherwise it may get overwritten even though it was actually closer.
-		 */
+		/// <summary>
+		/// Queries the tree for the closest node to p constrained by the NNConstraint trying to improve an existing solution.
+		/// Note that this function will only fill in the constrained node.
+		/// If you want a node not constrained by any NNConstraint, do an additional search with constraint = NNConstraint.None
+		///
+		/// This method will completely ignore any Y-axis differences in positions.
+		/// </summary>
+		/// <param name="p">Point to search around</param>
+		/// <param name="constraint">Optionally set to constrain which nodes to return</param>
+		/// <param name="distance">The best distance for the previous solution. Will be updated with the best distance
+		/// after this search. Will be positive infinity if no node could be found.
+		/// Set to positive infinity if there was no previous solution.</param>
+		/// <param name="previous">This search will start from the previous NNInfo and improve it if possible.
+		/// Even if the search fails on this call, the solution will never be worse than previous.
+		/// Note that the distance parameter need to be configured with the distance for the previous result
+		/// otherwise it may get overwritten even though it was actually closer.</param>
 		public NNInfoInternal QueryClosestXZ (Vector3 p, NNConstraint constraint, ref float distance, NNInfoInternal previous) {
 			var sqrDistance = distance*distance;
 			var origSqrDistance = sqrDistance;
@@ -322,18 +323,18 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Queries the tree for the closest node to \a p constrained by the NNConstraint trying to improve an existing solution.
-		 * Note that this function will only fill in the constrained node.
-		 * If you want a node not constrained by any NNConstraint, do an additional search with constraint = NNConstraint.None
-		 *
-		 * \param p Point to search around
-		 * \param constraint Optionally set to constrain which nodes to return
-		 * \param distance The best distance for the \a previous solution. Will be updated with the best distance
-		 * after this search. Will be positive infinity if no node could be found.
-		 * Set to positive infinity if there was no previous solution.
-		 * \param previous This search will start from the \a previous NNInfo and improve it if possible.
-		 * Even if the search fails on this call, the solution will never be worse than \a previous.
-		 */
+		/// <summary>
+		/// Queries the tree for the closest node to p constrained by the NNConstraint trying to improve an existing solution.
+		/// Note that this function will only fill in the constrained node.
+		/// If you want a node not constrained by any NNConstraint, do an additional search with constraint = NNConstraint.None
+		/// </summary>
+		/// <param name="p">Point to search around</param>
+		/// <param name="constraint">Optionally set to constrain which nodes to return</param>
+		/// <param name="distance">The best distance for the previous solution. Will be updated with the best distance
+		/// after this search. Will be positive infinity if no node could be found.
+		/// Set to positive infinity if there was no previous solution.</param>
+		/// <param name="previous">This search will start from the previous NNInfo and improve it if possible.
+		/// Even if the search fails on this call, the solution will never be worse than previous.</param>
 		public NNInfoInternal QueryClosest (Vector3 p, NNConstraint constraint, ref float distance, NNInfoInternal previous) {
 			var sqrDistance = distance*distance;
 			var origSqrDistance = sqrDistance;
@@ -386,7 +387,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Orders the box indices first and second by the approximate distance to the point p */
+		/// <summary>Orders the box indices first and second by the approximate distance to the point p</summary>
 		void GetOrderedChildren (ref int first, ref int second, out float firstDist, out float secondDist, Vector3 p) {
 			firstDist = SquaredRectPointDistance(tree[first].rect, p);
 			secondDist = SquaredRectPointDistance(tree[second].rect, p);
@@ -402,12 +403,13 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Searches for a node which contains the specified point.
-		 * If there are multiple nodes that contain the point any one of them
-		 * may be returned.
-		 *
-		 * \see TriangleMeshNode.ContainsPoint
-		 */
+		/// <summary>
+		/// Searches for a node which contains the specified point.
+		/// If there are multiple nodes that contain the point any one of them
+		/// may be returned.
+		///
+		/// See: TriangleMeshNode.ContainsPoint
+		/// </summary>
 		public TriangleMeshNode QueryInside (Vector3 p, NNConstraint constraint) {
 			return count != 0 && tree[0].Contains(p) ? SearchBoxInside(0, p, constraint) : null;
 		}
@@ -508,13 +510,14 @@ namespace Pathfinding {
 		static bool NodeIntersectsCircle (TriangleMeshNode node, Vector3 p, float radius) {
 			if (float.IsPositiveInfinity(radius)) return true;
 
-			/** \bug Is not correct on the Y axis */
+			/// <summary>\bug Is not correct on the Y axis</summary>
 			return (p - node.ClosestPointOnNode(p)).sqrMagnitude < radius*radius;
 		}
 
-		/** Returns true if \a p is within \a radius from \a r.
-		 * Correctly handles cases where \a radius is positive infinity.
-		 */
+		/// <summary>
+		/// Returns true if p is within radius from r.
+		/// Correctly handles cases where radius is positive infinity.
+		/// </summary>
 		static bool RectIntersectsCircle (IntRect r, Vector3 p, float radius) {
 			if (float.IsPositiveInfinity(radius)) return true;
 
@@ -528,7 +531,7 @@ namespace Pathfinding {
 			return (p.x-po.x)*(p.x-po.x) + (p.z-po.z)*(p.z-po.z) < radius*radius;
 		}
 
-		/** Returns distance from \a p to the rectangle \a r */
+		/// <summary>Returns distance from p to the rectangle r</summary>
 		static float SquaredRectPointDistance (IntRect r, Vector3 p) {
 			Vector3 po = p;
 

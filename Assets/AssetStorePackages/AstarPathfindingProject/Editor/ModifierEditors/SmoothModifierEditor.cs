@@ -14,8 +14,7 @@ namespace Pathfinding {
 				switch ((SimpleSmoothModifier.SmoothType)smoothType.enumValueIndex) {
 				case SimpleSmoothModifier.SmoothType.Simple:
 					if (PropertyField("uniformLength")) {
-						PropertyField("maxSegmentLength");
-						Clamp("maxSegmentLength", 0.005f);
+						FloatField("maxSegmentLength", min: 0.005f);
 					} else {
 						IntSlider("subdivisions", 0, 6);
 					}
@@ -29,16 +28,14 @@ namespace Pathfinding {
 					PropertyField("iterations");
 					ClampInt("iterations", 0);
 
-					PropertyField("offset");
-					Clamp("offset", 0);
+					FloatField("offset", min: 0f);
 					break;
 				case SimpleSmoothModifier.SmoothType.Bezier:
 					IntSlider("subdivisions", 0, 6);
 					PropertyField("bezierTangentLength");
 					break;
 				case SimpleSmoothModifier.SmoothType.CurvedNonuniform:
-					PropertyField("maxSegmentLength");
-					Clamp("maxSegmentLength", 0.005f);
+					FloatField("maxSegmentLength", min: 0.005f);
 					PropertyField("factor");
 					break;
 				}

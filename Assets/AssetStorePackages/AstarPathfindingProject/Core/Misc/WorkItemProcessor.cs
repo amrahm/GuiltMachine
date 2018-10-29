@@ -1,53 +1,63 @@
+using UnityEngine;
+#if UNITY_5_5_OR_NEWER
+using UnityEngine.Profiling;
+#endif
+
 namespace Pathfinding {
 	using UnityEngine;
 
-	/** An item of work that can be executed when graphs are safe to update.
-	 * \see #AstarPath.UpdateGraphs
-	 * \see #AstarPath.AddWorkItem
-	 */
+	/// <summary>
+	/// An item of work that can be executed when graphs are safe to update.
+	/// See: <see cref="AstarPath.UpdateGraphs"/>
+	/// See: <see cref="AstarPath.AddWorkItem"/>
+	/// </summary>
 	public struct AstarWorkItem {
-		/** Init function.
-		 * May be null if no initialization is needed.
-		 * Will be called once, right before the first call to #update.
-		 */
+		/// <summary>
+		/// Init function.
+		/// May be null if no initialization is needed.
+		/// Will be called once, right before the first call to <see cref="update"/>.
+		/// </summary>
 		public System.Action init;
 
-		/** Init function.
-		 * May be null if no initialization is needed.
-		 * Will be called once, right before the first call to #update.
-		 *
-		 * A context object is sent as a parameter. This can be used
-		 * to for example queue a flood fill that will be executed either
-		 * when a work item calls EnsureValidFloodFill or all work items have
-		 * been completed. If multiple work items are updating nodes
-		 * so that they need a flood fill afterwards, using the QueueFloodFill
-		 * method is preferred since then only a single flood fill needs
-		 * to be performed for all of the work items instead of one
-		 * per work item.
-		 */
+		/// <summary>
+		/// Init function.
+		/// May be null if no initialization is needed.
+		/// Will be called once, right before the first call to <see cref="update"/>.
+		///
+		/// A context object is sent as a parameter. This can be used
+		/// to for example queue a flood fill that will be executed either
+		/// when a work item calls EnsureValidFloodFill or all work items have
+		/// been completed. If multiple work items are updating nodes
+		/// so that they need a flood fill afterwards, using the QueueFloodFill
+		/// method is preferred since then only a single flood fill needs
+		/// to be performed for all of the work items instead of one
+		/// per work item.
+		/// </summary>
 		public System.Action<IWorkItemContext> initWithContext;
 
-		/** Update function, called once per frame when the work item executes.
-		 * Takes a param \a force. If that is true, the work item should try to complete the whole item in one go instead
-		 * of spreading it out over multiple frames.
-		 * \returns True when the work item is completed.
-		 */
+		/// <summary>
+		/// Update function, called once per frame when the work item executes.
+		/// Takes a param force. If that is true, the work item should try to complete the whole item in one go instead
+		/// of spreading it out over multiple frames.
+		/// Returns: True when the work item is completed.
+		/// </summary>
 		public System.Func<bool, bool> update;
 
-		/** Update function, called once per frame when the work item executes.
-		 * Takes a param \a force. If that is true, the work item should try to complete the whole item in one go instead
-		 * of spreading it out over multiple frames.
-		 * \returns True when the work item is completed.
-		 *
-		 * A context object is sent as a parameter. This can be used
-		 * to for example queue a flood fill that will be executed either
-		 * when a work item calls EnsureValidFloodFill or all work items have
-		 * been completed. If multiple work items are updating nodes
-		 * so that they need a flood fill afterwards, using the QueueFloodFill
-		 * method is preferred since then only a single flood fill needs
-		 * to be performed for all of the work items instead of one
-		 * per work item.
-		 */
+		/// <summary>
+		/// Update function, called once per frame when the work item executes.
+		/// Takes a param force. If that is true, the work item should try to complete the whole item in one go instead
+		/// of spreading it out over multiple frames.
+		/// Returns: True when the work item is completed.
+		///
+		/// A context object is sent as a parameter. This can be used
+		/// to for example queue a flood fill that will be executed either
+		/// when a work item calls EnsureValidFloodFill or all work items have
+		/// been completed. If multiple work items are updating nodes
+		/// so that they need a flood fill afterwards, using the QueueFloodFill
+		/// method is preferred since then only a single flood fill needs
+		/// to be performed for all of the work items instead of one
+		/// per work item.
+		/// </summary>
 		public System.Func<IWorkItemContext, bool, bool> updateWithContext;
 
 		public AstarWorkItem (System.Func<bool, bool> update) {
@@ -79,45 +89,82 @@ namespace Pathfinding {
 		}
 	}
 
-	/** Interface to expose a subset of the WorkItemProcessor functionality */
+	/// <summary>Interface to expose a subset of the WorkItemProcessor functionality</summary>
 	public interface IWorkItemContext {
-		/** Call during work items to queue a flood fill.
-		 * An instant flood fill can be done via FloodFill()
-		 * but this method can be used to batch several updates into one
-		 * to increase performance.
-		 * WorkItems which require a valid Flood Fill in their execution can call EnsureValidFloodFill
-		 * to ensure that a flood fill is done if any earlier work items queued one.
-		 *
-		 * Once a flood fill is queued it will be done after all WorkItems have been executed.
-		 */
+		/// <summary>
+		/// Call during work items to queue a flood fill.
+		/// An instant flood fill can be done via FloodFill()
+		/// but this method can be used to batch several updates into one
+		/// to increase performance.
+		/// WorkItems which require a valid Flood Fill in their execution can call EnsureValidFloodFill
+		/// to ensure that a flood fill is done if any earlier work items queued one.
+		///
+		/// Once a flood fill is queued it will be done after all WorkItems have been executed.
+		///
+		/// Deprecated: Avoid using. This will force a full recalculation of the connected components. In most cases the HierarchicalGraph class takes care of things automatically behind the scenes now. In pretty much all cases you should be able to remove the call to this function.
+		/// </summary>
+		[System.Obsolete("Avoid using. This will force a full recalculation of the connected components. In most cases the HierarchicalGraph class takes care of things automatically behind the scenes now. In pretty much all cases you should be able to remove the call to this function.")]
 		void QueueFloodFill ();
 
-		/** If a WorkItem needs to have a valid flood fill during execution, call this method to ensure there are no pending flood fills */
+		/// <summary>
+		/// If a WorkItem needs to have a valid area information during execution, call this method to ensure there are no pending flood fills.
+		/// If you are using the <see cref="Pathfinding.GraphNode.Area"/> property or the <see cref="Pathfinding.PathUtilities.IsPathPossible"/> method in your work items, then you might want to call this method before you use them
+		/// to ensure that the data is up to date.
+		///
+		/// See: <see cref="Pathfinding.HierarchicalGraph"/>
+		///
+		/// <code>
+		/// AstarPath.active.AddWorkItem(new AstarWorkItem((IWorkItemContext ctx) => {
+		///     ctx.EnsureValidFloodFill();
+		///
+		///     // The above call guarantees that this method has up to date information about the graph
+		///     if (PathUtilities.IsPathPossible(someNode, someOtherNode)) {
+		///         // Do something
+		///     }
+		/// }));
+		/// </code>
+		/// </summary>
 		void EnsureValidFloodFill ();
+
+		/// <summary>
+		/// Trigger a graph modification event.
+		/// This will cause a <see cref="Pathfinding.GraphModifier.PostUpdate"/> event to be issued after all graph updates have finished.
+		/// Some scripts listen for this event. For example off-mesh links listen to it and will recalculate which nodes they are connected to when it it sent.
+		/// If a graph is dirtied multiple times, or even if multiple graphs are dirtied, the event will only be sent once.
+		/// </summary>
+		void SetGraphDirty (NavGraph graph);
 	}
 
 	class WorkItemProcessor : IWorkItemContext {
-		/** Used to prevent waiting for work items to complete inside other work items as that will cause the program to hang */
+		/// <summary>Used to prevent waiting for work items to complete inside other work items as that will cause the program to hang</summary>
 		public bool workItemsInProgressRightNow { get; private set; }
 
 		readonly AstarPath astar;
 		readonly IndexedQueue<AstarWorkItem> workItems = new IndexedQueue<AstarWorkItem>();
 
-		/** True if any work items have queued a flood fill.
-		 * \see QueueWorkItemFloodFill
-		 */
+		/// <summary>True if any work items are queued right now</summary>
+		public bool anyQueued {
+			get { return workItems.Count > 0; }
+		}
+
+		/// <summary>
+		/// True if any work items have queued a flood fill.
+		/// See: QueueWorkItemFloodFill
+		/// </summary>
 		bool queuedWorkItemFloodFill = false;
 
-		/**
-		 * True while a batch of work items are being processed.
-		 * Set to true when a work item is started to be processed, reset to false when all work items are complete.
-		 *
-		 * Work item updates are often spread out over several frames, this flag will be true during the whole time the
-		 * updates are in progress.
-		 */
+		bool anyGraphsDirty = true;
+
+		/// <summary>
+		/// True while a batch of work items are being processed.
+		/// Set to true when a work item is started to be processed, reset to false when all work items are complete.
+		///
+		/// Work item updates are often spread out over several frames, this flag will be true during the whole time the
+		/// updates are in progress.
+		/// </summary>
 		public bool workItemsInProgress { get; private set; }
 
-		/** Similar to Queue<T> but allows random access */
+		/// <summary>Similar to Queue<T> but allows random access</summary>
 		class IndexedQueue<T> {
 			T[] buffer = new T[4];
 			int start;
@@ -158,23 +205,30 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Call during work items to queue a flood fill.
-		 * An instant flood fill can be done via FloodFill()
-		 * but this method can be used to batch several updates into one
-		 * to increase performance.
-		 * WorkItems which require a valid Flood Fill in their execution can call EnsureValidFloodFill
-		 * to ensure that a flood fill is done if any earlier work items queued one.
-		 *
-		 * Once a flood fill is queued it will be done after all WorkItems have been executed.
-		 */
+		/// <summary>
+		/// Call during work items to queue a flood fill.
+		/// An instant flood fill can be done via FloodFill()
+		/// but this method can be used to batch several updates into one
+		/// to increase performance.
+		/// WorkItems which require a valid Flood Fill in their execution can call EnsureValidFloodFill
+		/// to ensure that a flood fill is done if any earlier work items queued one.
+		///
+		/// Once a flood fill is queued it will be done after all WorkItems have been executed.
+		/// </summary>
 		void IWorkItemContext.QueueFloodFill () {
 			queuedWorkItemFloodFill = true;
 		}
 
-		/** If a WorkItem needs to have a valid flood fill during execution, call this method to ensure there are no pending flood fills */
+		void IWorkItemContext.SetGraphDirty (NavGraph graph) {
+			anyGraphsDirty = true;
+		}
+
+		/// <summary>If a WorkItem needs to have a valid area information during execution, call this method to ensure there are no pending flood fills</summary>
 		public void EnsureValidFloodFill () {
 			if (queuedWorkItemFloodFill) {
-				astar.FloodFill();
+				astar.hierarchicalGraph.RecalculateAll();
+			} else {
+				astar.hierarchicalGraph.RecalculateIfNecessary();
 			}
 		}
 
@@ -186,25 +240,27 @@ namespace Pathfinding {
 			queuedWorkItemFloodFill = false;
 		}
 
-		/** Add a work item to be processed when pathfinding is paused.
-		 *
-		 * \see ProcessWorkItems
-		 */
+		/// <summary>
+		/// Add a work item to be processed when pathfinding is paused.
+		///
+		/// See: ProcessWorkItems
+		/// </summary>
 		public void AddWorkItem (AstarWorkItem item) {
 			workItems.Enqueue(item);
 		}
 
-		/** Process graph updating work items.
-		 * Process all queued work items, e.g graph updates and the likes.
-		 *
-		 * \returns
-		 * - false if there are still items to be processed.
-		 * - true if the last work items was processed and pathfinding threads are ready to be resumed.
-		 *
-		 * \see AddWorkItem
-		 * \see threadSafeUpdateState
-		 * \see Update
-		 */
+		/// <summary>
+		/// Process graph updating work items.
+		/// Process all queued work items, e.g graph updates and the likes.
+		///
+		/// Returns:
+		/// - false if there are still items to be processed.
+		/// - true if the last work items was processed and pathfinding threads are ready to be resumed.
+		///
+		/// See: AddWorkItem
+		/// See: threadSafeUpdateState
+		/// See: Update
+		/// </summary>
 		public bool ProcessWorkItems (bool force) {
 			if (workItemsInProgressRightNow) throw new System.Exception("Processing work items recursively. Please do not wait for other work items to be completed inside work items. " +
 					"If you think this is not caused by any of your scripts, this might be a bug.");
@@ -220,23 +276,23 @@ namespace Pathfinding {
 
 				// Peek at first item in the queue
 				AstarWorkItem itm = workItems[0];
-
-				// Call init the first time the item is seen
-				if (itm.init != null) {
-					itm.init();
-					itm.init = null;
-				}
-
-				if (itm.initWithContext != null) {
-					itm.initWithContext(this);
-					itm.initWithContext = null;
-				}
-
-				// Make sure the item in the queue is up to date
-				workItems[0] = itm;
-
 				bool status;
+
 				try {
+					// Call init the first time the item is seen
+					if (itm.init != null) {
+						itm.init();
+						itm.init = null;
+					}
+
+					if (itm.initWithContext != null) {
+						itm.initWithContext(this);
+						itm.initWithContext = null;
+					}
+
+					// Make sure the item in the queue is up to date
+					workItems[0] = itm;
+
 					if (itm.update != null) {
 						status = itm.update(force);
 					} else if (itm.updateWithContext != null) {
@@ -267,6 +323,11 @@ namespace Pathfinding {
 
 			EnsureValidFloodFill();
 
+			Profiler.BeginSample("PostUpdate");
+			if (anyGraphsDirty) GraphModifier.TriggerEvent(GraphModifier.EventType.PostUpdate);
+			Profiler.EndSample();
+
+			anyGraphsDirty = false;
 			workItemsInProgressRightNow = false;
 			workItemsInProgress = false;
 			astar.data.UnlockGraphStructure();

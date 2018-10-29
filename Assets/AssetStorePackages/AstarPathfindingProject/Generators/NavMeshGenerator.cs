@@ -9,56 +9,58 @@ namespace Pathfinding {
 		void GetNodes (System.Action<GraphNode> del);
 	}
 
-	/** Generates graphs based on navmeshes.
-	 * \ingroup graphs
-	 * Navmeshes are meshes where each triangle defines a walkable area.
-	 * These are great because the AI can get so much more information on how it can walk.
-	 * Polygons instead of points mean that the funnel smoother can produce really nice looking paths and the graphs are also really fast to search
-	 * and have a low memory footprint because fewer nodes are usually needed to describe the same area compared to grid graphs.
-	 *
-	 * \see Pathfinding.RecastGraph
-	 *
-	 * \shadowimage{navmeshgraph_graph.png}
-	 * \shadowimage{navmeshgraph_inspector.png}
-	 */
+	/// <summary>
+	/// Generates graphs based on navmeshes.
+	/// \ingroup graphs
+	/// Navmeshes are meshes where each triangle defines a walkable area.
+	/// These are great because the AI can get so much more information on how it can walk.
+	/// Polygons instead of points mean that the funnel smoother can produce really nice looking paths and the graphs are also really fast to search
+	/// and have a low memory footprint because fewer nodes are usually needed to describe the same area compared to grid graphs.
+	///
+	/// See: Pathfinding.RecastGraph
+	///
+	/// [Open online documentation to see images]
+	/// [Open online documentation to see images]
+	/// </summary>
 	[JsonOptIn]
 	public class NavMeshGraph : NavmeshBase, IUpdatableGraph {
-		/** Mesh to construct navmesh from */
+		/// <summary>Mesh to construct navmesh from</summary>
 		[JsonMember]
 		public Mesh sourceMesh;
 
-		/** Offset in world space */
+		/// <summary>Offset in world space</summary>
 		[JsonMember]
 		public Vector3 offset;
 
-		/** Rotation in degrees */
+		/// <summary>Rotation in degrees</summary>
 		[JsonMember]
 		public Vector3 rotation;
 
-		/** Scale of the graph */
+		/// <summary>Scale of the graph</summary>
 		[JsonMember]
 		public float scale = 1;
 
-		/** Determines how normals are calculated.
-		 * Disable for spherical graphs or other complicated surfaces that allow the agents to e.g walk on walls or ceilings.
-		 *
-		 * By default the normals of the mesh will be flipped so that they point as much as possible in the upwards direction.
-		 * The normals are important when connecting adjacent nodes. Two adjacent nodes will only be connected if they are oriented the same way.
-		 * This is particularly important if you have a navmesh on the walls or even on the ceiling of a room. Or if you are trying to make a spherical navmesh.
-		 * If you do one of those things then you should set disable this setting and make sure the normals in your source mesh are properly set.
-		 *
-		 * If you for example take a look at the image below. In the upper case then the nodes on the bottom half of the
-		 * mesh haven't been connected with the nodes on the upper half because the normals on the lower half will have been
-		 * modified to point inwards (as that is the direction that makes them face upwards the most) while the normals on
-		 * the upper half point outwards. This causes the nodes to not connect properly along the seam. When this option
-		 * is set to false instead the nodes are connected properly as in the original mesh all normals point outwards.
-		 * \shadowimage{navmesh_normals.jpg}
-		 *
-		 * The default value of this field is true to reduce the risk for errors in the common case. If a mesh is supplied that
-		 * has all normals pointing downwards and this option is false, then some methods like #PointOnNavmesh will not work correctly
-		 * as they assume that the normals point upwards. For a more complicated surface like a spherical graph those methods make no sense anyway
-		 * as there is no clear definition of what it means to be "inside" a triangle when there is no clear up direction.
-		 */
+		/// <summary>
+		/// Determines how normals are calculated.
+		/// Disable for spherical graphs or other complicated surfaces that allow the agents to e.g walk on walls or ceilings.
+		///
+		/// By default the normals of the mesh will be flipped so that they point as much as possible in the upwards direction.
+		/// The normals are important when connecting adjacent nodes. Two adjacent nodes will only be connected if they are oriented the same way.
+		/// This is particularly important if you have a navmesh on the walls or even on the ceiling of a room. Or if you are trying to make a spherical navmesh.
+		/// If you do one of those things then you should set disable this setting and make sure the normals in your source mesh are properly set.
+		///
+		/// If you for example take a look at the image below. In the upper case then the nodes on the bottom half of the
+		/// mesh haven't been connected with the nodes on the upper half because the normals on the lower half will have been
+		/// modified to point inwards (as that is the direction that makes them face upwards the most) while the normals on
+		/// the upper half point outwards. This causes the nodes to not connect properly along the seam. When this option
+		/// is set to false instead the nodes are connected properly as in the original mesh all normals point outwards.
+		/// [Open online documentation to see images]
+		///
+		/// The default value of this field is true to reduce the risk for errors in the common case. If a mesh is supplied that
+		/// has all normals pointing downwards and this option is false, then some methods like <see cref="PointOnNavmesh"/> will not work correctly
+		/// as they assume that the normals point upwards. For a more complicated surface like a spherical graph those methods make no sense anyway
+		/// as there is no clear definition of what it means to be "inside" a triangle when there is no clear up direction.
+		/// </summary>
 		[JsonMember]
 		public bool recalculateNormals = true;
 
@@ -190,7 +192,7 @@ namespace Pathfinding {
 			});
 		}
 
-		/** Scans the graph using the path to an .obj mesh */
+		/// <summary>Scans the graph using the path to an .obj mesh</summary>
 		[System.Obsolete("Set the mesh to ObjImporter.ImportFile(...) and scan the graph the normal way instead")]
 		public void ScanInternal (string objMeshPath) {
 			Mesh mesh = ObjImporter.ImportFile(objMeshPath);
@@ -242,11 +244,9 @@ namespace Pathfinding {
 
 			ReplaceTile(0, 0, compressedVertices, compressedTriangles);
 
-			// This may be used by the TileHandlerHelper script to update the tiles
-			// while taking NavmeshCuts into account after the graph has been completely recalculated.
-			if (OnRecalculatedTiles != null) {
-				OnRecalculatedTiles(tiles.Clone() as NavmeshTile[]);
-			}
+			// Signal that tiles have been recalculated to the navmesh cutting system.
+			navmeshUpdateData.OnRecalculatedTiles(tiles);
+			if (OnRecalculatedTiles != null) OnRecalculatedTiles(tiles.Clone() as NavmeshTile[]);
 		}
 
 		protected override void DeserializeSettingsCompatibility (GraphSerializationContext ctx) {

@@ -2,70 +2,59 @@ using UnityEngine;
 using System.Collections;
 
 namespace Pathfinding {
-	/** Moves a grid graph to follow a target.
-	 *
-	 * Attach this to some object in the scene and assign the target to e.g the player.
-	 * Then the graph will follow that object around as it moves.
-	 *
-	 * This is useful if pathfinding is only necessary in a small region around an object (for example the player).
-	 * It makes it possible to have vast open worlds (maybe procedurally generated) and still be able to use pathfinding on them.
-	 *
-	 * When the graph is moved you may notice an fps drop.
-	 * If this grows too large you can try a few things:
-	 * - Reduce the #updateDistance. This will make the updates smaller but more frequent.
-	 *   This only works to some degree however since an update has an inherent overhead.
-	 * - Reduce the grid size.
-	 * - Turn on multithreading (A* Inspector -> Settings)
-	 * - Disable the #floodFill field. However note the restrictions on when this can be done.
-	 * - Disable Height Testing or Collision Testing in the grid graph. This can give a performance boost
-	 *   since fewer calls to the physics engine need to be done.
-	 * - Avoid using any erosion in the grid graph settings. This is relatively slow.
-	 *
-	 * Make sure you have 'Show Graphs' disabled in the A* inspector since gizmos in the scene view can take some
-	 * time to update when the graph moves and thus make it seem like this script is slower than it actually is.
-	 *
-	 * \see Take a look at the example scene called "Procedural" for an example of how to use this script
-	 *
-	 * \note This class does not support the erosion setting on grid graphs. You can instead try to
-	 *  increase the 'diameter' setting under the Grid Graph Settings -> Collision Testing header to achieve a similar effect.
-	 *  However even if it did support erosion you would most likely not want to use it with this script
-	 *  since erosion would increase the number of nodes that had to be updated when the graph moved by a large amount.
-	 *
-	 * \version Since 3.6.8 this class can handle graph rotation other options such as isometric angle and aspect ratio.
-	 * \version After 3.6.8 this class can also handle layered grid graphs.
-	 */
+	/// <summary>
+	/// Moves a grid graph to follow a target.
+	///
+	/// Attach this to some object in the scene and assign the target to e.g the player.
+	/// Then the graph will follow that object around as it moves.
+	///
+	/// This is useful if pathfinding is only necessary in a small region around an object (for example the player).
+	/// It makes it possible to have vast open worlds (maybe procedurally generated) and still be able to use pathfinding on them.
+	///
+	/// When the graph is moved you may notice an fps drop.
+	/// If this grows too large you can try a few things:
+	/// - Reduce the <see cref="updateDistance"/>. This will make the updates smaller but more frequent.
+	///   This only works to some degree however since an update has an inherent overhead.
+	/// - Reduce the grid size.
+	/// - Turn on multithreading (A* Inspector -> Settings)
+	/// - Disable the <see cref="floodFill"/> field. However note the restrictions on when this can be done.
+	/// - Disable Height Testing or Collision Testing in the grid graph. This can give a performance boost
+	///   since fewer calls to the physics engine need to be done.
+	/// - Avoid using any erosion in the grid graph settings. This is relatively slow.
+	///
+	/// Make sure you have 'Show Graphs' disabled in the A* inspector since gizmos in the scene view can take some
+	/// time to update when the graph moves and thus make it seem like this script is slower than it actually is.
+	///
+	/// See: Take a look at the example scene called "Procedural" for an example of how to use this script
+	///
+	/// Note: This class does not support the erosion setting on grid graphs. You can instead try to
+	///  increase the 'diameter' setting under the Grid Graph Settings -> Collision Testing header to achieve a similar effect.
+	///  However even if it did support erosion you would most likely not want to use it with this script
+	///  since erosion would increase the number of nodes that had to be updated when the graph moved by a large amount.
+	///
+	/// Version: Since 3.6.8 this class can handle graph rotation other options such as isometric angle and aspect ratio.
+	/// Version: After 3.6.8 this class can also handle layered grid graphs.
+	/// </summary>
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_procedural_grid_mover.php")]
 	public class ProceduralGridMover : VersionedMonoBehaviour {
-		/** Graph will be updated if the target is more than this number of nodes from the graph center.
-		 * Note that this is in nodes, not world units.
-		 *
-		 * \version The unit was changed to nodes instead of world units in 3.6.8.
-		 */
+		/// <summary>
+		/// Graph will be updated if the target is more than this number of nodes from the graph center.
+		/// Note that this is in nodes, not world units.
+		///
+		/// Version: The unit was changed to nodes instead of world units in 3.6.8.
+		/// </summary>
 		public float updateDistance = 10;
 
-		/** Graph will be moved to follow this target */
+		/// <summary>Graph will be moved to follow this target</summary>
 		public Transform target;
 
-		/** Flood fill the graph after updating.
-		 * If this is set to false, areas of the graph will not be recalculated.
-		 * Disable this only if the graph will only have a single area (i.e
-		 * from all walkable nodes there is a valid path to every other walkable
-		 * node). One case where this might be appropriate is a large
-		 * outdoor area such as a forrest.
-		 * If there are multiple areas in the graph and this
-		 * is not enabled, pathfinding could fail later on.
-		 *
-		 * Disabling flood fills will make the graph updates faster.
-		 */
-		public bool floodFill = true;
-
-		/** Grid graph to update */
+		/// <summary>Grid graph to update</summary>
 		GridGraph graph;
 
-		/** Temporary buffer */
+		/// <summary>Temporary buffer</summary>
 		GridNodeBase[] buffer;
 
-		/** True while the graph is being updated by this script */
+		/// <summary>True while the graph is being updated by this script</summary>
 		public bool updatingGraph { get; private set; }
 
 		void Start () {
@@ -77,7 +66,7 @@ namespace Pathfinding {
 			UpdateGraph();
 		}
 
-		/** Update is called once per frame */
+		/// <summary>Update is called once per frame</summary>
 		void Update () {
 			if (graph == null) return;
 
@@ -93,31 +82,33 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Transforms a point from world space to graph space.
-		 * In graph space, (0,0,0) is bottom left corner of the graph
-		 * and one unit along the X and Z axes equals distance between two nodes
-		 * the Y axis still uses world units
-		 */
+		/// <summary>
+		/// Transforms a point from world space to graph space.
+		/// In graph space, (0,0,0) is bottom left corner of the graph
+		/// and one unit along the X and Z axes equals distance between two nodes
+		/// the Y axis still uses world units
+		/// </summary>
 		Vector3 PointToGraphSpace (Vector3 p) {
 			// Multiply with the inverse matrix of the graph
 			// to get the point in graph space
 			return graph.transform.InverseTransform(p);
 		}
 
-		/** Updates the graph asynchronously.
-		 * This will move the graph so that the target's position is the center of the graph.
-		 * If the graph is already being updated, the call will be ignored.
-		 *
-		 * The image below shows which nodes will be updated when the graph moves.
-		 * The whole graph is not recalculated each time it is moved, but only those
-		 * nodes that have to be updated, the rest will keep their old values.
-		 * The image is a bit simplified but it shows the main idea.
-		 * \shadowimage{grid_graph_mover.png}
-		 *
-		 * If you want to move the graph synchronously then call
-		 * \code AstarPath.active.FlushWorkItems(); \endcode
-		 * Immediately after you have called this method.
-		 */
+		/// <summary>
+		/// Updates the graph asynchronously.
+		/// This will move the graph so that the target's position is the center of the graph.
+		/// If the graph is already being updated, the call will be ignored.
+		///
+		/// The image below shows which nodes will be updated when the graph moves.
+		/// The whole graph is not recalculated each time it is moved, but only those
+		/// nodes that have to be updated, the rest will keep their old values.
+		/// The image is a bit simplified but it shows the main idea.
+		/// [Open online documentation to see images]
+		///
+		/// If you want to move the graph synchronously then call
+		/// <code> AstarPath.active.FlushWorkItems(); </code>
+		/// Immediately after you have called this method.
+		/// </summary>
 		public void UpdateGraph () {
 			if (updatingGraph) {
 				// We are already updating the graph
@@ -136,13 +127,6 @@ namespace Pathfinding {
 			IEnumerator ie = UpdateGraphCoroutine();
 			AstarPath.active.AddWorkItem(new AstarWorkItem(
 					(context, force) => {
-				// Make sure the areas for the graph
-				// have been recalculated
-				// not doing this can cause pathfinding to fail
-				// This will be done after all work items
-				// have been completed
-				if (floodFill) context.QueueFloodFill();
-
 				// If force is true we need to calculate all steps at once
 				if (force) while (ie.MoveNext()) {}
 
@@ -165,7 +149,7 @@ namespace Pathfinding {
 			}));
 		}
 
-		/** Async method for moving the graph */
+		/// <summary>Async method for moving the graph</summary>
 		IEnumerator UpdateGraphCoroutine () {
 			// Find the direction that we want to move the graph in.
 			// Calcuculate this in graph space (where a distance of one is the size of one node)
@@ -335,21 +319,11 @@ namespace Pathfinding {
 
 				// Calculate all connections for the nodes along the boundary
 				// of the graph, these always need to be updated
-				/** \todo Optimize to not traverse all nodes in the graph, only those at the edges */
+				/// <summary>TODO: Optimize to not traverse all nodes in the graph, only those at the edges</summary>
 				for (int z = 0; z < depth; z++) {
 					for (int x = 0; x < width; x++) {
 						if (x == 0 || z == 0 || x == width-1 || z == depth-1) graph.CalculateConnections(x, z);
 					}
-				}
-
-				// We need to clear the Area if we are not using flood filling.
-				// This will make pathfinding always work, but it may be slow
-				// to figure out that no path exists if none does.
-				// (of course, if there are regions between which no valid
-				// paths exist, then the #floodFill field should not
-				// be set to false anyway).
-				if (!floodFill) {
-					graph.GetNodes(node => node.Area = 1);
 				}
 			} else {
 				// The calculation will only update approximately this number of

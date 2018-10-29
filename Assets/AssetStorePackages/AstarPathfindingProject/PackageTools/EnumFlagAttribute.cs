@@ -1,7 +1,7 @@
 using UnityEngine;
 
 namespace Pathfinding {
-	/** \author http://wiki.unity3d.com/index.php/EnumFlagPropertyDrawer */
+	/// <summary>\author http://wiki.unity3d.com/index.php/EnumFlagPropertyDrawer</summary>
 	public class EnumFlagAttribute : PropertyAttribute {
 	}
 }

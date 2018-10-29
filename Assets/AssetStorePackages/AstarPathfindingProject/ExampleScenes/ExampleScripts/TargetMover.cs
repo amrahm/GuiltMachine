@@ -2,22 +2,23 @@ using UnityEngine;
 using System.Linq;
 
 namespace Pathfinding {
-	/** Moves the target in example scenes.
-	 * This is a simple script which has the sole purpose
-	 * of moving the target point of agents in the example
-	 * scenes for the A* Pathfinding Project.
-	 *
-	 * It is not meant to be pretty, but it does the job.
-	 */
+	/// <summary>
+	/// Moves the target in example scenes.
+	/// This is a simple script which has the sole purpose
+	/// of moving the target point of agents in the example
+	/// scenes for the A* Pathfinding Project.
+	///
+	/// It is not meant to be pretty, but it does the job.
+	/// </summary>
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_target_mover.php")]
 	public class TargetMover : MonoBehaviour {
-		/** Mask for the raycast placement */
+		/// <summary>Mask for the raycast placement</summary>
 		public LayerMask mask;
 
 		public Transform target;
 		IAstarAI[] ais;
 
-		/** Determines if the target position should be updated every frame or only on double-click */
+		/// <summary>Determines if the target position should be updated every frame or only on double-click</summary>
 		public bool onlyOnDoubleClick;
 		public bool use2D;
 
@@ -38,7 +39,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Update is called once per frame */
+		/// <summary>Update is called once per frame</summary>
 		void Update () {
 			if (!onlyOnDoubleClick && cam != null) {
 				UpdateTargetPosition();

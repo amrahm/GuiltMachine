@@ -2,7 +2,7 @@ using UnityEngine;
 using Pathfinding.Serialization;
 
 namespace Pathfinding {
-	/** Base class for GridNode and LevelGridNode */
+	/// <summary>Base class for GridNode and LevelGridNode</summary>
 	public abstract class GridNodeBase : GraphNode {
 		protected GridNodeBase (AstarPath astar) : base(astar) {
 		}
@@ -16,55 +16,71 @@ namespace Pathfinding {
 		protected const int NodeInGridIndexLayerOffset = 24;
 		protected const int NodeInGridIndexMask = 0xFFFFFF;
 
-		/** Bitfield containing the x and z coordinates of the node as well as the layer (for layered grid graphs).
-		 * \see NodeInGridIndex
-		 */
+		/// <summary>
+		/// Bitfield containing the x and z coordinates of the node as well as the layer (for layered grid graphs).
+		/// See: NodeInGridIndex
+		/// </summary>
 		protected int nodeInGridIndex;
 		protected ushort gridFlags;
 
 #if !ASTAR_GRID_NO_CUSTOM_CONNECTIONS
+		/// <summary>
+		/// Custon non-grid connections from this node.
+		/// See: <see cref="AddConnection"/>
+		/// See: <see cref="RemoveConnection"/>
+		///
+		/// This field is removed if the ASTAR_GRID_NO_CUSTOM_CONNECTIONS compiler directive is used.
+		/// Removing it can save a tiny bit of memory. You can enable the define in the Optimizations tab in the A* inspector.
+		/// See: compiler-directives (view in online documentation for working links)
+		///
+		/// Note: If you modify this array or the contents of it you must call <see cref="SetConnectivityDirty"/>.
+		/// </summary>
 		public Connection[] connections;
 #endif
 
-		/** The index of the node in the grid.
-		 * This is x + z*graph.width
-		 * So you can get the X and Z indices using
-		 * \code
-		 * int index = node.NodeInGridIndex;
-		 * int x = index % graph.width;
-		 * int z = index / graph.width;
-		 * // where graph is GridNode.GetGridGraph (node.graphIndex), i.e the graph the nodes are contained in.
-		 * \endcode
-		 */
+		/// <summary>
+		/// The index of the node in the grid.
+		/// This is x + z*graph.width
+		/// So you can get the X and Z indices using
+		/// <code>
+		/// int index = node.NodeInGridIndex;
+		/// int x = index % graph.width;
+		/// int z = index / graph.width;
+		/// // where graph is GridNode.GetGridGraph (node.graphIndex), i.e the graph the nodes are contained in.
+		/// </code>
+		/// </summary>
 		public int NodeInGridIndex { get { return nodeInGridIndex & NodeInGridIndexMask; } set { nodeInGridIndex = (nodeInGridIndex & ~NodeInGridIndexMask) | value; } }
 
-		/** X coordinate of the node in the grid.
-		 * The node in the bottom left corner has (x,z) = (0,0) and the one in the opposite
-		 * corner has (x,z) = (width-1, depth-1)
-		 * \see ZCoordInGrid
-		 * \see NodeInGridIndex
-		 */
+		/// <summary>
+		/// X coordinate of the node in the grid.
+		/// The node in the bottom left corner has (x,z) = (0,0) and the one in the opposite
+		/// corner has (x,z) = (width-1, depth-1)
+		/// See: ZCoordInGrid
+		/// See: NodeInGridIndex
+		/// </summary>
 		public int XCoordinateInGrid {
 			get {
 				return NodeInGridIndex % GridNode.GetGridGraph(GraphIndex).width;
 			}
 		}
 
-		/** Z coordinate of the node in the grid.
-		 * The node in the bottom left corner has (x,z) = (0,0) and the one in the opposite
-		 * corner has (x,z) = (width-1, depth-1)
-		 * \see XCoordInGrid
-		 * \see NodeInGridIndex
-		 */
+		/// <summary>
+		/// Z coordinate of the node in the grid.
+		/// The node in the bottom left corner has (x,z) = (0,0) and the one in the opposite
+		/// corner has (x,z) = (width-1, depth-1)
+		/// See: XCoordInGrid
+		/// See: NodeInGridIndex
+		/// </summary>
 		public int ZCoordinateInGrid {
 			get {
 				return NodeInGridIndex / GridNode.GetGridGraph(GraphIndex).width;
 			}
 		}
 
-		/** Stores walkability before erosion is applied.
-		 * Used internally when updating the graph.
-		 */
+		/// <summary>
+		/// Stores walkability before erosion is applied.
+		/// Used internally when updating the graph.
+		/// </summary>
 		public bool WalkableErosion {
 			get {
 				return (gridFlags & GridFlagsWalkableErosionMask) != 0;
@@ -74,7 +90,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Temporary variable used internally when updating the graph. */
+		/// <summary>Temporary variable used internally when updating the graph.</summary>
 		public bool TmpWalkable {
 			get {
 				return (gridFlags & GridFlagsWalkableTmpMask) != 0;
@@ -84,10 +100,11 @@ namespace Pathfinding {
 			}
 		}
 
-		/** True if the node has grid connections to all its 8 neighbours.
-		 * \note This will always return false if GridGraph.neighbours is set to anything other than Eight.
-		 * \see GetNeighbourAlongDirection
-		 */
+		/// <summary>
+		/// True if the node has grid connections to all its 8 neighbours.
+		/// Note: This will always return false if GridGraph.neighbours is set to anything other than Eight.
+		/// See: GetNeighbourAlongDirection
+		/// </summary>
 		public abstract bool HasConnectionsToAllEightNeighbours { get; }
 
 		public override float SurfaceArea () {
@@ -118,28 +135,29 @@ namespace Pathfinding {
 			return hash;
 		}
 
-		/** Adjacent grid node in the specified direction.
-		 * This will return null if the node does not have a connection to a node
-		 * in that direction.
-		 *
-		 * The dir parameter corresponds to directions in the grid as:
-		 * \code
-		 *         Z
-		 *         |
-		 *         |
-		 *
-		 *      6  2  5
-		 *       \ | /
-		 * --  3 - X - 1  ----- X
-		 *       / | \
-		 *      7  0  4
-		 *
-		 *         |
-		 *         |
-		 * \endcode
-		 *
-		 * \see GetConnections
-		 */
+		/// <summary>
+		/// Adjacent grid node in the specified direction.
+		/// This will return null if the node does not have a connection to a node
+		/// in that direction.
+		///
+		/// The dir parameter corresponds to directions in the grid as:
+		/// <code>
+		///         Z
+		///         |
+		///         |
+		///
+		///      6  2  5
+		///       \ | /
+		/// --  3 - X - 1  ----- X
+		///       / | \
+		///      7  0  4
+		///
+		///         |
+		///         |
+		/// </code>
+		///
+		/// See: GetConnections
+		/// </summary>
 		public abstract GridNodeBase GetNeighbourAlongDirection (int direction);
 
 		public override bool ContainsConnection (GraphNode node) {
@@ -176,20 +194,11 @@ namespace Pathfinding {
 		public void ClearCustomConnections (bool alsoReverse) {
 		}
 #else
-		public override void FloodFill (System.Collections.Generic.Stack<GraphNode> stack, uint region) {
-			if (connections != null) for (int i = 0; i < connections.Length; i++) {
-					GraphNode other = connections[i].node;
-					if (other.Area != region) {
-						other.Area = region;
-						stack.Push(other);
-					}
-				}
-		}
-
-		/** Same as #ClearConnections, but does not clear grid connections, only custom ones (e.g added by #AddConnection or a NodeLink component) */
+		/// <summary>Same as <see cref="ClearConnections"/>, but does not clear grid connections, only custom ones (e.g added by <see cref="AddConnection"/> or a NodeLink component)</summary>
 		public void ClearCustomConnections (bool alsoReverse) {
 			if (connections != null) for (int i = 0; i < connections.Length; i++) connections[i].node.RemoveConnection(this);
 			connections = null;
+			AstarPath.active.hierarchicalGraph.AddDirtyNode(this);
 		}
 
 		public override void ClearConnections (bool alsoReverse) {
@@ -255,13 +264,14 @@ namespace Pathfinding {
 				}
 		}
 
-		/** Add a connection from this node to the specified node.
-		 * If the connection already exists, the cost will simply be updated and
-		 * no extra connection added.
-		 *
-		 * \note Only adds a one-way connection. Consider calling the same function on the other node
-		 * to get a two-way connection.
-		 */
+		/// <summary>
+		/// Add a connection from this node to the specified node.
+		/// If the connection already exists, the cost will simply be updated and
+		/// no extra connection added.
+		///
+		/// Note: Only adds a one-way connection. Consider calling the same function on the other node
+		/// to get a two-way connection.
+		/// </summary>
 		public override void AddConnection (GraphNode node, uint cost) {
 			if (node == null) throw new System.ArgumentNullException();
 
@@ -284,15 +294,17 @@ namespace Pathfinding {
 			newconns[connLength] = new Connection(node, cost);
 
 			connections = newconns;
+			AstarPath.active.hierarchicalGraph.AddDirtyNode(this);
 		}
 
-		/** Removes any connection from this node to the specified node.
-		 * If no such connection exists, nothing will be done.
-		 *
-		 * \note This only removes the connection from this node to the other node.
-		 * You may want to call the same function on the other node to remove its eventual connection
-		 * to this node.
-		 */
+		/// <summary>
+		/// Removes any connection from this node to the specified node.
+		/// If no such connection exists, nothing will be done.
+		///
+		/// Note: This only removes the connection from this node to the other node.
+		/// You may want to call the same function on the other node to remove its eventual connection
+		/// to this node.
+		/// </summary>
 		public override void RemoveConnection (GraphNode node) {
 			if (connections == null) return;
 
@@ -309,6 +321,7 @@ namespace Pathfinding {
 					}
 
 					connections = newconns;
+					AstarPath.active.hierarchicalGraph.AddDirtyNode(this);
 					return;
 				}
 			}

@@ -1,26 +1,30 @@
 using UnityEngine;
 
 namespace Pathfinding.Examples {
-	/** AI controller specifically made for the spider robot.
-	 * \deprecated This script has been replaced by Pathfinding.Examples.MineBotAnimation. Any uses of this script in the Unity editor will be automatically replaced by one AIPath component and one MineBotAnimation component.
-	 */
+	/// <summary>
+	/// AI controller specifically made for the spider robot.
+	/// Deprecated: This script has been replaced by Pathfinding.Examples.MineBotAnimation. Any uses of this script in the Unity editor will be automatically replaced by one AIPath component and one MineBotAnimation component.
+	/// </summary>
 	[RequireComponent(typeof(Seeker))]
 	[System.Obsolete("This script has been replaced by Pathfinding.Examples.MineBotAnimation. Any uses of this script in the Unity editor will be automatically replaced by one AIPath component and one MineBotAnimation component.")]
 	[HelpURL("http://arongranberg.com/astar/docs/class_pathfinding_1_1_examples_1_1_mine_bot_a_i.php")]
 	public class MineBotAI : AIPath {
-		/** Animation component.
-		 * Should hold animations "awake" and "forward"
-		 */
+		/// <summary>
+		/// Animation component.
+		/// Should hold animations "awake" and "forward"
+		/// </summary>
 		public Animation anim;
 
-		/** Minimum velocity for moving */
+		/// <summary>Minimum velocity for moving</summary>
 		public float sleepVelocity = 0.4F;
 
-		/** Speed relative to velocity with which to play animations */
+		/// <summary>Speed relative to velocity with which to play animations</summary>
 		public float animationSpeed = 0.2F;
 
-		/** Effect which will be instantiated when end of path is reached.
-		 * \see OnTargetReached */
+		/// <summary>
+		/// Effect which will be instantiated when end of path is reached.
+		/// See: OnTargetReached
+		/// </summary>
 		public GameObject endOfPathEffect;
 
 #if UNITY_EDITOR

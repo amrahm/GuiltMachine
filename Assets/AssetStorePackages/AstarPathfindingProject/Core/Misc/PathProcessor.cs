@@ -2,6 +2,9 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+#if UNITY_5_5_OR_NEWER
+using UnityEngine.Profiling;
+#endif
 
 namespace Pathfinding {
 #if NETFX_CORE
@@ -21,45 +24,50 @@ namespace Pathfinding {
 
 		readonly PathHandler[] pathHandlers;
 
-		/** References to each of the pathfinding threads */
+		/// <summary>References to each of the pathfinding threads</summary>
 		readonly Thread[] threads;
 
-		/** When no multithreading is used, the IEnumerator is stored here.
-		 * When no multithreading is used, a coroutine is used instead. It is not directly called with StartCoroutine
-		 * but a separate function has just a while loop which increments the main IEnumerator.
-		 * This is done so other functions can step the thread forward at any time, without having to wait for Unity to update it.
-		 * \see CalculatePaths
-		 * \see CalculatePathsHandler
-		 */
+		/// <summary>
+		/// When no multithreading is used, the IEnumerator is stored here.
+		/// When no multithreading is used, a coroutine is used instead. It is not directly called with StartCoroutine
+		/// but a separate function has just a while loop which increments the main IEnumerator.
+		/// This is done so other functions can step the thread forward at any time, without having to wait for Unity to update it.
+		/// See: CalculatePaths
+		/// See: CalculatePathsHandler
+		/// </summary>
 		IEnumerator threadCoroutine;
 
-		/** Holds the next node index which has not been used by any previous node.
-		 * \see nodeIndexPool
-		 */
+		/// <summary>
+		/// Holds the next node index which has not been used by any previous node.
+		/// See: nodeIndexPool
+		/// </summary>
 		int nextNodeIndex = 1;
 
-		/** Holds indices for nodes that have been destroyed.
-		 * To avoid trashing a lot of memory structures when nodes are
-		 * frequently deleted and created, node indices are reused.
-		 */
+		/// <summary>
+		/// Holds indices for nodes that have been destroyed.
+		/// To avoid trashing a lot of memory structures when nodes are
+		/// frequently deleted and created, node indices are reused.
+		/// </summary>
 		readonly Stack<int> nodeIndexPool = new Stack<int>();
 
 		readonly List<int> locks = new List<int>();
 		int nextLockID = 0;
 
-		/** Number of parallel pathfinders.
-		 * Returns the number of concurrent processes which can calculate paths at once.
-		 * When using multithreading, this will be the number of threads, if not using multithreading it is always 1 (since only 1 coroutine is used).
-		 * \see threadInfos
-		 * \see IsUsingMultithreading
-		 */
+
+		/// <summary>
+		/// Number of parallel pathfinders.
+		/// Returns the number of concurrent processes which can calculate paths at once.
+		/// When using multithreading, this will be the number of threads, if not using multithreading it is always 1 (since only 1 coroutine is used).
+		/// See: threadInfos
+		/// See: IsUsingMultithreading
+		/// </summary>
 		public int NumThreads {
 			get {
 				return pathHandlers.Length;
 			}
 		}
 
-		/** Returns whether or not multithreading is used */
+		/// <summary>Returns whether or not multithreading is used</summary>
 		public bool IsUsingMultithreading {
 			get {
 				return threads != null;
@@ -103,7 +111,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Prevents pathfinding from running while held */
+		/// <summary>Prevents pathfinding from running while held</summary>
 		public struct GraphUpdateLock {
 			PathProcessor pathProcessor;
 			int id;
@@ -113,16 +121,17 @@ namespace Pathfinding {
 				id = pathProcessor.Lock(block);
 			}
 
-			/** True while this lock is preventing the pathfinding threads from processing more paths.
-			 * Note that the pathfinding threads may not be paused yet (if this lock was obtained using PausePathfinding(false)).
-			 */
+			/// <summary>
+			/// True while this lock is preventing the pathfinding threads from processing more paths.
+			/// Note that the pathfinding threads may not be paused yet (if this lock was obtained using PausePathfinding(false)).
+			/// </summary>
 			public bool Held {
 				get {
 					return pathProcessor != null && pathProcessor.locks.Contains (id);
 				}
 			}
 
-			/** Allow pathfinding to start running again if no other locks are still held */
+			/// <summary>Allow pathfinding to start running again if no other locks are still held</summary>
 			public void Release () {
 				pathProcessor.Unlock(id);
 			}
@@ -159,15 +168,15 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Prevents pathfinding threads from starting to calculate any new paths.
-		 *
-		 * \param block If true, this call will block until all pathfinding threads are paused.
-		 * otherwise the threads will be paused as soon as they are done with what they are currently doing.
-		 *
-		 * \returns A lock object. You need to call Unlock on that object to allow pathfinding to resume.
-		 *
-		 * \note In most cases this should not be called from user code.
-		 */
+		/// <summary>
+		/// Prevents pathfinding threads from starting to calculate any new paths.
+		///
+		/// Returns: A lock object. You need to call Unlock on that object to allow pathfinding to resume.
+		///
+		/// Note: In most cases this should not be called from user code.
+		/// </summary>
+		/// <param name="block">If true, this call will block until all pathfinding threads are paused.
+		/// otherwise the threads will be paused as soon as they are done with what they are currently doing.</param>
 		public GraphUpdateLock PausePathfinding (bool block) {
 			return new GraphUpdateLock(this, block);
 		}
@@ -196,7 +205,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Calls 'Join' on each of the threads to block until they have completed */
+		/// <summary>Calls 'Join' on each of the threads to block until they have completed</summary>
 		public void JoinThreads () {
 			if (threads != null) {
 				for (int i = 0; i < threads.Length; i++) {
@@ -215,7 +224,7 @@ namespace Pathfinding {
 			}
 		}
 
-		/** Calls 'Abort' on each of the threads */
+		/// <summary>Calls 'Abort' on each of the threads</summary>
 		public void AbortThreads () {
 #if !UNITY_WEBPLAYER
 			if (threads == null) return;
@@ -226,16 +235,18 @@ namespace Pathfinding {
 #endif
 		}
 
-		/** Returns a new global node index.
-		 * \warning This method should not be called directly. It is used by the GraphNode constructor.
-		 */
+		/// <summary>
+		/// Returns a new global node index.
+		/// Warning: This method should not be called directly. It is used by the GraphNode constructor.
+		/// </summary>
 		public int GetNewNodeIndex () {
 			return nodeIndexPool.Count > 0 ? nodeIndexPool.Pop() : nextNodeIndex++;
 		}
 
-		/** Initializes temporary path data for a node.
-		 * \warning This method should not be called directly. It is used by the GraphNode constructor.
-		 */
+		/// <summary>
+		/// Initializes temporary path data for a node.
+		/// Warning: This method should not be called directly. It is used by the GraphNode constructor.
+		/// </summary>
 		public void InitializeNode (GraphNode node) {
 			if (!queue.AllReceiversBlocked) {
 				throw new System.Exception("Trying to initialize a node when it is not safe to initialize any nodes. Must be done during a graph update. See http://arongranberg.com/astar/docs/graph-updates.php#direct");
@@ -244,14 +255,17 @@ namespace Pathfinding {
 			for (int i = 0; i < pathHandlers.Length; i++) {
 				pathHandlers[i].InitializeNode(node);
 			}
+
+			astar.hierarchicalGraph.OnCreatedNode(node);
 		}
 
-		/** Destroyes the given node.
-		 * This is to be called after the node has been disconnected from the graph so that it cannot be reached from any other nodes.
-		 * It should only be called during graph updates, that is when the pathfinding threads are either not running or paused.
-		 *
-		 * \warning This method should not be called by user code. It is used internally by the system.
-		 */
+		/// <summary>
+		/// Destroyes the given node.
+		/// This is to be called after the node has been disconnected from the graph so that it cannot be reached from any other nodes.
+		/// It should only be called during graph updates, that is when the pathfinding threads are either not running or paused.
+		///
+		/// Warning: This method should not be called by user code. It is used internally by the system.
+		/// </summary>
 		public void DestroyNode (GraphNode node) {
 			if (node.NodeIndex == -1) return;
 
@@ -260,16 +274,17 @@ namespace Pathfinding {
 			for (int i = 0; i < pathHandlers.Length; i++) {
 				pathHandlers[i].DestroyNode(node);
 			}
+
+			astar.hierarchicalGraph.AddDirtyNode(node);
 		}
 
-		/** Main pathfinding method (multithreaded).
-		 * This method will calculate the paths in the pathfinding queue when multithreading is enabled.
-		 *
-		 * \see CalculatePaths
-		 * \see StartPath
-		 *
-		 * \astarpro
-		 */
+		/// <summary>
+		/// Main pathfinding method (multithreaded).
+		/// This method will calculate the paths in the pathfinding queue when multithreading is enabled.
+		///
+		/// See: CalculatePaths
+		/// See: StartPath
+		/// </summary>
 		void CalculatePathsThreaded (PathHandler pathHandler) {
 			try {
 				// Max number of ticks we are allowed to continue working in one run.
@@ -277,7 +292,6 @@ namespace Pathfinding {
 				// We need to check once in a while if the thread should be stopped.
 				long maxTicks = (long)(10*10000);
 				long targetTick = System.DateTime.UtcNow.Ticks + maxTicks;
-
 				while (true) {
 					// The path we are currently calculating
 					Path path = queue.Pop();
@@ -309,7 +323,7 @@ namespace Pathfinding {
 
 					AstarProfiler.EndFastProfile(0);
 
-					if (!path.IsDone()) {
+					if (path.CompleteState == PathCompleteState.NotCalculated) {
 						// For visualization purposes, we set the last computed path to p, so we can view debug info on it in the editor (scene view).
 						astar.debugPathData = ipath.PathHandler;
 						astar.debugPathID = path.pathID;
@@ -322,7 +336,7 @@ namespace Pathfinding {
 						AstarProfiler.EndFastProfile(1);
 
 						// Loop while the path has not been fully calculated
-						while (!path.IsDone()) {
+						while (path.CompleteState == PathCompleteState.NotCalculated) {
 							// Do some work on the path calculation.
 							// The function will return when it has taken too much time
 							// or when it has finished calculation
@@ -379,18 +393,20 @@ namespace Pathfinding {
 				Debug.LogError("Unhandled exception during pathfinding. Terminating.");
 				// Unhandled exception, kill pathfinding
 				queue.TerminateReceivers();
+			} finally {
 			}
 
 			Debug.LogError("Error : This part should never be reached.");
 			queue.ReceiverTerminated();
 		}
 
-		/** Main pathfinding method.
-		 * This method will calculate the paths in the pathfinding queue.
-		 *
-		 * \see CalculatePathsThreaded
-		 * \see StartPath
-		 */
+		/// <summary>
+		/// Main pathfinding method.
+		/// This method will calculate the paths in the pathfinding queue.
+		///
+		/// See: CalculatePathsThreaded
+		/// See: StartPath
+		/// </summary>
 		IEnumerator CalculatePaths (PathHandler pathHandler) {
 			// Max number of ticks before yielding/sleeping
 			long maxTicks = (long)(astar.maxFrameTime*10000);
@@ -455,7 +471,7 @@ namespace Pathfinding {
 
 				// Check if the Prepare call caused the path to complete
 				// If this happens the path usually failed
-				if (!p.IsDone()) {
+				if (p.CompleteState == PathCompleteState.NotCalculated) {
 					// For debug uses, we set the last computed path to p, so we can view debug info on it in the editor (scene view).
 					astar.debugPathData = ip.PathHandler;
 					astar.debugPathID = p.pathID;
@@ -466,7 +482,7 @@ namespace Pathfinding {
 					AstarProfiler.EndProfile();
 
 					// The error can turn up in the Init function
-					while (!p.IsDone()) {
+					while (p.CompleteState == PathCompleteState.NotCalculated) {
 						// Do some work on the path calculation.
 						// The function will return when it has taken too much time
 						// or when it has finished calculation
@@ -480,7 +496,7 @@ namespace Pathfinding {
 
 						// If the path has finished calculation, we can break here directly instead of sleeping
 						// Improves latency
-						if (p.IsDone()) break;
+						if (p.CompleteState != PathCompleteState.NotCalculated) break;
 
 						AstarProfiler.EndFastProfile(8);
 						totalTicks += System.DateTime.UtcNow.Ticks-startTicks;
