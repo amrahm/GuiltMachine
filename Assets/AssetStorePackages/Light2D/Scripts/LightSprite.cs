@@ -112,9 +112,9 @@ namespace Light2D {
         }
 
         public void DrawLightingNow(Vector2 lightCamLocalPos) {
-            Material material = meshRenderer.sharedMaterial;
+            Material sharedMat = meshRenderer.sharedMaterial;
 
-            if(!material.SetPass(0))
+            if(!sharedMat.SetPass(0))
                 return;
 
             Vector3 v1 = _modelMatrix.MultiplyPoint(vertices[0]) - (Vector3) lightCamLocalPos;
@@ -145,14 +145,14 @@ namespace Light2D {
             GL.End();
         }
 
-        public void DrawLightNormalsNow(Material material) {
+        public void DrawLightNormalsNow(Material mat) {
             Vector2 size = sprite.bounds.size;
             Vector2 center = _modelMatrix.MultiplyPoint3x4(((Vector2) lightOrigin).Mul(size));
             Vector4 lightPos = new Vector4(center.x, center.y, lightOrigin.z);
 
-            material.SetVector("_LightPos", lightPos);
+            mat.SetVector("_LightPos", lightPos);
 
-            if(!material.SetPass(0))
+            if(!mat.SetPass(0))
                 return;
 
             Vector3 v1 = _modelMatrix.MultiplyPoint3x4(vertices[0]);

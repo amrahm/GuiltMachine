@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4491081371922176}
   - component: {fileID: 212379018271669644}
-  m_Layer: 12
+  m_Layer: 16
   m_Name: arch_fore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -145,9 +145,9 @@ BoxCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: -0.2, y: 0.2}
   m_SpriteTilingProperty:
-    border: {x: 0, y: 6.39, z: 0.5, w: 6.3399997}
+    border: {x: 0, y: 6.3900003, z: 0.5, w: 6.34}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 20, y: 15}
+    oldSize: {x: 20, y: 15.000001}
     newSize: {x: 20, y: 15}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -170,7 +170,7 @@ MonoBehaviour:
   additiveColor: {r: 0, g: 0, b: 0, a: 0}
   lightObstacleScale: 1
   material: {fileID: 2100000, guid: 0a8c132f813f5514b9f5b48ff3956482, type: 2}
-  multiplicativeColor: {r: 0, g: 0, b: 0, a: 0.29411766}
+  multiplicativeColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!212 &212330492033693548
 SpriteRenderer:
   m_ObjectHideFlags: 1

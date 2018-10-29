@@ -1,5 +1,7 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 /*
 
 That shader is used to merge light sources, abmient light and game textures into one.
@@ -45,7 +47,7 @@ SubShader {
 				half2 texcoordLight : TEXCOORD1;
 				half2 texcoordAmbient : TEXCOORD2;
 			};
-			
+
 			uniform sampler2D _MainTex;
 			uniform sampler2D _GameTex;
 		 	uniform half4 _GameTex_TexelSize;
@@ -59,8 +61,7 @@ SubShader {
 			uniform half _AdditiveLightAdd;
 			uniform float2 _ExtendedToSmallTextureScale;
 			
-			v2f vert (appdata_t v)
-			{
+			v2f vert (appdata_t v) {
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.texcoordGame = v.texcoord;
@@ -75,15 +76,17 @@ SubShader {
 				return o;
 			}
 
-			half4 frag (v2f i) : COLOR
-			{
-				half4 game = tex2D(_GameTex, i.texcoordGame);
+            half4 frag(v2f i) : COLOR {
+                half4 game = tex2D(_GameTex, i.texcoordGame);
 				half4 ambientLight = tex2D(_AmbientLightTex, i.texcoordAmbient);
 				half4 lightSources = tex2D(_LightSourcesTex, i.texcoordLight)*_LightSourcesMul;
 				half4 light = ambientLight + lightSources;
 				
 				half3 bloom = (game.rgb + _AdditiveLightAdd)*pow(light.rgb, _AdditiveLightPow)*step(0.005, _AdditiveLightPow);
-				return half4(game.rgb*light.rgb*_LightMul + bloom, game.a);
+
+                half3 add = game.rgb*light.rgb*_LightMul + bloom;
+                float prop = (add.r + add.g + add.b)/(game.rgb.r + game.rgb.g + game.rgb.b + add.r + add.g + add.b);
+				return half4((game.rgb * (1 - prop) + (game.rgb/2 + add) * prop)/2, game.a);
 			}
 		ENDCG
 	}

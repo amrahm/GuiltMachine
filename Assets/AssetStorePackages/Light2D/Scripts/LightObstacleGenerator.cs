@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using Anima2D;
+using UnityEditor;
 using UnityEngine;
 
 namespace Light2D {
@@ -52,12 +53,12 @@ namespace Light2D {
                 obstacleSprite.color = multiplicativeColor;
                 obstacleSprite.additiveColor = additiveColor;
                 obstacleSprite.material = material;
-//            } else if(GetComponent<SpriteMeshInstance>() != null) {
-//                LightObstacleAnima obstacleSprite = obstacleObj.AddComponent<LightObstacleAnima>();
-//                obstacleSprite.color = multiplicativeColor;
-//                obstacleSprite.additiveColor = additiveColor;
-//                obstacleSprite.material = material;
-////                obstacleObj.transform.parent = gameObject.GetComponent<SpriteMeshInstance>().bones[0].transform;
+            } else if(GetComponent<SpriteMeshInstance>() != null) {
+                LightObstacleAnima obstacleSprite = obstacleObj.AddComponent<LightObstacleAnima>();
+                obstacleSprite.color = multiplicativeColor;
+                obstacleSprite.additiveColor = additiveColor;
+                obstacleSprite.material = material;
+                obstacleObj.transform.parent = gameObject.GetComponent<SpriteMeshInstance>().bones[0].transform;
             } else {
                 LightObstacleMesh obstacleMesh = obstacleObj.AddComponent<LightObstacleMesh>();
                 obstacleMesh.multiplicativeColor = multiplicativeColor;

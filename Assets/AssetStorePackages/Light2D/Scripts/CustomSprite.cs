@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Light2D {
     /// <inheritdoc />
@@ -72,8 +73,14 @@ namespace Light2D {
             meshRenderer = GetComponent<MeshRenderer>();
             meshFilter = GetComponent<MeshFilter>();
 
-            if(meshRenderer == null)
+            if(meshRenderer == null) {
                 meshRenderer = gameObject.AddComponent<MeshRenderer>();
+                meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                meshRenderer.receiveShadows = false;
+                meshRenderer.lightProbeUsage = LightProbeUsage.Off;
+                meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+                meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+            }
 
             if(meshFilter == null)
                 meshFilter = gameObject.AddComponent<MeshFilter>();
