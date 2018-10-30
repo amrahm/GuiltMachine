@@ -727,8 +727,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 04a39e1d85156e34bb45d05db1a5eb00, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &260052770
 GameObject:
   m_ObjectHideFlags: 0
@@ -773,8 +773,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 04a39e1d85156e34bb45d05db1a5eb00, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &284979329
 GameObject:
   m_ObjectHideFlags: 0
@@ -941,8 +941,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5d8645bc2e5501a4ebd138db5aa609bd, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &318368726
 GameObject:
   m_ObjectHideFlags: 0
@@ -1181,8 +1181,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 04a39e1d85156e34bb45d05db1a5eb00, type: 2}
   sortingOrder: 1000
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: -8}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &376289804
 GameObject:
   m_ObjectHideFlags: 0
@@ -1961,8 +1961,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5d8645bc2e5501a4ebd138db5aa609bd, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!4 &681910356 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4741610710943030, guid: 2bac00c329c5a4c5e9096f0ffd3963ff,
@@ -2370,8 +2370,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 04a39e1d85156e34bb45d05db1a5eb00, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &908068098
 GameObject:
   m_ObjectHideFlags: 0
@@ -2738,11 +2738,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 1, g: 1, b: 1, a: 0.88235295}
-  material: {fileID: 2100000, guid: 5d8645bc2e5501a4ebd138db5aa609bd, type: 2}
+  material: {fileID: 2100000, guid: eba84647c4f5b25448790591a30ca17e, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!4 &1028137802
 Transform:
   m_ObjectHideFlags: 0
@@ -2751,7 +2751,7 @@ Transform:
   m_GameObject: {fileID: 1028137798}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -7.4300003, y: 4.9423094, z: 0}
-  m_LocalScale: {x: 68, y: 68, z: 68}
+  m_LocalScale: {x: 50, y: 50, z: 1}
   m_Children: []
   m_Father: {fileID: 319481415}
   m_RootOrder: 0
@@ -3111,8 +3111,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5d8645bc2e5501a4ebd138db5aa609bd, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &1063873611
 GameObject:
   m_ObjectHideFlags: 0
@@ -3533,8 +3533,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 04a39e1d85156e34bb45d05db1a5eb00, type: 2}
   sortingOrder: 1000
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: -8}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!114 &1171553256 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114603989882932316, guid: 1b82f01fb7a3f874ca4bfa06b42c2680,
@@ -3621,8 +3621,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5d8645bc2e5501a4ebd138db5aa609bd, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &1224974201
 GameObject:
   m_ObjectHideFlags: 0
@@ -3744,8 +3744,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 04a39e1d85156e34bb45d05db1a5eb00, type: 2}
   sortingOrder: 1000
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: -8}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &1305931264
 GameObject:
   m_ObjectHideFlags: 0
@@ -4138,8 +4138,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5d8645bc2e5501a4ebd138db5aa609bd, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &1398793627
 GameObject:
   m_ObjectHideFlags: 0
@@ -4301,8 +4301,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 04a39e1d85156e34bb45d05db1a5eb00, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 0846a06dcf035814d9cee71f4ba273f9, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 0
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &1411572042
 GameObject:
   m_ObjectHideFlags: 0
@@ -4413,8 +4413,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 5d8645bc2e5501a4ebd138db5aa609bd, type: 2}
   sortingOrder: 0
   sprite: {fileID: 21300000, guid: 52146be1fefc37a4f897ca9d235d8caa, type: 3}
-  LightOrigin: {x: 0, y: 0, z: 1}
-  Shape: 1
+  lightOrigin: {x: 0, y: 0, z: 1}
+  shape: 0
 --- !u!1 &1458341485
 GameObject:
   m_ObjectHideFlags: 0

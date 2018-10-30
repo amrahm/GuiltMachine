@@ -6,9 +6,10 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
         _Color("Tint", Color) = (1,1,1,1)
         [MaterialToggle] PixelSnap("Pixel snap", Float) = 0
         _Cutoff("Shadow Alpha Cutoff", Range(0,1)) = 0.5
+        [Toggle(SOFT_EDGE_ON)] _SoftEdge("Enable SoftEdge Pass", Float) = 1
     }
 
-    SubShader {
+    SubShader { //Soft Edge Pass
         Tags{ "Queue" = "AlphaTest" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
         LOD 0
         Lighting Off
@@ -19,6 +20,7 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
 
         CGPROGRAM
             #pragma surface surf Lambert vertex:vert alpha
+            #pragma shader_feature SOFT_EDGE_ON
 
             sampler2D _MainTex;
             fixed4 _Color;
@@ -27,9 +29,8 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
                 float2 uv_MainTex;
                 fixed4 color;
             };
-
+#if defined(SOFT_EDGE_ON)
             void vert(inout appdata_full v, out Input o) {
-                v.normal = float3(0,0,-1);
                 UNITY_INITIALIZE_OUTPUT(Input, o);
                 o.color = _Color;
             }
@@ -39,6 +40,10 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
                 o.Albedo = c.rgb;
                 o.Alpha = c.a;
             }
+#else
+            void vert(inout appdata_full v, out Input o) { UNITY_INITIALIZE_OUTPUT(Input, o); }
+            void surf(Input IN, inout SurfaceOutput o) { }
+#endif
         ENDCG
 
         LOD 300
@@ -47,7 +52,7 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
         CGPROGRAM
             #pragma target 3.0
             #pragma surface surf Lambert vertex:vert addshadow fullforwardshadows alphatest:_Cutoff
-            #pragma multi_compile DUMMY PIXELSNAP_ON
+            #pragma shader_feature PIXELSNAP_ON
 
             sampler2D _MainTex;
             sampler2D _BumpMap;
@@ -61,11 +66,9 @@ Shader "Sprites/Bumped Diffuse with Shadows" {
             };
 
             void vert(inout appdata_full v, out Input o) {
-                #if defined(PIXELSNAP_ON) && !defined(SHADER_API_FLASH)
+#if defined(PIXELSNAP_ON) && !defined(SHADER_API_FLASH)
                 v.vertex = UnityPixelSnap(v.vertex);
-                #endif
-                v.normal = float3(0,0,-1);
-
+#endif
                 UNITY_INITIALIZE_OUTPUT(Input, o);
                 o.color = _Color;
             }

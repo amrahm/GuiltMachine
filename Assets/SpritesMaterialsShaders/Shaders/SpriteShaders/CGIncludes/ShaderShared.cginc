@@ -1,3 +1,5 @@
+// Upgrade NOTE: upgraded instancing buffer 'PerDrawSprite' to new syntax.
+
 #ifndef SHADER_SHARED_INCLUDED
 #define SHADER_SHARED_INCLUDED
 

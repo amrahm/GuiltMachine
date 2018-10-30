@@ -3,13 +3,13 @@ Shader "Sprites/Diffuse with Shadows" {
         [PerRendererData] _MainTex("Sprite Texture", 2D) = "white" {}
         _Color("Tint", Color) = (1,1,1,1)
         [MaterialToggle] PixelSnap("Pixel snap", Float) = 0
-        _Cutoff("Shadow Alpha Cutoff", Range(0.15,0.85)) = 0.4
+        _Cutoff("Shadow Alpha Cutoff", Range(0,1)) = 0.5
+        [Toggle(SOFT_EDGE_ON)] _SoftEdge("Enable SoftEdge Pass", Float) = 1
     }
 
-    SubShader {
+    SubShader { //Soft edge pass
         Tags{ "Queue" = "AlphaTest" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
         LOD 300
-//        Blend SrcAlpha OneMinusSrcAlpha
         Lighting On
         ZWrite Off
         Fog{ Mode Off }
@@ -18,7 +18,7 @@ Shader "Sprites/Diffuse with Shadows" {
 
         CGPROGRAM
             #pragma surface surf Lambert vertex:vert alpha
-            #pragma multi_compile DUMMY PIXELSNAP_ON 
+            #pragma shader_feature SOFT_EDGE_ON
 
             sampler2D _MainTex;
             fixed4 _Color;
@@ -29,13 +29,11 @@ Shader "Sprites/Diffuse with Shadows" {
                 fixed4 color;
             };
 
+#if defined(SOFT_EDGE_ON)
             void vert(inout appdata_full v, out Input o) {
-                #if defined(PIXELSNAP_ON) && !defined(SHADER_API_FLASH)
+#if defined(PIXELSNAP_ON) && !defined(SHADER_API_FLASH)
                 v.vertex = UnityPixelSnap(v.vertex);
-                #endif
-                v.normal = float3(0,0,-1);
-                v.tangent = float4(1, 0, 0, 1);
-
+#endif
                 UNITY_INITIALIZE_OUTPUT(Input, o);
                 o.color = _Color;
             }
@@ -45,6 +43,10 @@ Shader "Sprites/Diffuse with Shadows" {
                 o.Albedo = c.rgb;
                 o.Alpha = c.a;
             }
+#else
+            void vert(inout appdata_full v, out Input o) { UNITY_INITIALIZE_OUTPUT(Input, o); }
+            void surf(Input IN, inout SurfaceOutput o) { }
+#endif
         ENDCG
 
         Cull Off
@@ -63,12 +65,9 @@ Shader "Sprites/Diffuse with Shadows" {
             };
 
             void vert(inout appdata_full v, out Input o) {
-                #if defined(PIXELSNAP_ON) && !defined(SHADER_API_FLASH)
+#if defined(PIXELSNAP_ON) && !defined(SHADER_API_FLASH)
                 v.vertex = UnityPixelSnap(v.vertex);
-                #endif
-                v.normal = float3(0,0,-1);
-                v.tangent = float4(1, 0, 0, 1);
-
+#endif
                 UNITY_INITIALIZE_OUTPUT(Input, o);
                 o.color = _Color;
             }

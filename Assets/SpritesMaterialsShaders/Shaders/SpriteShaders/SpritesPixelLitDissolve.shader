@@ -48,13 +48,13 @@ Shader "Sprites/Sprite (Pixel Lit Dissolve)"
 		
 		[HideInInspector] _SrcBlend ("__src", Float) = 1.0
 		[HideInInspector] _DstBlend ("__dst", Float) = 0.0
-		[HideInInspector] _RenderQueue ("__queue", Float) = 0.0
+		_RenderQueue ("__queue", Float) = 0.0
 		[HideInInspector] _Cull ("__cull", Float) = 0.0
 	}
 	
 	SubShader
 	{
-		Tags { "Queue"="Transparent" "RenderType"="Sprite" "AlphaDepth"="False" "CanUseSpriteAtlas"="True" "IgnoreProjector"="True" }
+		Tags { "Queue"="AlphaTest" "RenderType"="Sprite" "AlphaDepth"="False" "CanUseSpriteAtlas"="True" "IgnoreProjector"="True" }
 		LOD 200
 		
 		Pass
@@ -154,6 +154,6 @@ Shader "Sprites/Sprite (Pixel Lit Dissolve)"
 		}
 	}
 	
-	FallBack "Sprite (Pixel Lit)"
+	FallBack "Sprites/Sprite (Pixel Lit)"
 	CustomEditor "SpriteDiffuseShaderGUI"
 }

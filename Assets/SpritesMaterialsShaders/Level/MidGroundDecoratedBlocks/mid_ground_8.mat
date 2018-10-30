@@ -7,17 +7,17 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: mid_ground_8
-  m_Shader: {fileID: 4800000, guid: f1c332c0884ef2b4bb26584f688eac3a, type: 3}
-  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _ALPHA_CLIP _EMISSION _GLOSSYREFLECTIONS_OFF
+  m_Shader: {fileID: 4800000, guid: 8d8595bc04e68504fa1e36c72d7ead57, type: 3}
+  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _EMISSION _GLOSSYREFLECTIONS_OFF
     _METALLICGLOSSMAP _NORMALMAP _SPECULAR_GLOSSMAP
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2450
   stringTagMap:
-    AlphaDepth: False
+    AlphaDepth: true
     IGNOREPROJECTOR: true
-    RenderType: TransparentCutout
+    RenderType: Transparent
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -75,9 +75,9 @@ Material:
     - _BlendAmount: 0
     - _Brightness: 1
     - _BumpScale: 0.87
-    - _Cull: 2
+    - _Cull: 0
     - _CustomRenderQueue: 0
-    - _Cutoff: 0.966
+    - _Cutoff: 0
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
     - _EmissionPower: 1
@@ -98,7 +98,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _ZWrite: 1
+    - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.87136734, g: 0.90466136, b: 0.10461649, a: 1}
