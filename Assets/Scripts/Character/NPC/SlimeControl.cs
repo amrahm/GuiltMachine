@@ -2,7 +2,8 @@
 using Pathfinding;
 using UnityEngine;
 
-public class PhoenixControl : CharacterControlAbstract {
+public class SlimeControl : CharacterControlAbstract
+{
     // What to chase?
     public Transform target;
     public string searchTarget = "Player";
@@ -26,11 +27,14 @@ public class PhoenixControl : CharacterControlAbstract {
 
     private bool searchingForPlayer = false;
 
-    void Start() {
+    void Start()
+    {
         seeker = GetComponent<Seeker>();
 
-        if(target == null) {
-            if(!searchingForPlayer) {
+        if (target == null)
+        {
+            if (!searchingForPlayer)
+            {
                 searchingForPlayer = true;
                 StartCoroutine(SearchForPlayer());
             }
@@ -43,14 +47,18 @@ public class PhoenixControl : CharacterControlAbstract {
         StartCoroutine(UpdatePath());
     }
 
-    IEnumerator SearchForPlayer() {
+    IEnumerator SearchForPlayer()
+    {
         // Searches through GameObjects to find the player object
         GameObject sResult = GameObject.FindGameObjectWithTag(searchTarget);
-        if(sResult == null) {
+        if (sResult == null)
+        {
             // Search for player every 0.5 seconds if player is still not found due to player death or other circumstance
             yield return new WaitForSeconds(0.5f);
             StartCoroutine(SearchForPlayer());
-        } else {
+        }
+        else
+        {
             // If player is found, stop searching, begin pathfinding
             target = sResult.transform;
             searchingForPlayer = false;
@@ -59,9 +67,12 @@ public class PhoenixControl : CharacterControlAbstract {
         }
     }
 
-    IEnumerator UpdatePath() {
-        if(target == null) {
-            if(!searchingForPlayer) {
+    IEnumerator UpdatePath()
+    {
+        if (target == null)
+        {
+            if (!searchingForPlayer)
+            {
                 searchingForPlayer = true;
                 StartCoroutine(SearchForPlayer());
             }
@@ -76,30 +87,38 @@ public class PhoenixControl : CharacterControlAbstract {
     }
 
     // Path calculated by A* seeker script gets passed to this method for processing in case of errors
-    public void OnPathComplete(Path p) {
-        //Debug.Log("We got a path. Did it have an error? " + p.error);
-        if(!p.error) {
+    public void OnPathComplete(Path p)
+    {
+        Debug.Log("We got a path. Did it have an error? " + p.error);
+        if (!p.error)
+        {
             path = p;
             currentWaypoint = 0;
         }
     }
 
-    void Update() {
+    void Update()
+    {
         //TODO Move to coroutine and update less often
-        if(target == null) {
-            if(!searchingForPlayer) {
+        if (target == null)
+        {
+            if (!searchingForPlayer)
+            {
                 searchingForPlayer = true;
                 StartCoroutine(SearchForPlayer());
             }
             return;
         }
 
-        if(path == null) {
+        if (path == null)
+        {
             return;
         }
 
-        if(currentWaypoint >= path.vectorPath.Count) {
-            if(pathIsEnded) {
+        if (currentWaypoint >= path.vectorPath.Count)
+        {
+            if (pathIsEnded)
+            {
                 return;
             }
             Debug.Log("End of path reached.");
@@ -110,11 +129,13 @@ public class PhoenixControl : CharacterControlAbstract {
 
         // Direction to the next waypoint, scaled by magnitude and mass
         Vector3 dir = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+        
         moveHorizontal = dir.x;
         moveVertical = dir.y;
 
         float dist = Vector3.Distance(transform.position, path.vectorPath[currentWaypoint]);
-        if(dist < nextWaypointDistance) {
+        if (dist < nextWaypointDistance)
+        {
             currentWaypoint++;
             return;
         }
