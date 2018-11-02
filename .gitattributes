@@ -4,12 +4,12 @@
 *.cginc text
 *.shader text
 
-*.mat merge=unityyamlmerge
-*.anim merge=unityyamlmerge
-*.unity merge=unityyamlmerge
-*.prefab merge=unityyamlmerge
-*.physicsMaterial2D merge=unityyamlmerge
-*.physicsMaterial merge=unityyamlmerge
-*.asset merge=unityyamlmerge
-*.meta merge=unityyamlmerge
-*.controller merge=unityyamlmerge
+*.mat merge=unityyamlmerge binary diff=text
+*.anim merge=unityyamlmerge binary diff=text
+*.unity merge=unityyamlmerge binary diff=text
+*.prefab merge=unityyamlmerge binary diff=text
+*.physicsMaterial2D merge=unityyamlmerge binary diff=text
+*.physicsMaterial merge=unityyamlmerge binary diff=text
+*.asset merge=unityyamlmerge binary diff=text
+*.meta merge=unityyamlmerge binary diff=text
+*.controller merge=unityyamlmerge binary diff=text
