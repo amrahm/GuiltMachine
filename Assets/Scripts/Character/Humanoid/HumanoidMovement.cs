@@ -1,4 +1,5 @@
 ﻿using System;
+using static ExtensionMethods.HelperMethods;
 using ExtensionMethods;
 using UnityEngine;
 
@@ -11,18 +12,22 @@ public class HumanoidMovement : MovementAbstract {
 #if UNITY_EDITOR
     [Tooltip("Show debug visualizations, such as red line for tangent to floor and circle for setting groundCheckOffset")] [SerializeField]
     private bool _visualizeDebug;
+
+    
+    [Tooltip("Debug control to allow multiple jumps")] [SerializeField]
+    private bool _allowJumpingInMidair;
 #endif
 
-    [Tooltip("The fastest the player can travel in the x axis")] [SerializeField]
+    [Tooltip("The fastest the character can travel in the x axis")] [SerializeField]
     private float _maxSpeed = 10f;
 
-    [Tooltip("How fast the player speeds up")] [SerializeField]
+    [Tooltip("How fast the character speeds up")] [SerializeField]
     private float _acceleration = 1;
 
-    [Tooltip("A kick to make the player start moving faster")] [SerializeField]
+    [Tooltip("A kick to make the character start moving faster")] [SerializeField]
     private float _kick = 1;
 
-    [Tooltip("How much player automatically slows down while not walking but on the ground")] [SerializeField]
+    [Tooltip("How much character automatically slows down while not walking but on the ground")] [SerializeField]
     private float _groundSlowdownMultiplier;
 
     [Tooltip("Sprint multiplier for when running")] [SerializeField]
@@ -37,13 +42,13 @@ public class HumanoidMovement : MovementAbstract {
     [Tooltip("Additional force added while holding jump")] [SerializeField]
     private float _jumpFuelForce = 30f;
 
-    [Tooltip("How much player can steer while in mid-air")] [SerializeField]
+    [Tooltip("How much character can steer while in mid-air")] [SerializeField]
     private float _airControl;
 
-    [Tooltip("How much player automatically slows down while in mid-air")] [SerializeField]
+    [Tooltip("How much character automatically slows down while in mid-air")] [SerializeField]
     private float _airSlowdownMultiplier;
 
-    [Tooltip("A kick to make the player start moving faster while in mid-air")] [SerializeField]
+    [Tooltip("A kick to make the character start moving faster while in mid-air")] [SerializeField]
     private float _kickAir;
 
     [Tooltip("Offset for the right foot ground check raycast")]
@@ -65,28 +70,34 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
     private float _walkSprint;
 
-    /// <summary> Whether or not the player is crouching </summary>
+    /// <summary> Whether or not the character is crouching </summary>
     private bool _crouching;
 
     /// <summary> Position of the foot last frame when crouching </summary>
     private float _lastHipsDelta;
 
-    /// <summary> Used to zero out friction when moving. True if the Player's feet have no friction. </summary>
+    /// <summary> Used to zero out friction when moving. True if the character's feet have no friction. </summary>
     private bool _frictionZero;
 
     /// <summary> How much jump fuel is left. Starts at _jumpFuel and moves to 0 </summary>
     private float _jumpFuelLeft;
 
-    /// <summary> True if the player is still holding jump after jumping </summary>
-    private bool _jumpStarted;
+    /// <summary> How long has the character been falling? </summary>
+    private float _fallDuration;
 
-    /// <summary> Whether or not the player is touching something </summary>
+    /// <summary> True if the character is falling </summary>
+    private bool _falling;
+
+    /// <summary> True if the character is still holding jump after jumping </summary>
+    private bool _jumpStarted;
+    
+    /// <summary> Whether or not the character is touching something </summary>
     private bool _isTouching;
 
-    /// <summary> Reference to Parts script, which contains all of the player's body parts </summary>
+    /// <summary> Reference to Parts script, which contains all of the character's body parts </summary>
     private HumanoidParts _parts;
 
-    /// <summary> Tthe physics material on the foot colliders </summary>
+    /// <summary> The physics material on the foot colliders </summary>
     private PhysicsMaterial2D _footFrictionMat;
 
     /// <summary> The speed parameter in the animator </summary>
@@ -100,6 +111,15 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> The roll parameter in the animator </summary>
     private int _rollAnim;
+
+    /// <summary> The jump parameter in the animator </summary>
+    private int _jumpAnim;
+
+    /// <summary> The land parameter in the animator </summary>
+    private int _groundedAnim;
+
+    /// <summary> The fall parameter in the animator </summary>
+    private int _fallingAnim;
 
     #endregion
 
@@ -120,6 +140,9 @@ public class HumanoidMovement : MovementAbstract {
         _vSpeedAnim = Animator.StringToHash("vSpeed");
         _crouchingAnim = Animator.StringToHash("Crouching");
         _rollAnim = Animator.StringToHash("Roll");
+        _jumpAnim = Animator.StringToHash("Jump");
+        _groundedAnim = Animator.StringToHash("Grounded");
+        _fallingAnim = Animator.StringToHash("Falling");
     }
 
     private void FixedUpdate() {
@@ -154,7 +177,23 @@ public class HumanoidMovement : MovementAbstract {
                        leftHit.collider != null ? leftHit.normal : (Vector2) tf.up;
         walkSlope = rightGreater ? rightAngle : leftAngle;
 
+        bool wasGrounded = grounded;
         grounded = (rightHit.collider != null || leftHit.collider != null) && walkSlope < maxWalkSlope;
+        anim.SetBool(_groundedAnim, grounded);
+        if(wasGrounded && !grounded && !_jumpStarted) {
+            _falling = true;
+        }
+        if(_falling) {
+            _fallDuration += Time.fixedDeltaTime;
+            print(_fallDuration);
+            if(_fallDuration > 0.15f) anim.SetBool(_fallingAnim, true); //falling without jumping
+        }
+        if(grounded) {
+            _fallDuration = 0;
+            _falling = false;
+            anim.SetBool(_fallingAnim, false);
+        }
+
 
 #if UNITY_EDITOR
         if(_visualizeDebug) {
@@ -164,25 +203,21 @@ public class HumanoidMovement : MovementAbstract {
             Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up * groundCheckDistance);
         }
 #endif
-
-        anim.SetFloat(_vSpeedAnim, rb.velocity.y); //Set the vertical animation for moving up/down through the air //TODO unused rn
     }
 
     /// <summary> Handles player walking and running </summary>
     /// <param name="move">Walking input</param>
     /// <param name="movePressed">Whether walking input is pressed</param>
-    /// <param name="sprint"> Sprinting input</param>
-    private void Move(float move, bool movePressed, float sprint) {
-        float sprintAmt = Mathf.Lerp(1, _sprintSpeed, sprint);
+    /// <param name="sprint"> Whether sprint input is pressed </param>
+    private void Move(float move, bool movePressed, bool sprint) {
         Vector2 tangent = grounded ? Vector3.Cross(groundNormal, Vector3.forward) : tf.right;
         float velForward = rb.velocity.x;
         float velTangent = Vector2.Dot(rb.velocity, tangent);
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
 #endif
-        moveVec = rb.mass * tangent * _acceleration * sprintAmt * move * Time.fixedDeltaTime;
-        float slopeReducer = Mathf.Lerp(1, .6f, walkSlope / maxWalkSlope);
-        moveVec *= slopeReducer; //reduce speed as slopes increase
+        float slopeReducer = Mathf.Lerp(1, .7f, walkSlope / maxWalkSlope); //reduce speed as slopes increase
+        moveVec = slopeReducer * rb.mass * tangent * _acceleration * move * Time.fixedDeltaTime;
 
         Action<float> kick = force => { //If pressing walk from standstill, gives a kick so walking is more responsive
             if(move > 0 && velForward < _maxSpeed / 3) rb.AddForce(rb.mass * tangent * force * 30 * slopeReducer);
@@ -190,6 +225,10 @@ public class HumanoidMovement : MovementAbstract {
         };
 
         if(grounded) {
+            float sprintAmt = sprint ? _sprintSpeed : 1;
+            moveVec *= sprintAmt;
+
+            //Set animation params
             _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ? Mathf.Abs(velTangent) / _maxSpeed / 2 : Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
             _walkSprint = (_walkSprint + Mathf.Abs(move / 2 * _sprintSpeed * slopeReducer)) / 2; //avg it with intention
             anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
@@ -217,11 +256,12 @@ public class HumanoidMovement : MovementAbstract {
             if(!_isTouching) {
                 moveVec *= _airControl;
                 kick(_kickAir);
-                if(movePressed && (move > 0 && velForward < _maxSpeed * sprintAmt || move < 0 && velForward > -_maxSpeed * sprintAmt)) {
+                if(movePressed && (move > 0 && velForward < _maxSpeed || move < 0 && velForward > -_maxSpeed)) {
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
             }
-            rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
+            if(!movePressed || Math.Abs(Mathf.Sign(move) - Mathf.Sign(velForward)) > 0.5f )
+                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
             anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(0, 1));
         }
     }
@@ -229,10 +269,14 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Handles player jumping </summary>
     /// <param name="jump">Is jump input pressed</param>
     private void Jump(bool jump) {
+#if UNITY_EDITOR
+        if(_allowJumpingInMidair) grounded = true;
+#endif
         if(grounded && jump && !_jumpStarted) {
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true;
             rb.velocity = new Vector2(rb.velocity.x, _jumpSpeed);
+            anim.SetTrigger(_jumpAnim);
         } else if(jump && _jumpFuelLeft > 0) {
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
             rb.AddForce(new Vector2(0f, rb.mass * _jumpFuelForce), ForceMode2D.Force);
@@ -242,9 +286,9 @@ public class HumanoidMovement : MovementAbstract {
             rb.gravityScale = 1f;
             _jumpFuelLeft = 0;
         }
-        if(grounded && !jump) {
-            _jumpStarted = false;
-        }
+
+        if(grounded && !jump) _jumpStarted = false;
+        if(!grounded) anim.SetFloat(_vSpeedAnim, rb.velocity.y / 8); //Set the vertical animation for moving up/down through the air
     }
 
     /// <summary> Handles player crouching </summary>

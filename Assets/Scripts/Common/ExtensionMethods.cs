@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 // ReSharper disable MemberCanBePrivate.Global
@@ -131,6 +132,57 @@ namespace ExtensionMethods {
                 ret = attributes[0].tooltip;
 
             return ret;
+        }
+
+
+        /// <summary> Fades an animation layer in or out over the specified duration </summary>
+        /// <param name="caller"> Reference to script calling this function. Should always be "this" </param>
+        /// <param name="animator"> Animator to use </param>
+        /// <param name="fadeType"> Select whether fading in, out, or both </param>
+        /// <param name="layerIndex"> index of animation layer to fade </param>
+        /// <param name="duration"> How long the fade should take </param>
+        /// <param name="smooth"> Smooth if true else linear </param>
+        public static void FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType, int layerIndex, float duration, bool smooth = false) {
+            caller.StartCoroutine(FadeAnimationLayerHelper(caller, animator, fadeType, layerIndex, duration, 1, smooth));
+        }
+
+        /// <summary> Fades an animation layer in or out over the specified duration </summary>
+        /// <param name="caller"> Reference to script calling this function. Should always be "this" </param>
+        /// <param name="animator"> Animator to use </param>
+        /// <param name="fadeType"> Select whether fading in, out, or both </param>
+        /// <param name="layerIndex"> index of animation layer to fade </param>
+        /// <param name="duration"> How long the fade should take </param>
+        /// <param name="extent"> How far to fade in, if fading in </param>
+        /// <param name="smooth"> Smooth if true else linear </param>
+        public static void FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType, int layerIndex, float duration, float extent, bool smooth = false) {
+            caller.StartCoroutine(FadeAnimationLayerHelper(caller, animator, fadeType, layerIndex, duration, extent, smooth));
+        }
+
+        private static IEnumerator FadeAnimationLayerHelper(MonoBehaviour caller, Animator animator, FadeType fadeType, int layerIndex, float duration, float extent, bool smooth) {
+            float start = animator.GetLayerWeight(layerIndex);
+            float end = fadeType != FadeType.FadeOut ? extent : 0.01f; //Don't fade out all the way or the fadeIn event won't be able to be called
+            float startTime = Time.time;
+            float weight = 0;
+            float actualDuration = fadeType == FadeType.FadeInOut ? duration / 2 : duration;
+            while(weight < 0.99f) {
+                weight = smooth ? 
+                             (fadeType == FadeType.FadeOut ? weight.SharpOutDamp(1, 1/duration) : weight.SharpInDamp(1, duration)) : 
+                             (Time.time - startTime) / actualDuration;
+//                Debug.Log(weight);
+                animator.SetLayerWeight(layerIndex, Mathf.Lerp(start, end, weight));
+                yield return null;
+            }
+
+            if(fadeType == FadeType.FadeInOut) {
+                caller.StartCoroutine(FadeAnimationLayerHelper(caller, animator, FadeType.FadeOut, layerIndex, duration / 2, extent, smooth));
+            }
+            // ReSharper disable once IteratorNeverReturns
+        }
+
+        public enum FadeType {
+            FadeIn,
+            FadeOut,
+            FadeInOut
         }
     }
 }

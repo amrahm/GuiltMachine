@@ -102,7 +102,7 @@ public class PhoenixControl : CharacterControlAbstract {
             if(pathIsEnded) {
                 return;
             }
-            Debug.Log("End of path reached.");
+//            Debug.Log("End of path reached.");
             pathIsEnded = true;
             return;
         }

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using static ExtensionMethods.HelperMethods;
 
 public class Sword : WeaponAbstract {
     #region Variables
@@ -78,13 +79,13 @@ public class Sword : WeaponAbstract {
 
     public override void ReceiveAnimationEvent(AnimationEventObject e, float duration) {
         if(e == _swingFadeIn) {
-            StartCoroutine(FadeLayer(true, UpperBodyLayerIndex, duration));
+            FadeAnimationLayer(this, anim, FadeType.FadeIn, UpperBodyLayerIndex, duration);
         } else if(e == _swingStart) {
             _swinging = true;
         } else if(e == _swingEnd) {
             _swinging = false;
             _hitSomething = false;
-            StartCoroutine(FadeLayer(false, UpperBodyLayerIndex, duration));
+            FadeAnimationLayer(this, anim, FadeType.FadeOut, UpperBodyLayerIndex, duration);
         }
     }
 
