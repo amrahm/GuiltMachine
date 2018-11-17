@@ -7,15 +7,16 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: BackgroundWall
-  m_Shader: {fileID: 4800000, guid: ef07a7f598004f5408b0c30c532b0bb3, type: 3}
+  m_Shader: {fileID: 4800000, guid: f1c332c0884ef2b4bb26584f688eac3a, type: 3}
   m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2450
   stringTagMap:
     AlphaDepth: true
     IGNOREPROJECTOR: true
+    RenderType: Transparent
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -84,7 +85,7 @@ Material:
     - _BumpScale: 0.8
     - _Cull: 0
     - _CustomRenderQueue: 0
-    - _Cutoff: 0.5
+    - _Cutoff: 0
     - _DetailNormalMapScale: 1
     - _Dissolve: 0
     - _DissolveEdgePower: 0.1

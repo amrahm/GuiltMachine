@@ -7,16 +7,16 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: phoenix_head
-  m_Shader: {fileID: 4800000, guid: f1c332c0884ef2b4bb26584f688eac3a, type: 3}
-  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _ALPHA_CLIP _NORMALMAP
+  m_Shader: {fileID: 4800000, guid: 8d8595bc04e68504fa1e36c72d7ead57, type: 3}
+  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2450
   stringTagMap:
-    AlphaDepth: False
+    AlphaDepth: true
     IGNOREPROJECTOR: true
-    RenderType: TransparentCutout
+    RenderType: Transparent
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -76,29 +76,29 @@ Material:
     - _BumpScale: 0.83
     - _Cull: 2
     - _CustomRenderQueue: 0
-    - _Cutoff: 0.5
+    - _Cutoff: 0
     - _DetailNormalMapScale: 1
     - _Distance: 4
     - _DstBlend: 10
     - _EmissionPower: 0.54
     - _EnableExternalAlpha: 0
     - _GlossMapScale: 0.617
-    - _Glossiness: 0.685
+    - _Glossiness: 0
     - _GlossyReflections: 1
     - _Hue: 0
-    - _Metallic: 1
+    - _Metallic: 0.549
     - _Mode: 2
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _RenderQueue: 0
-    - _RimPower: 0.36
+    - _RimPower: 2
     - _Saturation: 1
     - _ShadowAlphaCutoff: 0.1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _ZWrite: 1
+    - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.9734455, g: 0.07421358, b: 0.004391442, a: 1}
