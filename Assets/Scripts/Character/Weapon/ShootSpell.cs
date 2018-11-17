@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ShootSpell : WeaponAbstract {
-{
     #region Variables
 
     [Tooltip("The ScriptableObject asset signifying when the sword swing animation should start fading in")]
