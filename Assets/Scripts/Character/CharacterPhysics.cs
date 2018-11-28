@@ -110,7 +110,7 @@ public class CharacterPhysics : MonoBehaviour {
         foreach(var part in bodyParts) {
             part.DirPre = part.bodyPart.transform.TransformDirection(part.partDir);
 #if UNITY_EDITOR
-            if(part.visSettings) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre);
+            if(part.visSettings) Debug.DrawRay(part.bodyPart.transform.position, part.DirPre.normalized);
 #endif
         }
 
@@ -167,10 +167,11 @@ public class CharacterPhysics : MonoBehaviour {
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
         public bool isLeg;
 
-        [Tooltip("A list of all objects that are parts of this leg that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
+        [Tooltip("A list of all objects that are parts of this leg that should bend when crouching, " +
+                 "along with an amount that they should bend. Direction is specified by a positive or negative number.")]
         public GameObject[] bendParts;
 
-        [Tooltip("The amount that the corresponding part should rotate from -1 to 1")]
+        [Tooltip("The amount that the corresponding part should rotate")]
         public float[] bendAmounts;
 
         [Tooltip("The foot of the leg")] public GameObject foot;

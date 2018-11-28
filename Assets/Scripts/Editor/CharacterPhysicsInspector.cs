@@ -83,9 +83,10 @@ public class CharacterPhysicsInspector : Editor {
                     EditorGUILayout.PropertyField(stepHeightMult);
                     EditorGUILayout.PropertyField(steppingThreshold);
 
-                    EditorGUILayout.PropertyField(visSettings);
                     EditorGUI.indentLevel--;
                 }
+
+                EditorGUILayout.PropertyField(visSettings);
 
                 //Add a delete button
                 GUILayout.BeginHorizontal();

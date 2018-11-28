@@ -1,5 +1,4 @@
 ﻿using System;
-using static ExtensionMethods.HelperMethods;
 using ExtensionMethods;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ public class HumanoidMovement : MovementAbstract {
     #region Variables
 
 #if UNITY_EDITOR
-    [Tooltip("Show debug visualizations, such as red line for tangent to floor and circle for setting groundCheckOffset")] [SerializeField]
+    [Tooltip("Show debug visualizations")] [SerializeField]
     private bool _visualizeDebug;
 
     
@@ -65,6 +64,21 @@ public class HumanoidMovement : MovementAbstract {
 
     [Tooltip("How long is the ground check raycast")]
     public float groundCheckDistance;
+
+    [Tooltip("How long is the grab check raycast")]
+    public float grabDistance = 1;
+
+    [Tooltip("How far along the horizontal check is the downward check")]
+    public float grabDownDistanceRatio = 0.7f;
+
+    [Tooltip("How high is the highest grabbable")]
+    public float grabTopOffset = 1.5f;
+
+    [Tooltip("How high is the middle grabbable")]
+    public float grabMidOffset;
+
+    [Tooltip("How high is the lowest grabbable")]
+    public float grabBottomOffset = -0.75f;
 
 
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
@@ -121,6 +135,12 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> The fall parameter in the animator </summary>
     private int _fallingAnim;
 
+    /// <summary> Grab mid check vector </summary>
+    private Vector2 _grabMidVec;
+
+    /// <summary> Downward pointing grab check vector </summary>
+    private Vector2 _grabDownVec;
+
     #endregion
 
     protected override void Awake() {
@@ -136,6 +156,7 @@ public class HumanoidMovement : MovementAbstract {
         _parts.footR.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
         _parts.footL.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
 
+        //Initialize animator parameters
         _speedAnim = Animator.StringToHash("Speed");
         _vSpeedAnim = Animator.StringToHash("vSpeed");
         _crouchingAnim = Animator.StringToHash("Crouching");
@@ -143,10 +164,16 @@ public class HumanoidMovement : MovementAbstract {
         _jumpAnim = Animator.StringToHash("Jump");
         _groundedAnim = Animator.StringToHash("Grounded");
         _fallingAnim = Animator.StringToHash("Falling");
+
+
+        //Initialize grab check vectors
+        _grabMidVec = new Vector2(grabMidOffset, 0);
+        _grabDownVec = new Vector2(grabDistance * grabDownDistanceRatio, grabTopOffset);
     }
 
     private void FixedUpdate() {
         UpdateGrounded();
+        UpdateGrab();
         Move(control.moveHorizontal, control.hPressed, control.sprint);
         Jump(control.upPressed);
         Crouch(control.downPressed);
@@ -157,6 +184,39 @@ public class HumanoidMovement : MovementAbstract {
             rb.transform.position += new Vector3(0, (hipsDelta - _lastHipsDelta) / 2);
             _lastHipsDelta = hipsDelta;
         }
+    }
+
+    /// <summary> Update whether or not this character can/is grab/bing a platform </summary>
+    private void UpdateGrab() {
+        //TODO Should we only start calling this immediately after hitting a wall?
+        //TODO that could also give us a second mid to check, mid being at the point of collision
+        //TODO and would generally be more efficient
+        const float grabAdd = 0.1f;
+        Vector2? ledgePoint = null;
+        Vector2 right = facingRight ? tf.right : -tf.right;
+        RaycastHit2D grabMid = Physics2D.Raycast(tf.TransformPoint(_grabMidVec), right, grabDistance, whatIsGround);
+        RaycastHit2D grabDown;
+        if(grabMid.collider != null) { //First check for mid
+            grabDown = Physics2D.Raycast(tf.TransformPoint(new Vector2(grabMid.distance + grabAdd, grabTopOffset)),
+                -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
+            ledgePoint = grabDown.point;
+
+        } else if((grabDown = Physics2D.Raycast(tf.TransformPoint(_grabDownVec), -tf.up,
+                       grabTopOffset - grabBottomOffset, whatIsGround)).collider != null) {
+            //If mid that fails, check for down
+            grabMid = Physics2D.Raycast(tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - grabAdd)),
+                right, grabDistance, whatIsGround);
+            ledgePoint = new Vector2(grabMid.point.x + (facingRight ? grabAdd : -grabAdd), grabDown.point.y);
+        }
+#if UNITY_EDITOR
+        if(_visualizeDebug) {
+            if(ledgePoint != null) DebugExtension.DebugPoint((Vector3) ledgePoint, Color.red);
+            _grabMidVec = new Vector2(0, grabMidOffset);
+            _grabDownVec = new Vector2(grabDistance * grabDownDistanceRatio, grabTopOffset);
+            Debug.DrawRay(tf.TransformPoint(_grabMidVec), right * grabDistance);
+            Debug.DrawRay(tf.TransformPoint(_grabDownVec), -tf.up * (grabTopOffset - grabBottomOffset), Color.green);
+        }
+#endif
     }
 
     /// <summary> Update whether or not this character is touching the ground </summary>
@@ -173,8 +233,9 @@ public class HumanoidMovement : MovementAbstract {
 
         //pick the larger angle that is still within bounds
         bool rightGreater = rightAngle > leftAngle && rightAngle < maxWalkSlope || leftAngle > maxWalkSlope;
-        groundNormal = rightGreater && rightHit.collider != null ? rightHit.normal :
-                       leftHit.collider != null ? leftHit.normal : (Vector2) tf.up;
+        groundNormal = rightGreater && rightHit.collider != null ?
+                           rightHit.normal :
+                           (leftHit.collider != null ? leftHit.normal : (Vector2) tf.up);
         walkSlope = rightGreater ? rightAngle : leftAngle;
 
         bool wasGrounded = grounded;
@@ -214,7 +275,7 @@ public class HumanoidMovement : MovementAbstract {
         float velForward = rb.velocity.x;
         float velTangent = Vector2.Dot(rb.velocity, tangent);
 #if UNITY_EDITOR
-        if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.red);
+        if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.blue);
 #endif
         float slopeReducer = Mathf.Lerp(1, .7f, walkSlope / maxWalkSlope); //reduce speed as slopes increase
         moveVec = slopeReducer * rb.mass * tangent * _acceleration * move * Time.fixedDeltaTime;
@@ -314,6 +375,7 @@ public class HumanoidMovement : MovementAbstract {
     // ReSharper disable once UnusedParameter.Local
     private void OnCollisionEnter2D(Collision2D collInfo) {
         _isTouching = true;
+        print(collInfo.collider + "    :::   " + Time.time);
     }
 
     // ReSharper disable once UnusedParameter.Local

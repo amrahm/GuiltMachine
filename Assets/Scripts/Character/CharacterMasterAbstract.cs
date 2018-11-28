@@ -28,7 +28,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
 
     public abstract void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider);
 
-    protected void Awake() {
+    protected virtual void Awake() {
         //References
         rb = GetComponent<Rigidbody2D>();
         characterPhysics = GetComponent<CharacterPhysics>();
