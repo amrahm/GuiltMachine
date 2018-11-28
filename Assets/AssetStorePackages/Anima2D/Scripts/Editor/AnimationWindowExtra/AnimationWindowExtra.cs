@@ -9,34 +9,6 @@ namespace Anima2D
 	[InitializeOnLoad]
 	public class AnimationWindowExtra
 	{
-		static Type m_AnimationWindowType = typeof(EditorWindow).Assembly.GetType("UnityEditor.AnimationWindow");
-
-		static EditorWindow m_AnimationWindow = null;
-		public static EditorWindow animationWindow {
-			get	{
-				if( m_AnimationWindow == null )
-				{
-					m_AnimationWindow = FindWindowOpen( m_AnimationWindowType );
-				}
-				return m_AnimationWindow;
-			}
-		}
-
-		static EditorWindow FindWindowOpen(Type windowType)
-		{
-			UnityEngine.Object[] objs = Resources.FindObjectsOfTypeAll( windowType );
-
-			foreach( UnityEngine.Object o in objs )
-			{
-				if( o.GetType() == windowType )
-				{
-					return (EditorWindow)o;
-				}
-			}
-
-			return null;
-		}
-
 		static IAnimationWindowImpl s_Impl;
 
 		static AnimationWindowExtra()
@@ -55,6 +27,13 @@ namespace Anima2D
 			s_Impl = new AnimationWindowImpl_2017_1();
 #endif
 			s_Impl.InitializeReflection();
+		}
+
+		public static EditorWindow animationWindow
+		{
+			get {
+				return s_Impl.animationWindow;
+			}
 		}
 
 		public static int frame {

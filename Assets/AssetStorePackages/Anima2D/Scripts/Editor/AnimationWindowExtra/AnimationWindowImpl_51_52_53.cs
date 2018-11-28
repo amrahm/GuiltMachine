@@ -29,6 +29,7 @@ namespace Anima2D
 		PropertyInfo m_PlayingProperty = null;
 		PropertyInfo m_BindingProperty = null;
 
+		MethodInfo m_GetAllAnimationWindows = null;
 		MethodInfo m_FrameToTimeMethod = null;
 		MethodInfo m_TimeToFrameMethod = null;
 		MethodInfo m_TimeMethod = null;
@@ -38,6 +39,7 @@ namespace Anima2D
 
 		public virtual void InitializeReflection()
 		{
+			m_GetAllAnimationWindows = m_AnimationWindowType.GetMethod("GetAllAnimationWindows", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 			m_AnimEditorField = m_AnimationWindowType.GetField( "m_AnimEditor", BindingFlags.Instance | BindingFlags.NonPublic );
 			m_StateField = m_AnimEditorType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic);
 			m_AllCurvesCacheField = m_AnimationWindowStateType.GetField("m_AllCurvesCache", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -62,6 +64,25 @@ namespace Anima2D
 
 			Type[] l_SaveCurveTypes = { m_AnimationWindowCurveType };
 			m_SaveCurveMethod = m_AnimationWindowStateType.GetMethod("SaveCurve",BindingFlags.Public | BindingFlags.Instance, null, l_SaveCurveTypes, null);
+		}
+
+		public EditorWindow animationWindow
+		{
+			get {
+				if(m_GetAllAnimationWindows != null)
+				{
+					var list = m_GetAllAnimationWindows.Invoke(null, null);
+					int numElements = (int)list.GetType().GetProperty("Count").GetValue(list, null);  
+ 
+					if(numElements > 0)
+					{
+						object[] index = { 0 };  
+                        return list.GetType().GetProperty("Item").GetValue(list, index) as EditorWindow;  
+					}
+				}
+
+				return null;
+			}
 		}
 
 		ScriptableObject animEditor {
