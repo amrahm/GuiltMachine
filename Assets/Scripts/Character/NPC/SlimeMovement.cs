@@ -6,7 +6,7 @@ public class SlimeMovement : MovementAbstract
     public float speed = 500f;
     public ForceMode2D fMode = ForceMode2D.Force;
 
-    //
+    // The AI's jump speed
     public float _jumpSpeed = 2;
 
     [Tooltip("How long is the ground check raycast")]
@@ -39,6 +39,7 @@ public class SlimeMovement : MovementAbstract
         // Move the AI
         rb.AddForce(dir * rb.mass, fMode);
 
+        // Get it to jump
         if (control.moveVertical > 0 && grounded)
         {
             rb.AddForce(new Vector2(0, 7), ForceMode2D.Impulse);
