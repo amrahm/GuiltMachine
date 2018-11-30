@@ -14,7 +14,6 @@ public class PhoenixMovement : MovementAbstract {
     private void FixedUpdate() {
         if(facingRight != control.moveHorizontal > 0) {
             Flip();
-            print(control.moveHorizontal);
         }
 
         Vector2 dir = new Vector2(control.moveHorizontal, control.moveVertical);

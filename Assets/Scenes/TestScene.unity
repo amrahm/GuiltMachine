@@ -1350,11 +1350,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaedebb96382641b18f4a9fa6472626d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whatIsGroundMaster: {fileID: 0}
+  whatIsGroundMaster: {fileID: 11400000, guid: 903c86250aa98c04aa5fe7eb38424058, type: 2}
   maxWalkSlope: 50
   speed: 500
   fMode: 0
   _jumpSpeed: 5
+  groundCheckDistance: 0.5
+  groundCheckOffset: {x: 0, y: 0}
 --- !u!114 &425922483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5964,6 +5966,26 @@ Prefab:
       propertyPath: statusIndicator
       value: 
       objectReference: {fileID: 1171553256}
+    - target: {fileID: 4338735068817742, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4338735068817742, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4338735068817742, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: -0.068496406
+      objectReference: {fileID: 0}
+    - target: {fileID: 4338735068817742, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 0.9976514
+      objectReference: {fileID: 0}
+    - target: {fileID: 4338735068817742, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 4.702
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 493daf1007e02224d9b85b86c2eb7288, type: 2}
   m_IsPrefabAsset: 0

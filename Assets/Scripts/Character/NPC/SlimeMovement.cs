@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
-public class SlimeMovement : MovementAbstract {
+public class SlimeMovement : MovementAbstract
+{
     // The AI's speed per second (not framerate dependent)
     public float speed = 500f;
     public ForceMode2D fMode = ForceMode2D.Force;
@@ -8,16 +9,28 @@ public class SlimeMovement : MovementAbstract {
     //
     public float _jumpSpeed = 2;
 
-    protected override void Awake() {
+    [Tooltip("How long is the ground check raycast")]
+    public float groundCheckDistance;
+
+    [Tooltip("Offset for the ground check raycast")]
+    public Vector2 groundCheckOffset;
+
+    protected override void Awake()
+    {
         //Setting up references.
         base.Awake();
         facingRight = false; //sprite was drawn facing the other way lol
+
+        whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
     }
 
-    private void FixedUpdate() {
-        if(facingRight != control.moveHorizontal > 0) {
+    private void FixedUpdate()
+    {
+        UpdateGrounded();
+
+        if (facingRight != control.moveHorizontal > 0)
+        {
             Flip();
-            print(control.moveHorizontal);
         }
 
         Vector2 dir = new Vector2(control.moveHorizontal, control.moveVertical);
@@ -26,16 +39,30 @@ public class SlimeMovement : MovementAbstract {
         // Move the AI
         rb.AddForce(dir * rb.mass, fMode);
 
-        if (control.moveVertical > 0) {
-            rb.AddForce(new Vector2(0, 1), ForceMode2D.Impulse);
+        if (control.moveVertical > 0 && grounded)
+        {
+            rb.AddForce(new Vector2(0, 7), ForceMode2D.Impulse);
         }
     }
 
     ///<summary> Flip the player around the y axis </summary>
-    private void Flip() {
+    private void Flip()
+    {
         facingRight = !facingRight; //Switch the way the player is labelled as facing.
 
         //Multiply the player's x local scale by -1.
         tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
+    }
+
+    private void UpdateGrounded()
+    {
+        RaycastHit2D bodyHit = Physics2D.Raycast(gameObject.GetComponent<CircleCollider2D>().transform.TransformPoint(groundCheckOffset), Vector2.down, groundCheckDistance, whatIsGround);
+
+        //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
+        float angle = Vector2.Angle(bodyHit.normal, tf.up);
+
+        grounded = (bodyHit.collider != null);
+
+        Debug.DrawRay(gameObject.GetComponent<CircleCollider2D>().transform.TransformPoint(groundCheckOffset), Vector2.down * groundCheckDistance);
     }
 }
