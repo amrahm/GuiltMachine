@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 
@@ -80,6 +81,10 @@ public class SpriteShaderGUI : ShaderGUI
 	private MaterialProperty _metallicGlossMap = null;
 	private MaterialProperty _smoothness = null;
 	private MaterialProperty _smoothnessScale = null;
+
+    private bool _renderQueueAbsolute = true;
+    private bool _renderQueueWasAbsolute = false;
+
 	
 	private static GUIContent _albedoText = new GUIContent("Albedo", "Albedo (RGB) and Transparency (A)");
 	private static GUIContent _altAlbedoText = new GUIContent("Secondary Albedo", "When a secondary albedo texture is set the albedo will be a blended mix of the two textures based on the blend value.");
@@ -103,6 +108,7 @@ public class SpriteShaderGUI : ShaderGUI
 	private static GUIContent _blendModeText = new GUIContent("Blend Mode", "Blend Mode");
 	private static GUIContent[] _blendModeOptions = new GUIContent[] { new GUIContent("Pre-Multiplied Alpha"), new GUIContent("Standard Alpha"), new GUIContent("Opaque"), new GUIContent("Additive"), new GUIContent("Soft Additive"), new GUIContent("Multiply"), new GUIContent("Multiply x2") };
 	private static GUIContent _rendererQueueText = new GUIContent("Renderer Queue");
+    private static GUIContent _rendererQueueAbsoluteText = new GUIContent("Use Absolute Render Queue");
 	private static GUIContent _cullingModeText = new GUIContent("Culling Mode");
 	private static GUIContent[] _cullingModeOptions = new GUIContent[] { new GUIContent("Off"), new GUIContent("Front"), new GUIContent("Back")};
 	private static GUIContent _pixelSnapText = new GUIContent("Pixel Snap");
@@ -304,7 +310,19 @@ public class SpriteShaderGUI : ShaderGUI
 
 		EditorGUI.BeginChangeCheck();
 		EditorGUI.showMixedValue = _renderQueue.hasMixedValue;
-		int renderQueue = EditorGUILayout.IntSlider(_rendererQueueText, (int)_renderQueue.floatValue, 0, 49);
+	    
+	    _renderQueueAbsolute = EditorGUILayout.Toggle(_rendererQueueAbsoluteText, _renderQueueAbsolute);
+	    if(!_renderQueueAbsolute && _renderQueueWasAbsolute) {
+	        _renderQueueWasAbsolute = _renderQueueAbsolute;
+	        int val = ((Material) _materialEditor.targets[0]).renderQueue;
+	        val = Mathf.Clamp((int) _renderQueue.floatValue - val, 0, 49);
+	        _renderQueue.floatValue = val;
+	    }else if(_renderQueueAbsolute && !_renderQueueWasAbsolute) {
+	        _renderQueueWasAbsolute = _renderQueueAbsolute;
+	        _renderQueue.floatValue = ((Material) _materialEditor.targets[0]).renderQueue;
+	    }
+	    int renderQueue = _renderQueueAbsolute ? EditorGUILayout.IntSlider(_rendererQueueText, (int) _renderQueue.floatValue, -1, 5000)
+	                          : EditorGUILayout.IntSlider(_rendererQueueText, (int) _renderQueue.floatValue, 0, 49);
 		if (EditorGUI.EndChangeCheck())
 		{
 			SetInt("_RenderQueue", renderQueue);
@@ -794,6 +812,10 @@ public class SpriteShaderGUI : ShaderGUI
 		material.SetInt("_Cull", (int)eCulling.Off);
 		//Start with Z writing disabled
 		material.SetInt("_ZWrite", 0);
+
+        //Set renderqueue to alphatest by default
+	    material.renderQueue = kAlphaTestQueue;
+	    SetInt("_RenderQueue", kAlphaTestQueue);
 	}
 
 	//Z write is on then
@@ -830,7 +852,7 @@ public class SpriteShaderGUI : ShaderGUI
 		material.SetOverrideTag("RenderType", renderType);
 	}
 
-	private static void SetMaterialKeywords(Material material)
+	private void SetMaterialKeywords(Material material)
 	{
 		eBlendMode blendMode = GetMaterialBlendMode(material);
 		SetBlendMode(material, blendMode);
@@ -849,7 +871,7 @@ public class SpriteShaderGUI : ShaderGUI
 		SetKeyword(material, "_TEXTURE_BLEND", blendTexture);
 	}
 
-	private static void MaterialChanged(MaterialEditor materialEditor)
+	private void MaterialChanged(MaterialEditor materialEditor)
 	{
 		foreach (Material material in materialEditor.targets)
 			SetMaterialKeywords(material);
@@ -922,7 +944,7 @@ public class SpriteShaderGUI : ShaderGUI
 		return eBlendMode.Opaque;
 	}
 
-	private static void SetBlendMode(Material material, eBlendMode blendMode)
+	private void SetBlendMode(Material material, eBlendMode blendMode)
 	{
 		SetKeyword(material, "_ALPHABLEND_ON", blendMode == eBlendMode.StandardAlpha);
 		SetKeyword(material, "_ALPHAPREMULTIPLY_ON", blendMode == eBlendMode.PreMultipliedAlpha);
@@ -993,7 +1015,7 @@ public class SpriteShaderGUI : ShaderGUI
 				break;
 		}
 
-		material.renderQueue = renderQueue + material.GetInt("_RenderQueue");
+		material.renderQueue = (_renderQueueAbsolute ? 0 : renderQueue) + material.GetInt("_RenderQueue");
 		material.SetOverrideTag("IgnoreProjector", blendMode == eBlendMode.Opaque ? "False" : "True");
 	}
 
