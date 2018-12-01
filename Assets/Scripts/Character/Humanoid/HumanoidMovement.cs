@@ -197,16 +197,18 @@ public class HumanoidMovement : MovementAbstract {
         RaycastHit2D grabMid = Physics2D.Raycast(tf.TransformPoint(_grabMidVec), right, grabDistance, whatIsGround);
         RaycastHit2D grabDown;
         if(grabMid.collider != null) { //First check for mid
-            grabDown = Physics2D.Raycast(tf.TransformPoint(new Vector2(grabMid.distance + grabAdd, grabTopOffset)),
-                -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
-            ledgePoint = grabDown.point;
+            Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(grabMid.distance + grabAdd, grabTopOffset));
+            grabDown = Physics2D.Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
+            if(Mathf.Abs(Vector2.Dot(grabDown.point - grabDownOrigin, tf.up)) > 0.1f)
+                ledgePoint = grabDown.point;
 
         } else if((grabDown = Physics2D.Raycast(tf.TransformPoint(_grabDownVec), -tf.up,
                        grabTopOffset - grabBottomOffset, whatIsGround)).collider != null) {
             //If mid that fails, check for down
-            grabMid = Physics2D.Raycast(tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - grabAdd)),
-                right, grabDistance, whatIsGround);
-            ledgePoint = new Vector2(grabMid.point.x + (facingRight ? grabAdd : -grabAdd), grabDown.point.y);
+            Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - grabAdd));
+            grabMid = Physics2D.Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
+            if(Mathf.Abs(Vector2.Dot(grabMid.point - grabMidOrigin, tf.right)) > 0.1f)
+                ledgePoint = new Vector2(grabMid.point.x + (facingRight ? grabAdd : -grabAdd), grabDown.point.y);
         }
 #if UNITY_EDITOR
         if(_visualizeDebug) {
@@ -375,7 +377,7 @@ public class HumanoidMovement : MovementAbstract {
     // ReSharper disable once UnusedParameter.Local
     private void OnCollisionEnter2D(Collision2D collInfo) {
         _isTouching = true;
-        print(collInfo.collider + "    :::   " + Time.time);
+//        print(collInfo.collider + "    :::   " + Time.time);
     }
 
     // ReSharper disable once UnusedParameter.Local
