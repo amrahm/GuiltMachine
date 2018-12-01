@@ -13,7 +13,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [CanBeNull] public WeaponAbstract weapon;
 
     [Tooltip("Status indicator for this character. Doesn't have to be assigned.")]
-    [SerializeField] [CanBeNull] protected StatusIndicator statusIndicator;
+    [SerializeField] [CanBeNull] protected internal StatusIndicator statusIndicator;
 
     /// <summary> Reference to this gameObject's rigidbody, if it exists </summary>
     [CanBeNull] protected Rigidbody2D rb;

@@ -1,11 +1,14 @@
 ﻿using System;
 using ExtensionMethods;
+using JetBrains.Annotations;
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(HumanoidParts))]
 [RequireComponent(typeof(CharacterMasterAbstract))]
 public class HumanoidMovement : MovementAbstract {
+    private const string RollStateTag = "Roll";
+
     #region Variables
 
 #if UNITY_EDITOR
@@ -65,6 +68,9 @@ public class HumanoidMovement : MovementAbstract {
     [Tooltip("How long is the ground check raycast")]
     public float groundCheckDistance;
 
+    [Tooltip("How far to check down when rolling")]
+    public float rollingGroundCheckDistance = 2f;
+
     [Tooltip("How long is the grab check raycast")]
     public float grabDistance = 1;
 
@@ -87,6 +93,12 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Whether or not the character is crouching </summary>
     private bool _crouching;
 
+    /// <summary> Whether or not the character is currently rolling </summary>
+    private bool _rolling;
+
+    /// <summary> Which direction the player rolled </summary>
+    private float _rollDir;
+
     /// <summary> Position of the foot last frame when crouching </summary>
     private float _lastHipsDelta;
 
@@ -104,6 +116,9 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> True if the character is still holding jump after jumping </summary>
     private bool _jumpStarted;
+
+    /// <summary> True if the character pressed jump while rolling </summary>
+    private bool _wantsToRollJump;
 
     /// <summary> Whether or not the character is touching something </summary>
     private bool _isTouching;
@@ -128,6 +143,9 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> The jump parameter in the animator </summary>
     private int _jumpAnim;
+
+    /// <summary> The roll jump parameter in the animator </summary>
+    private int _rollJumpAnim;
 
     /// <summary> The land parameter in the animator </summary>
     private int _groundedAnim;
@@ -162,6 +180,7 @@ public class HumanoidMovement : MovementAbstract {
         _crouchingAnim = Animator.StringToHash("Crouching");
         _rollAnim = Animator.StringToHash("Roll");
         _jumpAnim = Animator.StringToHash("Jump");
+        _rollJumpAnim = Animator.StringToHash("RollJump");
         _groundedAnim = Animator.StringToHash("Grounded");
         _fallingAnim = Animator.StringToHash("Falling");
 
@@ -174,7 +193,7 @@ public class HumanoidMovement : MovementAbstract {
     private void FixedUpdate() {
         UpdateGrounded();
         UpdateGrab();
-        Move(control.moveHorizontal, control.hPressed, control.sprint);
+        if(!_rolling) Move(control.moveHorizontal, control.hPressed, control.sprint);
         Jump(control.upPressed);
         Crouch(control.downPressed);
 
@@ -199,14 +218,15 @@ public class HumanoidMovement : MovementAbstract {
         if(grabMid.collider != null) { //First check for mid
             Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(grabMid.distance + grabAdd, grabTopOffset));
             grabDown = Physics2D.Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
+            //TODO Maybe another sideways check a little above grabdown.point to check that above the character is clear
             if(Mathf.Abs(Vector2.Dot(grabDown.point - grabDownOrigin, tf.up)) > 0.1f)
                 ledgePoint = grabDown.point;
-
         } else if((grabDown = Physics2D.Raycast(tf.TransformPoint(_grabDownVec), -tf.up,
                        grabTopOffset - grabBottomOffset, whatIsGround)).collider != null) {
             //If mid that fails, check for down
             Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - grabAdd));
             grabMid = Physics2D.Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
+            //TODO Check that a little above point is clear
             if(Mathf.Abs(Vector2.Dot(grabMid.point - grabMidOrigin, tf.right)) > 0.1f)
                 ledgePoint = new Vector2(grabMid.point.x + (facingRight ? grabAdd : -grabAdd), grabDown.point.y);
         }
@@ -223,30 +243,40 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> Update whether or not this character is touching the ground </summary>
     private void UpdateGrounded() {
-        //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
-        RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up, groundCheckDistance, whatIsGround);
-        if(rightHit.collider == null)
-            rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up, groundCheckDistance, whatIsGround);
-        RaycastHit2D leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up, groundCheckDistance, whatIsGround);
-        if(leftHit.collider == null)
-            leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up, groundCheckDistance, whatIsGround);
-        float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
-        float leftAngle = Vector2.Angle(leftHit.normal, tf.up);
+        bool wasGrounded;
+        if(!_rolling) {
+            //The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
+            RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up, groundCheckDistance, whatIsGround);
+            if(rightHit.collider == null)
+                rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up, groundCheckDistance, whatIsGround);
+            RaycastHit2D leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up, groundCheckDistance, whatIsGround);
+            if(leftHit.collider == null)
+                leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up, groundCheckDistance, whatIsGround);
+            float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
+            float leftAngle = Vector2.Angle(leftHit.normal, tf.up);
 
-        //pick the larger angle that is still within bounds
-        bool rightGreater = rightAngle > leftAngle && rightAngle < maxWalkSlope || leftAngle > maxWalkSlope;
-        groundNormal = rightGreater && rightHit.collider != null ?
-                           rightHit.normal :
-                           (leftHit.collider != null ? leftHit.normal : (Vector2) tf.up);
-        walkSlope = rightGreater ? rightAngle : leftAngle;
+            //pick the larger angle that is still within bounds
+            bool rightGreater = rightAngle > leftAngle && rightAngle < maxWalkSlope || leftAngle > maxWalkSlope;
+            groundNormal = rightGreater && rightHit.collider != null ?
+                               rightHit.normal :
+                               (leftHit.collider != null ? leftHit.normal : (Vector2) tf.up);
+            walkSlope = rightGreater ? rightAngle : leftAngle;
 
-        bool wasGrounded = grounded;
-        grounded = (rightHit.collider != null || leftHit.collider != null) && walkSlope < maxWalkSlope;
+            wasGrounded = grounded;
+            grounded = (rightHit.collider != null || leftHit.collider != null) && walkSlope < maxWalkSlope;
+        } else { //Rolling
+            RaycastHit2D rollHit = Physics2D.Raycast(tf.position, -tf.up, rollingGroundCheckDistance, whatIsGround);
+            groundNormal = rollHit.collider != null ? rollHit.normal : (Vector2) tf.up;
+            walkSlope = Vector2.Angle(rollHit.normal, tf.up);
+            print(rollHit.collider);
+            wasGrounded = grounded;
+            grounded = rollHit.collider != null && walkSlope < maxWalkSlope;
+        }
         anim.SetBool(_groundedAnim, grounded);
         if(wasGrounded && !grounded && !_jumpStarted) {
             _falling = true;
         }
-        if(_falling) {
+        if(_falling && !_rolling) {
             _fallDuration += Time.fixedDeltaTime;
             if(_fallDuration > 0.15f) anim.SetBool(_fallingAnim, true); //falling without jumping
         }
@@ -259,10 +289,14 @@ public class HumanoidMovement : MovementAbstract {
 
 #if UNITY_EDITOR
         if(_visualizeDebug) {
-            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up * groundCheckDistance);
-            Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up * groundCheckDistance);
-            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up * groundCheckDistance);
-            Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up * groundCheckDistance);
+            if(!_rolling) {
+                Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up * groundCheckDistance);
+                Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up * groundCheckDistance);
+                Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up * groundCheckDistance);
+                Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up * groundCheckDistance);
+            } else {
+                Debug.DrawRay(tf.position, -tf.up * rollingGroundCheckDistance);
+            }
         }
 #endif
     }
@@ -329,16 +363,19 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Handles player jumping </summary>
-    /// <param name="jump">Is jump input pressed</param>
-    private void Jump(bool jump) {
+    /// <param name="jump">Is jump input pressed?</param>
+    /// <param name="rollJump">Is this a jump from a roll?</param>
+    private void Jump(bool jump, bool rollJump = false) {
 #if UNITY_EDITOR
         if(_allowJumpingInMidair) grounded = true;
 #endif
-        if(grounded && jump && !_jumpStarted) {
+        if(_rolling && grounded && jump) {
+            _wantsToRollJump = true;
+        } else if(grounded && jump && !_jumpStarted) {
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true;
             rb.velocity = new Vector2(rb.velocity.x, _jumpSpeed);
-            anim.SetTrigger(_jumpAnim);
+            anim.SetTrigger(rollJump ? _rollJumpAnim : _jumpAnim);
         } else if(jump && _jumpFuelLeft > 0) {
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
             rb.AddForce(new Vector2(0f, rb.mass * _jumpFuelForce), ForceMode2D.Force);
@@ -360,8 +397,42 @@ public class HumanoidMovement : MovementAbstract {
         _crouching = grounded && crouching && _walkSprint < .65f;
         anim.SetBool(_crouchingAnim, _crouching);
 
-        bool roll = wasStanding && _crouching && _walkSprint > .01f;
-        anim.SetBool(_rollAnim, roll);
+        bool rollStart = !_rolling && wasStanding && _crouching && _walkSprint > .01f;
+        anim.SetBool(_rollAnim, rollStart);
+        Roll(rollStart);
+    }
+
+    private void Roll(bool rollStart) {
+        if(rollStart) {
+            _rolling = true;
+            _rollDir = Mathf.Sign(control.moveHorizontal);
+        } else if(_rolling) {
+            Move(_rollDir, true, false);
+
+            if(!grounded) {
+                RollJump();
+            }
+
+            if(!(anim.IsPlaying(RollStateTag) || anim.IsInTransition(0))) {
+                _rolling = false;
+            }
+        }
+    }
+
+    /// <summary> Used by animation event to signal end of roll </summary>
+    [UsedImplicitly]
+    private void RollEnd() {
+        _rolling = false;
+    }
+
+    /// <summary> Used to signal good point to jump </summary>
+    private void RollJump() {
+        if(!_wantsToRollJump) return;
+        print("ROLLJUMP " + Time.time);
+        _wantsToRollJump = false;
+        _rolling = false;
+        grounded = true;
+        Jump(true, true);
     }
 
 

@@ -19,7 +19,6 @@ public class SlimeMovement : MovementAbstract
     {
         //Setting up references.
         base.Awake();
-        facingRight = false; //sprite was drawn facing the other way lol
 
         whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
     }

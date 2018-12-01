@@ -89,7 +89,7 @@ public class SlimeControl : CharacterControlAbstract
     // Path calculated by A* seeker script gets passed to this method for processing in case of errors
     public void OnPathComplete(Path p)
     {
-        Debug.Log("We got a path. Did it have an error? " + p.error);
+//        Debug.Log("We got a path. Did it have an error? " + p.error);
         if (!p.error)
         {
             path = p;
@@ -121,7 +121,7 @@ public class SlimeControl : CharacterControlAbstract
             {
                 return;
             }
-            Debug.Log("End of path reached.");
+//            Debug.Log("End of path reached.");
             pathIsEnded = true;
             return;
         }
