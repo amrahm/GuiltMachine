@@ -12,7 +12,7 @@ public class NpcGroundHumanoidControl : CharacterControlAbstract {
         //Movement
         moveHorizontal = Random.Range(-1f, 1f);
         hPressed = Mathf.Abs(moveHorizontal) > 0.05f;
-        sprint = Random.Range(0f, 1f);
+        sprint = Random.Range(0f, 1f) > 0.1f;
         moveVertical = Random.Range(-1f, 1f);
         upPressed = moveVertical > 0.7f;
         downPressed = moveVertical < -0.8f;

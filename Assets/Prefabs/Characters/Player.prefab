@@ -844,7 +844,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1187883556716760}
   m_LocalRotation: {x: -0, y: -0, z: 0.99920136, w: -0.03995734}
-  m_LocalPosition: {x: 0.06578942, y: 0.12027779, z: 0}
+  m_LocalPosition: {x: 0.06578894, y: 0.120277785, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4721325132336740}
@@ -871,7 +871,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1324330659312684}
   m_LocalRotation: {x: -0, y: -0, z: 0.99216056, w: -0.12496959}
-  m_LocalPosition: {x: 0.065000355, y: -0.12335557, z: 0}
+  m_LocalPosition: {x: 0.06499986, y: -0.12335366, z: 0}
   m_LocalScale: {x: 1.0000005, y: 1.0000005, z: 1}
   m_Children:
   - {fileID: 4207432835356710}
@@ -1498,7 +1498,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1198199315787776}
   m_LocalRotation: {x: -0, y: -0, z: 0.703885, w: 0.710314}
-  m_LocalPosition: {x: 0.011714935, y: -0.29932022, z: 0}
+  m_LocalPosition: {x: 0.011714935, y: -0.29931974, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4338735068817742}
@@ -2110,6 +2110,7 @@ MonoBehaviour:
   whatIsGroundMaster: {fileID: 11400000, guid: 903c86250aa98c04aa5fe7eb38424058, type: 2}
   maxWalkSlope: 50
   _visualizeDebug: 1
+  _allowJumpingInMidair: 0
   _maxSpeed: 6
   _acceleration: 13
   _kick: 2
@@ -2118,9 +2119,9 @@ MonoBehaviour:
   _jumpSpeed: 4
   _jumpFuel: 150
   _jumpFuelForce: 18
-  _airControl: 1
+  _airControl: 0.7
   _airSlowdownMultiplier: 1
-  _kickAir: 1
+  _kickAir: 0.3
   groundCheckOffsetR: {x: 0, y: 0}
   groundCheckOffsetR2: {x: 0.15, y: 0}
   groundCheckOffsetL: {x: 0, y: 0}

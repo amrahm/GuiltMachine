@@ -6,6 +6,12 @@ public class BlurSprite : MonoBehaviour {
     private float _rSum;
     private float _gSum;
     private float _bSum;
+    private float _rLastAdd;
+    private float _gLastAdd;
+    private float _bLastAdd;
+    private float _rLastSub;
+    private float _gLastSub;
+    private float _bLastSub;
     private float _aSum;
 
     private SpriteRenderer _rend;
@@ -164,6 +170,14 @@ public class BlurSprite : MonoBehaviour {
             _rSum += pixel.r;
             _gSum += pixel.g;
             _bSum += pixel.b;
+
+            _rLastAdd = pixel.r;
+            _gLastAdd = pixel.g;
+            _bLastAdd = pixel.b;
+        } else {
+            _rSum += _rLastAdd;
+            _gSum += _gLastAdd;
+            _bSum += _bLastAdd;
         }
         _aSum += pixel.a;
     }
@@ -173,6 +187,14 @@ public class BlurSprite : MonoBehaviour {
             _rSum -= pixel.r;
             _gSum -= pixel.g;
             _bSum -= pixel.b;
+
+            _rLastSub = pixel.r;
+            _gLastSub = pixel.g;
+            _bLastSub = pixel.b;
+        } else {
+            _rSum += _rLastSub;
+            _gSum += _gLastSub;
+            _bSum += _bLastSub;
         }
         _aSum -= pixel.a;
     }
@@ -182,6 +204,12 @@ public class BlurSprite : MonoBehaviour {
         _gSum = 0;
         _bSum = 0;
         _aSum = 0;
+        _rLastAdd = 0;
+        _gLastAdd = 0;
+        _bLastAdd = 0;
+        _rLastSub = 0;
+        _gLastSub = 0;
+        _bLastSub = 0;
     }
 
     private Color CalcPixelFromSum() {

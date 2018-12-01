@@ -77,7 +77,7 @@ public class PhoenixControl : CharacterControlAbstract {
 
     // Path calculated by A* seeker script gets passed to this method for processing in case of errors
     public void OnPathComplete(Path p) {
-        //Debug.Log("We got a path. Did it have an error? " + p.error);
+//        Debug.Log("We got a path. Did it have an error? " + p.error);
         if(!p.error) {
             path = p;
             currentWaypoint = 0;

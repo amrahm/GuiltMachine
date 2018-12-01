@@ -5,7 +5,7 @@ public class PlayerControl : CharacterControlAbstract {
         //Movement
         moveHorizontal = CrossPlatformInputManager.GetAxis("Horizontal");
         hPressed = CrossPlatformInputManager.GetButton("Horizontal");
-        sprint = CrossPlatformInputManager.GetAxis("Sprint");
+        sprint = CrossPlatformInputManager.GetButton("Sprint");
         moveVertical = CrossPlatformInputManager.GetAxis("Vertical");
         upPressed = CrossPlatformInputManager.GetButton("Jump");
         downPressed = CrossPlatformInputManager.GetAxis("Vertical") < -0.01f;

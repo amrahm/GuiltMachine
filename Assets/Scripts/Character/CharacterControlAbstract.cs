@@ -8,7 +8,7 @@ public abstract class CharacterControlAbstract : MonoBehaviour {
     [ConditionalHide("_showCurrentInput", true, true)] public float moveHorizontal;
     [ConditionalHide("_showCurrentInput", true, true)] public float moveVertical;
     [ConditionalHide("_showCurrentInput", true, true)] public bool hPressed;
-    [ConditionalHide("_showCurrentInput", true, true)] public float sprint;
+    [ConditionalHide("_showCurrentInput", true, true)] public bool sprint;
     [ConditionalHide("_showCurrentInput", true, true)] public bool upPressed;
     [ConditionalHide("_showCurrentInput", true, true)] public bool downPressed;
     

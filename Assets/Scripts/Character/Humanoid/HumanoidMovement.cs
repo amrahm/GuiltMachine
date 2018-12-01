@@ -12,7 +12,7 @@ public class HumanoidMovement : MovementAbstract {
     [Tooltip("Show debug visualizations")] [SerializeField]
     private bool _visualizeDebug;
 
-    
+
     [Tooltip("Debug control to allow multiple jumps")] [SerializeField]
     private bool _allowJumpingInMidair;
 #endif
@@ -104,7 +104,7 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> True if the character is still holding jump after jumping </summary>
     private bool _jumpStarted;
-    
+
     /// <summary> Whether or not the character is touching something </summary>
     private bool _isTouching;
 
@@ -177,7 +177,7 @@ public class HumanoidMovement : MovementAbstract {
         Move(control.moveHorizontal, control.hPressed, control.sprint);
         Jump(control.upPressed);
         Crouch(control.downPressed);
-        
+
         if(grounded) {
             //When the feet move up relative to the hips, move the player down so that the feet stay on the ground instead of lifting into the air
             float hipsDelta = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
@@ -322,7 +322,7 @@ public class HumanoidMovement : MovementAbstract {
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
             }
-            if(!movePressed || Math.Abs(Mathf.Sign(move) - Mathf.Sign(velForward)) > 0.5f )
+            if(!movePressed || Math.Abs(Mathf.Sign(move) - Mathf.Sign(velForward)) > 0.5f)
                 rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
             anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(0, 1));
         }
