@@ -248,7 +248,6 @@ public class HumanoidMovement : MovementAbstract {
         }
         if(_falling) {
             _fallDuration += Time.fixedDeltaTime;
-            print(_fallDuration);
             if(_fallDuration > 0.15f) anim.SetBool(_fallingAnim, true); //falling without jumping
         }
         if(grounded) {

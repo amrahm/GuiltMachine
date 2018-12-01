@@ -185,4 +185,23 @@ namespace ExtensionMethods {
             FadeInOut
         }
     }
+
+    public static class ArrayExtensions {
+        public static void Init<T>(this T[] array, T defaultVaue) {
+            if(array == null) return;
+            for(int i = 0; i < array.Length; i++) array[i] = defaultVaue;
+        }
+    }
+
+    public static class ColorExtensions {
+        public static Color WithAlpha(this Color color, float value) {
+            color.a = value;
+            return color;
+        }
+
+        public static Color32 WithAlpha(this Color32 color, byte value) {
+            color.a = value;
+            return color;
+        }
+    }
 }
