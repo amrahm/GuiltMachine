@@ -8,11 +8,11 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: arch
   m_Shader: {fileID: 4800000, guid: 9d58f1925e9d5d3439405182c37b9645, type: 3}
-  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA SOFT_EDGE_ON _ALPHAPREMULTIPLY_ON _NORMALMAP
+  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA SOFT_EDGE_ON _ALPHABLEND_ON _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2450
   stringTagMap:
     AlphaDepth: true
     IGNOREPROJECTOR: true
@@ -123,7 +123,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _RenderQueue: 0
+    - _RenderQueue: 2450
     - _RimPower: 4.67
     - _Saturation: 1
     - _ShadowAlphaCutoff: 0.618
