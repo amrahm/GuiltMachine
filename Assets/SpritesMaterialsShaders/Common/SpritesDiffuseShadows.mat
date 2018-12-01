@@ -16,7 +16,7 @@ Material:
   stringTagMap:
     AlphaDepth: true
     IGNOREPROJECTOR: true
-    RenderType: Sprite
+    RenderType: Transparent
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -75,7 +75,7 @@ Material:
     - _Brightness: 1
     - _BumpScale: 1
     - _Cull: 0
-    - _CustomRenderQueue: 1
+    - _CustomRenderQueue: 0
     - _Cutoff: 0
     - _DetailNormalMapScale: 1
     - _Dissolve: 0
