@@ -1,4 +1,4 @@
-Shader "Sprite (Pixel Lit Dissolve)"
+Shader "Sprites/Sprite (Pixel Lit Dissolve)"
 {
 	Properties
 	{
@@ -154,6 +154,6 @@ Shader "Sprite (Pixel Lit Dissolve)"
 		}
 	}
 	
-	FallBack "Sprite (Pixel Lit)"
+	FallBack "Sprites/Sprite (Pixel Lit)"
 	CustomEditor "SpriteDiffuseShaderGUI"
 }

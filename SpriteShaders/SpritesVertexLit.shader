@@ -1,4 +1,4 @@
-Shader "Sprite (Vertex Lit)"
+Shader "Sprites/Sprite (Vertex Lit)"
 {
 	Properties
 	{
@@ -115,6 +115,6 @@ Shader "Sprite (Vertex Lit)"
 		}
 	}
 	
-	FallBack "Sprite (Unlit)"
+	FallBack "Sprites/Sprite (Unlit)"
 	CustomEditor "SpriteShaderGUI"
 }

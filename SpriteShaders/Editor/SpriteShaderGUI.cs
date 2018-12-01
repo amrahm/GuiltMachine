@@ -3,9 +3,9 @@ using UnityEditor;
 
 public class SpriteShaderGUI : ShaderGUI
 {
-	private static readonly string kShaderVertexLit = "Sprite (Vertex Lit)";
-	private static readonly string kShaderPixelLit = "Sprite (Pixel Lit)";
-	private static readonly string kShaderUnlit = "Sprite (Unlit)";
+    private static readonly string kShaderVertexLit = "Sprites/Sprite (Vertex Lit)";
+    private static readonly string kShaderPixelLit = "Sprites/Sprite (Pixel Lit)";
+    private static readonly string kShaderUnlit = "Sprites/Sprite (Unlit)";
 	private static readonly int kSolidQueue = 2000;
 	private static readonly int kAlphaTestQueue = 2450;
 	private static readonly int kTransparentQueue = 3000;

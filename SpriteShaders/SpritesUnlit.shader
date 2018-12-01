@@ -1,4 +1,4 @@
-Shader "Sprite (Unlit)"
+Shader "Sprites/Sprite (Unlit)"
 {
 	Properties
 	{
