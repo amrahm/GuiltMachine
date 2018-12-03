@@ -2109,7 +2109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   whatIsGroundMaster: {fileID: 11400000, guid: 903c86250aa98c04aa5fe7eb38424058, type: 2}
   maxWalkSlope: 50
-  _visualizeDebug: 0
+  _visualizeDebug: 1
   _allowJumpingInMidair: 0
   _maxSpeed: 6
   _acceleration: 13
@@ -2133,6 +2133,9 @@ MonoBehaviour:
   grabTopOffset: 1.5
   grabMidOffset: 0
   grabBottomOffset: -0.75
+  grabObstacleCheckRadiusV: 0.3
+  grabObstacleCheckRadiusH: 0.4
+  grabObstacleCheckDistanceH: 0.1
 --- !u!114 &114452454159249274
 MonoBehaviour:
   m_ObjectHideFlags: 1
