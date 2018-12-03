@@ -7,6 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterMasterAbstract))]
 public class HumanoidMovement : MovementAbstract {
     private const string RollStateTag = "Roll";
+    private const float GrabAdd = 0.1f;
 
     #region Variables
 
@@ -199,52 +200,52 @@ public class HumanoidMovement : MovementAbstract {
 
         if(grounded) {
             //When the feet move up relative to the hips, move the character down so that the feet stay on the ground instead of lifting into the air
-            float hipsDelta = _parts.hips.transform.position.y - _parts.footR.transform.position.y;
-            rb.transform.position += new Vector3(0, (hipsDelta - _lastHipsDelta) / 2);
+            float hipsDelta = Vector2.Dot(_parts.hips.transform.position - _parts.footR.transform.position, tf.up);
+            rb.transform.position += tf.up * (hipsDelta - _lastHipsDelta) / 2;
             _lastHipsDelta = hipsDelta;
         }
     }
 
-
-    private const float GrabAdd = 0.1f;
-
     /// <summary> Update whether or not this character can/is grab/bing a platform </summary>
-    private void UpdateGrab() {
+    private void UpdateGrab(ContactPoint2D? hitContact = null) {
         //TODO Should we only start calling this immediately after hitting a wall?
         //TODO that could also give us a second mid to check, mid being at the point of collision
         //TODO and would generally be more efficient
-
-
-        //Initialize grab check vectors
-        Vector2? ledgePoint = null;
         Vector2 right = facingRight ? tf.right : -tf.right;
-        Vector2 midPoint = tf.TransformPoint(new Vector2(0, grabMidOffset));
+        Vector2? hitPoint = hitContact?.point;
+        Vector2? hitVel = hitContact?.relativeVelocity;
+        const float directionThreshold = 0.3f;
+        if(!(_grabbing || (!grounded || _jumpStarted) && hitContact.HasValue && Vector2.Dot(hitVel.Value, right) > directionThreshold ||
+             !hitContact.HasValue && _visualizeDebug)) return;
+
+        Vector2? ledgePoint = null;
+        Vector2 midPoint = tf.TransformPoint(new Vector2(0, hitPoint.HasValue ? tf.InverseTransformPoint(hitPoint.Value).y : grabMidOffset));
         RaycastHit2D grabMid = Physics2D.Raycast(midPoint, right, grabDistance, whatIsGround);
         RaycastHit2D grabDown;
         RaycastHit2D sideCheck;
         RaycastHit2D upCheck;
+        // ReSharper disable AssignmentInConditionalExpression
         if(grabMid) { //First check for mid
             Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
             grabDown = Physics2D.Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
             bool grabIsClear = CheckIfGrabIsClear(grabMid.collider, midPoint, grabMid, grabDown, right, out upCheck, out sideCheck);
-            if(grabIsClear && Mathf.Abs(Vector2.Dot(grabDown.point - grabDownOrigin, tf.up)) > 0.1f)
-                ledgePoint = grabDown.point;
-            // ReSharper disable once AssignmentInConditionalExpression
+            if(grabIsClear) ledgePoint = grabDown.point;
         } else if(grabDown = Physics2D.Raycast(tf.TransformPoint(new Vector2(grabDistance * grabDownDistanceRatio, grabTopOffset)), -tf.up,
                                                grabTopOffset - grabBottomOffset, whatIsGround)) {
             //If mid fails, check for down. We do assignment here to avoid doing it if mid hits something
             Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
             grabMid = Physics2D.Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
             bool grabIsClear = CheckIfGrabIsClear(grabDown.collider, midPoint, grabMid, grabDown, right, out upCheck, out sideCheck);
-            if(grabIsClear && Mathf.Abs(Vector2.Dot(grabMid.point - grabMidOrigin, tf.right)) > 0.1f)
-                ledgePoint = new Vector2(grabMid.point.x + (facingRight ? GrabAdd : -GrabAdd), grabDown.point.y);
+            bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
+            if(grabIsClear && pointNotInGround) ledgePoint = grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd;
         }
+        // ReSharper restore AssignmentInConditionalExpression
 #if UNITY_EDITOR
         if(_visualizeDebug) {
-            if(ledgePoint.HasValue) DebugExtension.DebugPoint((Vector3) ledgePoint, Color.green);
+            if(ledgePoint.HasValue) DebugExtension.DebugPoint(ledgePoint.Value, Color.green);
             Debug.DrawRay(midPoint, right * grabDistance);
             Debug.DrawRay(tf.TransformPoint(new Vector2(grabDistance * grabDownDistanceRatio, grabTopOffset)),
-                          -tf.up * (grabTopOffset - grabBottomOffset), Color.blue);
+                          -tf.up * (grabTopOffset - grabBottomOffset), Color.gray);
         }
 #endif
     }
@@ -331,8 +332,8 @@ public class HumanoidMovement : MovementAbstract {
     /// <param name="sprint"> Whether sprint input is pressed </param>
     private void Move(float move, bool movePressed, bool sprint) {
         Vector2 tangent = grounded ? Vector3.Cross(groundNormal, Vector3.forward) : tf.right;
-        float velForward = rb.velocity.x;
-        float velTangent = Vector2.Dot(rb.velocity, tangent);
+        float velForward = Vector2.Dot(rb.velocity, tf.right); //Use this so that running down slopes is faster
+        float velTangent = Vector2.Dot(rb.velocity, tangent); //And use this so that the animation looks right
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.blue);
 #endif
@@ -399,11 +400,11 @@ public class HumanoidMovement : MovementAbstract {
         } else if(grounded && jump && !_jumpStarted) {
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true;
-            rb.velocity = new Vector2(rb.velocity.x, _jumpSpeed);
+            rb.velocity += (Vector2) tf.up * _jumpSpeed;
             anim.SetTrigger(rollJump ? _rollJumpAnim : _jumpAnim);
         } else if(jump && _jumpFuelLeft > 0) {
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
-            rb.AddForce(new Vector2(0f, rb.mass * _jumpFuelForce), ForceMode2D.Force);
+            rb.AddForce(tf.up * rb.mass * _jumpFuelForce, ForceMode2D.Force);
             float grav = Mathf.Lerp(0.0f, 1, (_jumpFuel - _jumpFuelLeft) / _jumpFuel);
             rb.gravityScale = grav;
         } else {
@@ -464,6 +465,7 @@ public class HumanoidMovement : MovementAbstract {
     // ReSharper disable once UnusedParameter.Local
     private void OnCollisionEnter2D(Collision2D collInfo) {
         _isTouching = true;
+        if(!_grabbing) UpdateGrab(collInfo.GetContact(0));
 //        print(collInfo.collider + "    :::   " + Time.time);
     }
 

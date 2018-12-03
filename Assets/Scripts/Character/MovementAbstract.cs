@@ -10,22 +10,22 @@ public abstract class MovementAbstract : MonoBehaviour {
 
 
     /// <summary> A mask determining what is ground to the character </summary>
-    [NonSerialized] public LayerMask whatIsGround;
+    protected internal LayerMask whatIsGround;
 
     /// <summary> Which way the character is currently facing </summary>
-    [NonSerialized] public bool facingRight = true;
+    protected internal bool facingRight = true;
 
     /// <summary> Is the player currently on the ground </summary>
-    [NonSerialized] public bool grounded;
+    protected internal bool grounded;
 
     /// <summary> The direction that the character wants to move </summary>
-    [NonSerialized] public Vector2 moveVec;
+    protected internal Vector2 moveVec;
 
     /// <summary> The slope the character is walking on </summary>
-    [NonSerialized] public float walkSlope;
+    protected internal float walkSlope;
 
     /// <summary> The normal of the ground the character is walking on </summary>
-    [NonSerialized] public Vector2 groundNormal;
+    protected internal Vector2 groundNormal;
 
     /// <summary> Transform component of the gameObject </summary
     protected Transform tf;

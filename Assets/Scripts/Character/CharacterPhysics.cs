@@ -416,7 +416,7 @@ public class CharacterPhysics : MonoBehaviour {
             Vector2 forceVector = isLeg ? Vector2.Dot(forceVectorPre, _root.right) * (Vector2) _root.right : forceVectorPre;
 
             if(isLeg) { //Add crouching using the vertical component for legs
-                float verticalForce = (forceVectorPre - forceVector).y;
+                float verticalForce = Vector2.Dot(forceVectorPre - forceVector, _root.up);
                 if(verticalForce / _rb.mass > 0.2f) { //Min threshold so this isn't constantly active
                     _pp._crouchPlus += verticalForce;
                 }
@@ -467,7 +467,8 @@ public class CharacterPhysics : MonoBehaviour {
 
     /// <summary> Passes info from collision events to the BodyPartClass HitCalc method </summary>
     private void CollisionHandler(Collision2D collInfo) {
-        foreach(var c in collInfo.contacts) {
+        ContactPoint2D[] contacts = collInfo.contacts;
+        foreach(var c in contacts) {
             if(collToPart.ContainsKey(c.otherCollider)) {
                 BodyPartClass part = collToPart[c.otherCollider];
                 Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
