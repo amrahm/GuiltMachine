@@ -24,11 +24,13 @@ public class CharacterPhysics : MonoBehaviour {
 
     [Tooltip("A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
     public GameObject[] nonLegBendParts;
+
     /// <summary> A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend </summary>
     private GameObject[] _nonLegBendParts;
 
     [Tooltip("The amount that the corresponding part should rotate from -1 to 1")]
     public float[] nonLegBendAmounts;
+
     /// <summary> The amount that the corresponding part should rotate from -1 to 1 </summary>
     private float[] _nonLegBendAmounts;
 
@@ -117,7 +119,7 @@ public class CharacterPhysics : MonoBehaviour {
         for(int i = 0; i < _parts.parts.Length; i++) {
             //Rotate actual part to animated target
             _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
-                _parts.targets[i].transform.rotation);
+                                                             _parts.targets[i].transform.rotation);
         }
 
         _facingRight = _movement.facingRight;
@@ -455,8 +457,8 @@ public class CharacterPhysics : MonoBehaviour {
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
-            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
-                Space.Self); //Rotate the part _rotAmount past where it is animated
+            //Rotate the part _rotAmount past where it is animated
+            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2, Space.Self);
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
             _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, 0.02f, Time.fixedDeltaTime); //and return the body part back to rest
@@ -512,7 +514,7 @@ public class CharacterPhysics : MonoBehaviour {
         for(int i = 0; i < _parts.parts.Length; i++) {
             //Rotate actual part to animated target in edit mode too
             _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
-                _parts.targets[i].transform.rotation);
+                                                             _parts.targets[i].transform.rotation);
         }
     }
 

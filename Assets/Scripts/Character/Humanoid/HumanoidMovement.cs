@@ -53,16 +53,16 @@ public class HumanoidMovement : MovementAbstract {
     [Tooltip("A kick to make the character start moving faster while in mid-air")] [SerializeField]
     private float _kickAir;
 
-    [Tooltip("Offset for the right foot ground check raycast")]
+    [Tooltip("Offset for the back of the right foot ground check raycast")]
     public Vector2 groundCheckOffsetR;
 
-    [Tooltip("Offset for the right foot ground check raycast")]
+    [Tooltip("Offset for the front of the right foot ground check raycast")]
     public Vector2 groundCheckOffsetR2;
 
-    [Tooltip("Offset for the left foot ground check raycast")]
+    [Tooltip("Offset for the back of the left foot ground check raycast")]
     public Vector2 groundCheckOffsetL;
 
-    [Tooltip("Offset for the left foot ground check raycast")]
+    [Tooltip("Offset for the front of the left foot ground check raycast")]
     public Vector2 groundCheckOffsetL2;
 
     [Tooltip("How long is the ground check raycast")]
@@ -75,7 +75,7 @@ public class HumanoidMovement : MovementAbstract {
     public float grabDistance = 1;
 
     [Tooltip("How far along the horizontal check is the downward check")]
-    public float grabDownDistanceRatio = 0.7f;
+    public float grabDownDistMult = 0.7f;
 
     [Tooltip("How high is the highest grabbable")]
     public float grabTopOffset = 1.5f;
@@ -87,13 +87,13 @@ public class HumanoidMovement : MovementAbstract {
     public float grabBottomOffset = -0.75f;
 
     [Tooltip("How wide a radius vertically needs to be clear to initiate a grab")]
-    public float grabObstacleCheckRadiusV = 0.25f;
+    public float grabCheckRadiusV = 0.3f;
 
     [Tooltip("How wide a radius horizontally needs to be clear to initiate a grab")]
-    public float grabObstacleCheckRadiusH = 0.4f;
+    public float grabCheckRadiusH = 0.4f;
 
     [Tooltip("How far horizontally beyond the radius needs to be clear to initiate a grab")]
-    public float grabObstacleCheckDistanceH = 0.1f;
+    public float grabCheckDistanceH = 0.1f;
 
 
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
@@ -102,11 +102,17 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Whether or not the character is currently _grabbing </summary>
     private bool _grabbing;
 
+    /// <summary> Distance out to do downward check </summary>
+    private float _grabDownDist;
+
     /// <summary> Whether or not the character is crouching </summary>
     private bool _crouching;
 
     /// <summary> Whether or not the character is currently rolling </summary>
     private bool _rolling;
+
+    /// <summary> How long the character has been rolling </summary>
+    private float _rollingTime;
 
     /// <summary> Which direction the character rolled </summary>
     private float _rollDir;
@@ -168,19 +174,19 @@ public class HumanoidMovement : MovementAbstract {
     #endregion
 
     protected override void Awake() {
-        //Setting up references.
+        // Setting up references.
         base.Awake();
         _parts = GetComponent<HumanoidParts>();
 
-        whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
+        whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); // remove current layer
 
-        //Instance the foot physics material so that we can adjust it without affecting other users of this script
+        // Instance the foot physics material so that we can adjust it without affecting other users of the same material
         var footMat = _parts.footR.GetComponent<Collider2D>().sharedMaterial;
         _footFrictionMat = new PhysicsMaterial2D(footMat.name + " (Instance)") {friction = footMat.friction};
         _parts.footR.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
         _parts.footL.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
 
-        //Initialize animator parameters
+        // Initialize animator parameters
         _speedAnim = Animator.StringToHash("Speed");
         _vSpeedAnim = Animator.StringToHash("vSpeed");
         _crouchingAnim = Animator.StringToHash("Crouching");
@@ -189,6 +195,8 @@ public class HumanoidMovement : MovementAbstract {
         _rollJumpAnim = Animator.StringToHash("RollJump");
         _groundedAnim = Animator.StringToHash("Grounded");
         _fallingAnim = Animator.StringToHash("Falling");
+
+        _grabDownDist = grabDistance * grabDownDistMult;
     }
 
     private void FixedUpdate() {
@@ -199,7 +207,8 @@ public class HumanoidMovement : MovementAbstract {
         Crouch(control.downPressed);
 
         if(grounded) {
-            //When the feet move up relative to the hips, move the character down so that the feet stay on the ground instead of lifting into the air
+            // When the feet move up relative to the hips, move the character down so that 
+            // the feet stay on the ground instead of lifting into the air
             float hipsDelta = Vector2.Dot(_parts.hips.transform.position - _parts.footR.transform.position, tf.up);
             rb.transform.position += tf.up * (hipsDelta - _lastHipsDelta) / 2;
             _lastHipsDelta = hipsDelta;
@@ -208,81 +217,121 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> Update whether or not this character can/is grab/bing a platform </summary>
     private void UpdateGrab(ContactPoint2D? hitContact = null) {
-        //TODO Should we only start calling this immediately after hitting a wall?
-        //TODO that could also give us a second mid to check, mid being at the point of collision
-        //TODO and would generally be more efficient
+        // TODO Should we only start calling this immediately after hitting a wall?
+        // TODO that could also give us a second mid to check, mid being at the point of collision
+        // TODO and would generally be more efficient
         Vector2 right = facingRight ? tf.right : -tf.right;
         Vector2? hitPoint = hitContact?.point;
-        Vector2? hitVel = hitContact?.relativeVelocity;
-        const float directionThreshold = 0.3f;
-        if(!(_grabbing || (!grounded || _jumpStarted) && hitContact.HasValue && Vector2.Dot(hitVel.Value, right) > directionThreshold ||
-             !hitContact.HasValue && _visualizeDebug)) return;
-
-        Vector2? ledgePoint = null;
-        Vector2 midPoint = tf.TransformPoint(new Vector2(0, hitPoint.HasValue ? tf.InverseTransformPoint(hitPoint.Value).y : grabMidOffset));
-        RaycastHit2D grabMid = Physics2D.Raycast(midPoint, right, grabDistance, whatIsGround);
-        RaycastHit2D grabDown;
-        RaycastHit2D sideCheck;
-        RaycastHit2D upCheck;
-        // ReSharper disable AssignmentInConditionalExpression
-        if(grabMid) { //First check for mid
-            Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
-            grabDown = Physics2D.Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
-            bool grabIsClear = CheckIfGrabIsClear(grabMid.collider, midPoint, grabMid, grabDown, right, out upCheck, out sideCheck);
-            if(grabIsClear) ledgePoint = grabDown.point;
-        } else if(grabDown = Physics2D.Raycast(tf.TransformPoint(new Vector2(grabDistance * grabDownDistanceRatio, grabTopOffset)), -tf.up,
-                                               grabTopOffset - grabBottomOffset, whatIsGround)) {
-            //If mid fails, check for down. We do assignment here to avoid doing it if mid hits something
-            Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
-            grabMid = Physics2D.Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
-            bool grabIsClear = CheckIfGrabIsClear(grabDown.collider, midPoint, grabMid, grabDown, right, out upCheck, out sideCheck);
-            bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
-            if(grabIsClear && pointNotInGround) ledgePoint = grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd;
-        }
-        // ReSharper restore AssignmentInConditionalExpression
+        Vector2? hitVel = hitContact?.relativeVelocity.magnitude * hitContact?.normal;
+        bool hitInCorrectDirection = (!grounded || _jumpStarted) && hitContact.HasValue &&
+                                     Vector2.Dot(hitVel.Value, right) < (facingRight ? 0.3f : -0.3f);
 #if UNITY_EDITOR
         if(_visualizeDebug) {
-            if(ledgePoint.HasValue) DebugExtension.DebugPoint(ledgePoint.Value, Color.green);
+            Vector2 midPoint = tf.TransformPoint(new Vector2(0, grabMidOffset));
             Debug.DrawRay(midPoint, right * grabDistance);
-            Debug.DrawRay(tf.TransformPoint(new Vector2(grabDistance * grabDownDistanceRatio, grabTopOffset)),
+            Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
                           -tf.up * (grabTopOffset - grabBottomOffset), Color.gray);
+            if(!(_grabbing || (!grounded || _jumpStarted) && hitContact.HasValue &&
+                 Vector2.Dot(hitVel.Value, right) > -0.3f))
+                return; // If we only went this far for debug viz, quit here
         }
 #endif
+        if(!(_grabbing || hitInCorrectDirection)) return;
+
+        // Find Grab Point
+        if(!_grabbing) {
+            float midHeight = hitPoint.HasValue ? tf.InverseTransformPoint(hitPoint.Value).y : grabMidOffset;
+            Vector2 midPoint = tf.TransformPoint(new Vector2(0, midHeight + GrabAdd));
+            RaycastHit2D grabMid = Physics2D.Raycast(midPoint, right, grabDistance, whatIsGround);
+            RaycastHit2D grabDown;
+            // ReSharper disable AssignmentInConditionalExpression
+            if(grabMid) { // First check for mid
+                Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
+                grabDown = Physics2D.Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
+                bool grabIsClear = CheckIfGrabIsClear(midPoint, grabMid, grabDown, right);
+                if(grabIsClear) BeginGrab(grabDown.point, right);
+            } else if(grabDown = Physics2D.Raycast(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
+                                                   tf.up, grabTopOffset - grabBottomOffset, whatIsGround)) {
+                // If mid fails, check for down. We do assignment here to avoid doing it if mid hits something
+                Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
+                grabMid = Physics2D.Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
+                bool grabIsClear = CheckIfGrabIsClear(midPoint, grabMid, grabDown, right);
+                bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
+                if(grabIsClear && pointNotInGround)
+                    BeginGrab(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd, right);
+            }
+            // ReSharper restore AssignmentInConditionalExpression
+        }
+
+        // Now that we might be grabbing, do stuff with grab point
+        if(_grabbing) {
+            _parts.armRIK.weight += Time.fixedDeltaTime;
+            _parts.armLIK.weight += Time.fixedDeltaTime;
+//            _parts.upperArmLTarget.GetComponent<LimbIK>().solver.IKPositionWeight.SharpOutDamp(1, 1, Time.fixedDeltaTime);
+        }
+    }
+
+    private void BeginGrab(Vector2 point, Vector2 right) {
+        _grabbing = true;
+        _parts.handR.GetComponent<Collider2D>().isTrigger = true;
+        _parts.handL.GetComponent<Collider2D>().isTrigger = true;
+        _parts.lowerArmR.GetComponent<Collider2D>().isTrigger = true;
+        _parts.lowerArmL.GetComponent<Collider2D>().isTrigger = true;
+        _parts.upperArmR.GetComponent<Collider2D>().isTrigger = true;
+        _parts.upperArmL.GetComponent<Collider2D>().isTrigger = true;
+        _parts.armRIK.gameObject.SetActive(true);
+        _parts.armLIK.gameObject.SetActive(true);
+        _parts.armRIK.weight = 0;
+        _parts.armLIK.weight = 0;
+        _parts.armRIK.GetChain(0).target.parent = null;
+        _parts.armLIK.GetChain(0).target.parent = null;
+        _parts.armRIK.GetChain(0).target.position = point;
+        _parts.armLIK.GetChain(0).target.position = point + right * GrabAdd;
     }
 
     /// <summary> Checks if its clear to grab by circlecasting up and to the side </summary>
-    private bool CheckIfGrabIsClear(Collider2D hitCollider, Vector2 upCheckStart, RaycastHit2D grabMid, RaycastHit2D grabDown,
-                                    Vector2 right, out RaycastHit2D upCheck, out RaycastHit2D sideCheck) {
-        upCheckStart += right * (grabMid.distance - grabObstacleCheckRadiusV);
-        upCheck = Physics2D.CircleCast(upCheckStart, grabObstacleCheckRadiusV, tf.up, grabTopOffset - grabDown.distance + grabObstacleCheckRadiusV,
-                                       whatIsGround);
-        Vector2 sideCheckStart = upCheckStart + right * grabObstacleCheckRadiusH +
-                                 (Vector2) tf.up * (grabTopOffset - grabDown.distance + GrabAdd + grabObstacleCheckRadiusH);
-        sideCheck = Physics2D.CircleCast(sideCheckStart, grabObstacleCheckRadiusH, right, grabObstacleCheckDistanceH, whatIsGround);
+    private bool CheckIfGrabIsClear(Vector2 upCheckStart, RaycastHit2D grabMid, RaycastHit2D grabDown, Vector2 right) {
+        upCheckStart += right * (grabMid.distance - grabCheckRadiusV);
+        float upCheckDist = grabTopOffset - grabDown.distance + grabCheckRadiusV;
+        RaycastHit2D upCheck = Physics2D.CircleCast(upCheckStart, grabCheckRadiusV, tf.up, upCheckDist, whatIsGround);
+        Vector2 sideCheckStart = upCheckStart + right * GrabAdd +
+                                 (Vector2) tf.up * (grabTopOffset - grabDown.distance + GrabAdd + grabCheckRadiusH);
+        Vector2 sideCheckSize = new Vector2(GrabAdd, grabCheckRadiusH);
+        RaycastHit2D sideCheck = Physics2D.CapsuleCast(sideCheckStart, sideCheckSize, CapsuleDirection2D.Vertical, 0f,
+                                                       right, grabCheckDistanceH, whatIsGround);
         //TODO if upCheck clear and side check not, we might still be able to pull up with a (different?) animation, or we can hang on the ledge
-        //TODO Might want to make side check a capsule, since it should check for enough height but only a little width
 #if UNITY_EDITOR
         if(_visualizeDebug) {
-            Debug.DrawRay(upCheckStart, tf.up * (grabTopOffset - grabDown.distance + grabObstacleCheckRadiusV), Color.red);
-            Debug.DrawRay(sideCheckStart, right * grabObstacleCheckDistanceH, Color.red);
+            Debug.DrawRay(upCheckStart, tf.up * upCheckDist, Color.red);
+            Debug.DrawRay(sideCheckStart, right * GrabAdd, Color.red);
         }
 #endif
-        return (!upCheck || upCheck.collider == hitCollider) && !sideCheck;
+        return !upCheck && !sideCheck;
     }
 
     /// <summary> Update whether or not this character is touching the ground </summary>
     private void UpdateGrounded() {
         bool wasGrounded;
         if(!_rolling) {
-            //The character is grounded if a circlecast to the groundcheck position hits anything designated as ground
-            RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up, groundCheckDistance, whatIsGround);
-            if(!rightHit) rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up, groundCheckDistance, whatIsGround);
-            RaycastHit2D leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up, groundCheckDistance, whatIsGround);
-            if(!leftHit) leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up, groundCheckDistance, whatIsGround);
+            /* This checks both feet to see if they are touching the ground, and if they are, it checks the angle of the ground they are on.
+             * For each foot, a raycast checks the back of the foot, and if that hits nothing, then the front of the foot is checked.
+             * Then, for any feet that are touching the ground, we check the angle of the ground, and use the larger angle, as long as it's
+             * still less than the maxWalkSlope. This is so that uneven surfaces will still be walked up quickly.
+             * walkSlope is set to the chosen angle, and is used in the Move(...) method. */
+            RaycastHit2D rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up,
+                                                      groundCheckDistance, whatIsGround);
+            if(!rightHit)
+                rightHit = Physics2D.Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up,
+                                             groundCheckDistance, whatIsGround);
+            RaycastHit2D leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up,
+                                                     groundCheckDistance, whatIsGround);
+            if(!leftHit)
+                leftHit = Physics2D.Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up,
+                                            groundCheckDistance, whatIsGround);
             float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
             float leftAngle = Vector2.Angle(leftHit.normal, tf.up);
 
-            //pick the larger angle that is still within bounds
+            // Pick the larger angle that is still within bounds
             bool rightGreater = rightAngle > leftAngle && rightAngle < maxWalkSlope || leftAngle > maxWalkSlope;
             groundNormal = rightGreater && rightHit ? rightHit.normal :
                                (leftHit ? leftHit.normal : (Vector2) tf.up);
@@ -290,22 +339,26 @@ public class HumanoidMovement : MovementAbstract {
 
             wasGrounded = grounded;
             grounded = (rightHit || leftHit) && walkSlope < maxWalkSlope;
-        } else { //Rolling
+        } else { // Rolling
+            // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
+            // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
             RaycastHit2D rollHit = Physics2D.Raycast(tf.position, -tf.up, rollingGroundCheckDistance, whatIsGround);
             groundNormal = rollHit ? rollHit.normal : (Vector2) tf.up;
             walkSlope = Vector2.Angle(rollHit.normal, tf.up);
             wasGrounded = grounded;
             grounded = rollHit && walkSlope < maxWalkSlope;
         }
+        // Set this so the animator can play or transition to/from the appropriate animations
         anim.SetBool(_groundedAnim, grounded);
-        if(wasGrounded && !grounded && !_jumpStarted) {
-            _falling = true;
-        }
+        // If the character was grounded and isn't anymore, but they didn't jump, then they must have walked off a ledge or something
+        if(wasGrounded && !grounded && !_jumpStarted) _falling = true;
         if(_falling && !_rolling) {
+            // If they are falling for long enough (but not still rolling), set the fall animation
             _fallDuration += Time.fixedDeltaTime;
-            if(_fallDuration > 0.15f) anim.SetBool(_fallingAnim, true); //falling without jumping
+            if(_fallDuration > 0.15f) anim.SetBool(_fallingAnim, true); // falling without jumping
         }
         if(grounded) {
+            // Reset all of those things when they aren't falling
             _fallDuration = 0;
             _falling = false;
             anim.SetBool(_fallingAnim, false);
@@ -327,64 +380,78 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Handles character walking and running </summary>
-    /// <param name="move">Walking input</param>
+    /// <param name="moveIn">Walking input</param>
     /// <param name="movePressed">Whether walking input is pressed</param>
     /// <param name="sprint"> Whether sprint input is pressed </param>
-    private void Move(float move, bool movePressed, bool sprint) {
+    private void Move(float moveIn, bool movePressed, bool sprint) {
+        //Calculate the tangent to the ground so that the player can walk smoothly up and down slopes
         Vector2 tangent = grounded ? Vector3.Cross(groundNormal, Vector3.forward) : tf.right;
-        float velForward = Vector2.Dot(rb.velocity, tf.right); //Use this so that running down slopes is faster
-        float velTangent = Vector2.Dot(rb.velocity, tangent); //And use this so that the animation looks right
+        float velForward = Vector2.Dot(rb.velocity, tf.right); // Use this so that running down slopes is faster
+        float velTangent = Vector2.Dot(rb.velocity, tangent); // And use this so that the animation looks right
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.blue);
 #endif
-        float slopeReducer = Mathf.Lerp(1, .7f, walkSlope / maxWalkSlope); //reduce speed as slopes increase
-        moveVec = slopeReducer * rb.mass * tangent * _acceleration * move * Time.fixedDeltaTime;
+        float slopeReducer = Mathf.Lerp(1, .7f, walkSlope / maxWalkSlope); // reduce speed as slopes increase
+        moveVec = slopeReducer * rb.mass * tangent * _acceleration * moveIn * Time.fixedDeltaTime;
 
-        Action<float> kick = force => { //If pressing walk from standstill, gives a kick so walking is more responsive
-            if(move > 0 && velForward < _maxSpeed / 3) rb.AddForce(rb.mass * tangent * force * 30 * slopeReducer);
-            else if(move < 0 && velForward > -_maxSpeed / 3) rb.AddForce(rb.mass * tangent * -force * 30 * slopeReducer);
+        Action<float> addKick = force => { // If walking from standstill, gives a kick so walking is more responsive
+            //TODO C# 7 use local function
+            Vector2 kickAdd = rb.mass * tangent * force * 30 * slopeReducer;
+            if(moveIn > 0 && velForward < _maxSpeed / 3) rb.AddForce(kickAdd);
+            else if(moveIn < 0 && velForward > -_maxSpeed / 3) rb.AddForce(-kickAdd);
         };
+
+        // checks if intention is not same direction as motion
+        bool moveDirIsNotVelDir = Math.Sign(moveIn) != Math.Sign(velForward);
 
         if(grounded) {
             float sprintAmt = sprint ? _sprintSpeed : 1;
-            moveVec *= sprintAmt;
+            moveVec *= sprintAmt; // We do this here because we don't want them to be able to start sprinting in mid-air
 
-            //Set animation params
+            // Set animation params
             _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ? Mathf.Abs(velTangent) / _maxSpeed / 2
                               : Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
-            _walkSprint = (_walkSprint + Mathf.Abs(move / 2 * _sprintSpeed * slopeReducer)) / 2; //avg it with intention
-            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime)); //avg it out for smoothing
-//            _anim.SetFloat("Speed", Mathf.Abs(move / 2 * _sprintSpeed));
+            // avg it with player intention
+            _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * _sprintSpeed * slopeReducer)) / 2;
+            // avg it for smoothing
+            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, 1f, Time.fixedDeltaTime));
 
-            if(movePressed && Mathf.Abs(velForward) < _maxSpeed * sprintAmt) {
+            //Check that the character wants to walk, but isn't walking too fast
+            if(movePressed && (Mathf.Abs(velForward) < _maxSpeed * sprintAmt || moveDirIsNotVelDir)) {
                 rb.AddForce(moveVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
+                    // zero out friction so that movement is smooth
                     _footFrictionMat.friction = 0;
                     _frictionZero = true;
                 }
             } else {
                 if(_frictionZero) {
+                    // reset friction to normal
                     _footFrictionMat.friction = 1;
                     _frictionZero = false;
                 }
+                // and slow the character down so that movement isn't all slidey
                 rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
             }
 
-            kick(_kick);
+            addKick(_kick);
 
-            if(move > 0 && !facingRight || move < 0 && facingRight) Flip();
-        } else { //Not grounded
-            //Make sure the character isn't trying to move into a wall or something, since otherwise they'll stick to it
+            if(moveIn > 0 && !facingRight || moveIn < 0 && facingRight) Flip();
+        } else { // Not grounded
+            // Here we switch to air contol mode.
+            // First, make sure the character isn't trying to move into a wall or something, since otherwise they'll stick to it
             if(!_isTouching) {
+                // If they aren't let them control their movement some
                 moveVec *= _airControl;
-                kick(_kickAir);
-                if(movePressed && (move > 0 && velForward < _maxSpeed || move < 0 && velForward > -_maxSpeed)) {
+                addKick(_kickAir);
+                if(movePressed && (moveIn > 0 && velForward < _maxSpeed || moveIn < 0 && velForward > -_maxSpeed)) {
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
             }
-            if(!movePressed || Math.Abs(Mathf.Sign(move) - Mathf.Sign(velForward)) > 0.5f)
+            // If they aren't holding move in the direction of motion, slow them down a little
+            if(!movePressed || moveDirIsNotVelDir)
                 rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
-            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(0, 1));
+            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(0, 1)); //TODO not used while in midair yet
         }
     }
 
@@ -396,76 +463,86 @@ public class HumanoidMovement : MovementAbstract {
         if(_allowJumpingInMidair) grounded = true;
 #endif
         if(_rolling && grounded && jump) {
+            // If rolling and press jump, set this so that character can jump at a good point in the roll
             _wantsToRollJump = true;
-        } else if(grounded && jump && !_jumpStarted) {
+        } else if((grounded || rollJump) && jump && !_jumpStarted) {
+            // Initialize the jump
             _jumpFuelLeft = _jumpFuel;
-            _jumpStarted = true;
+            _jumpStarted = true; //This ensures we don't repeat this step a bunch of times per jump
             rb.velocity += (Vector2) tf.up * _jumpSpeed;
             anim.SetTrigger(rollJump ? _rollJumpAnim : _jumpAnim);
         } else if(jump && _jumpFuelLeft > 0) {
+            // Make the character rise higher the longer they hold jump
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
             rb.AddForce(tf.up * rb.mass * _jumpFuelForce, ForceMode2D.Force);
             float grav = Mathf.Lerp(0.0f, 1, (_jumpFuel - _jumpFuelLeft) / _jumpFuel);
             rb.gravityScale = grav;
         } else {
+            //But as soon as they release jump, let gravity take over
             rb.gravityScale = 1f;
             _jumpFuelLeft = 0;
         }
 
+        // If landed, allow jumping again
         if(grounded && !jump) _jumpStarted = false;
-        if(!grounded) anim.SetFloat(_vSpeedAnim, rb.velocity.y / 8); //Set the vertical animation for moving up/down through the air
+
+        // Set the vertical animation for moving up/down through the air
+        if(!grounded) anim.SetFloat(_vSpeedAnim, rb.velocity.y / 8);
     }
 
     /// <summary> Handles character crouching </summary>
-    /// <param name="crouching">Is down input pressed</param>
-    private void Crouch(bool crouching) {
-        bool wasStanding = !_crouching;
-        _crouching = grounded && crouching && _walkSprint < .65f;
-        anim.SetBool(_crouchingAnim, _crouching);
+    /// <param name="crouch">Is down input pressed</param>
+    private void Crouch(bool crouch) {
+        bool wasStanding = !_crouching; // Used to check if we should actually just roll
+        _crouching = crouch && grounded && _walkSprint < .65f; // Crouch, unless sprinting
 
-        bool rollStart = !_rolling && wasStanding && _crouching && _walkSprint > .01f;
-        anim.SetBool(_rollAnim, rollStart);
-        Roll(rollStart);
+        // If the character initiates a roll beyond a certain speed, make them roll instead
+        if(!_rolling && wasStanding && _crouching && _walkSprint > .1f)
+            Roll(true);
+        else {
+            // otherwise, set the animator
+            anim.SetBool(_crouchingAnim, _crouching);
+            // and deal with rolling if that's still happening
+            Roll(false);
+        }
     }
 
     /// <summary> Handles character rolling </summary>
     /// <param name="rollStart"> Should we start rolling? </param>
     private void Roll(bool rollStart) {
         if(rollStart) {
+            // Start the roll and set the direction
             _rolling = true;
+            anim.SetBool(_rollAnim, true);
             _rollDir = Mathf.Sign(control.moveHorizontal);
         } else if(_rolling) {
+            // Continue the roll and check if it should end, or if the character should RollJump
+            _rollingTime += Time.fixedDeltaTime;
             Move(_rollDir, true, false);
             if(!grounded) RollJump();
-            if(!(anim.IsPlaying(RollStateTag) || anim.IsInTransition(0))) RollEnd();
+            if(!anim.IsPlaying(RollStateTag) && _rollingTime > 0.5f) RollEnd();
         }
     }
 
-    /// <summary> Used by animation event to signal end of roll </summary>
-    private void RollEnd() { _rolling = false; }
+    /// <summary> Used to end roll </summary>
+    private void RollEnd() {
+        _rolling = false;
+        anim.SetBool(_rollAnim, false);
+        _rollingTime = 0;
+    }
 
-    /// <summary> Used to signal good point to jump </summary>
+    /// <summary> Used to jump once good point has been reached in a roll </summary>
     private void RollJump() {
         if(!_wantsToRollJump) return;
         _wantsToRollJump = false;
-        _rolling = false;
-        grounded = true;
+        RollEnd();
         Jump(true, true);
-    }
-
-
-    ///<summary> Flip the character around the y axis </summary>
-    private void Flip() {
-        facingRight = !facingRight; //Switch the way the character is labelled as facing.
-
-        //Multiply the character's x local scale by -1.
-        tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
     }
 
     // ReSharper disable once UnusedParameter.Local
     private void OnCollisionEnter2D(Collision2D collInfo) {
         _isTouching = true;
-        if(!_grabbing) UpdateGrab(collInfo.GetContact(0));
+//        if(!_grabbing) UpdateGrab(collInfo.GetContact(0));
 //        print(collInfo.collider + "    :::   " + Time.time);
     }
 

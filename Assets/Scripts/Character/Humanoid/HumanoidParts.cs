@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Anima2D;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.U2D.IK;
 
 public class HumanoidParts : PartsAbstract {
     //A container for all the human part gameobjects so they don't have to be reassigned in a bunch of different scripts
@@ -17,6 +18,8 @@ public class HumanoidParts : PartsAbstract {
     public GameObject upperArmLTarget, lowerArmLTarget, handLTarget;
     public GameObject thighRTarget, shinRTarget, footRTarget;
     public GameObject thighLTarget, shinLTarget, footLTarget;
+
+    public LimbSolver2D armRIK, armLIK;
 
     protected internal override void AddPartsToLists() {
         List<GameObject> partsTemp = new List<GameObject>();
