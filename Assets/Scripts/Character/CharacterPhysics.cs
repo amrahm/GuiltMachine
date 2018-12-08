@@ -6,6 +6,7 @@ using Anima2D;
 using ExtensionMethods;
 using UnityEditor;
 using UnityEngine;
+using static UnityEngine.Physics2D;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [ExecuteInEditMode]
@@ -94,6 +95,7 @@ public class CharacterPhysics : MonoBehaviour {
     private Coroutine _actuallySuppressPhysics;
 
     private IEnumerator ActuallySuppressPhysics() {
+        //TODO lol
         yield return null;
     }
 
@@ -135,13 +137,13 @@ public class CharacterPhysics : MonoBehaviour {
     private void CrouchRotation() {
         if(_crouchAmount < 0.1f && _crouchPlus < 0.1f) return;
 
-        _crouchAmount = _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed, 1, Time.fixedDeltaTime); //Quickly move towards crouchAmount
+        _crouchAmount = _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed, Time.fixedDeltaTime, 1); //Quickly move towards crouchAmount
 
         //Bend all the bendy parts
         for(int i = 0; i < _nonLegBendParts.Length; i++)
             _nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * _nonLegBendAmounts[i], Space.Self);
 
-        _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, 1, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
+        _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, Time.fixedDeltaTime, 1); //Over time, reduce the crouch from impact
     }
 
     [Serializable]
@@ -344,13 +346,13 @@ public class CharacterPhysics : MonoBehaviour {
                     }
 
                     if(delta - _prevFootDelta > steppingThreshold) {
-                        RaycastHit2D heightHit = Physics2D.Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
-                        RaycastHit2D maxHeightHit = Physics2D.Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp._movement.whatIsGround);
+                        RaycastHit2D heightHit = Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
+                        RaycastHit2D maxHeightHit = Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp._movement.whatIsGround);
                         if(heightHit.collider != null && maxHeightHit.collider == null) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
-                            RaycastHit2D topHit = Physics2D.Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
+                            RaycastHit2D topHit = Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
 
                             if(topHit.collider != null)
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
@@ -387,8 +389,8 @@ public class CharacterPhysics : MonoBehaviour {
             }
 
 
-            _stepCrouchAmount = _stepCrouchAmount.SharpInDamp(_stepCrouchAnglePlus + _stepCrouchHeightPlus, _pp.crouchSpeed, 1, Time.fixedDeltaTime);
-            _footRotateAmount = _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, 1, Time.fixedDeltaTime);
+            _stepCrouchAmount = _stepCrouchAmount.SharpInDamp(_stepCrouchAnglePlus + _stepCrouchHeightPlus, _pp.crouchSpeed, Time.fixedDeltaTime, 1);
+            _footRotateAmount = _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, Time.fixedDeltaTime, 1);
 
             //Bend all the bendy parts
             for(int i = 0; i < bendParts.Length; i++)
@@ -461,7 +463,7 @@ public class CharacterPhysics : MonoBehaviour {
             bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2, Space.Self);
 
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
-            _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, 0.02f, Time.fixedDeltaTime); //and return the body part back to rest
+            _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, Time.fixedDeltaTime, 0.02f); //and return the body part back to rest
 
             _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
         }

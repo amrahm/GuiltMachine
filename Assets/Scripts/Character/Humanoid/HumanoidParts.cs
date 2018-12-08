@@ -19,7 +19,7 @@ public class HumanoidParts : PartsAbstract {
     public GameObject thighRTarget, shinRTarget, footRTarget;
     public GameObject thighLTarget, shinLTarget, footLTarget;
 
-    public LimbSolver2D armRIK, armLIK;
+    public Solver2D armRIK, armLIK, headIK;
 
     protected internal override void AddPartsToLists() {
         List<GameObject> partsTemp = new List<GameObject>();
