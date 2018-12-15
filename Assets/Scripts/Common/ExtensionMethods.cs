@@ -245,4 +245,10 @@ namespace ExtensionMethods {
             return solver.GetChain(chainIndex).target;
         }
     }
+
+    public static class RaycastHit2DExtensions {
+        public static bool Hit(this RaycastHit2D raycast) {
+            return raycast.collider != null;
+        }
+    }
 }

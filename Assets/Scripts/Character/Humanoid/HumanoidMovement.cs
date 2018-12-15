@@ -91,10 +91,13 @@ public class HumanoidMovement : MovementAbstract {
     [Tooltip("How wide a radius vertically needs to be clear to initiate a grab")]
     public float grabCheckRadiusV = 0.3f;
 
+    [Tooltip("How far vertically beyond the grab point needs to be clear to initiate a grab")]
+    public float grabCheckDistanceV = 0.1f;
+
     [Tooltip("How wide a radius horizontally needs to be clear to initiate a grab")]
     public float grabCheckRadiusH = 0.4f;
 
-    [Tooltip("How far horizontally beyond the radius needs to be clear to initiate a grab")]
+    [Tooltip("How far horizontally beyond the grab point needs to be clear to initiate a grab")]
     public float grabCheckDistanceH = 0.1f;
 
 
@@ -254,7 +257,7 @@ public class HumanoidMovement : MovementAbstract {
         } else if(Mathf.Abs(rb.velocity.y) < grabMaxVelocityThreshold) {
             _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = 1;
             RaycastHit2D sideCheck = Raycast(_parts.footR.transform.position, right, grabDistance, whatIsGround);
-            if(!sideCheck)
+            if(!sideCheck.Hit())
                 Debug.DrawRay(_parts.footR.transform.position, right * grabDistance, Color.cyan);
 
             float distFromWall = sideCheck ? Vector2.Distance(_parts.footR.transform.position, sideCheck.point) : 0.5f;
@@ -279,41 +282,38 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Update whether or not this character can grab a platform </summary>
-    private void GrabSetPoint(ContactPoint2D contact) {
+    private void GrabSetPoint(Vector2 hitNormal, Vector2 hitPoint) {
         if(_grabbing) return;
         //Ensure character isn't grabbing and is in mid-air or about to be, and is trying to move into the hit platform
         if(_grabbing || grounded && !_jumpStarted ||
-           Vector2.Dot(control.moveHorizontal * contact.normal, tf.right) > -0.1f) return;
-        print($"It is {Time.time} my dudes, and the dot product was {Vector2.Dot(control.moveHorizontal * contact.normal, tf.right)}");
+           Vector2.Dot(control.moveHorizontal * hitNormal, tf.right) > -0.1f) return;
 
         Vector2 right = facingRight ? tf.right : -tf.right;
-        Vector2 midPoint = tf.TransformPoint(new Vector2(0, tf.InverseTransformPoint(contact.point).y + GrabAdd));
+        Vector2 midPoint = tf.TransformPoint(new Vector2(0, tf.InverseTransformPoint(hitPoint).y + GrabAdd));
         RaycastHit2D grabMid = Raycast(midPoint, right, grabDistance, whatIsGround);
 #if UNITY_EDITOR
         if(_visualizeDebug) Debug.DrawRay(midPoint, right * grabDistance, Color.magenta);
 #endif
 
         // First check for mid, first at the point of contact, and if that's null, then the normal mid check
-        if(grabMid || (grabMid = Raycast(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)), right,
-                                         grabDistance, whatIsGround))) {
+        if(grabMid.Hit() || (grabMid = Raycast(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)), right,
+                                               grabDistance, whatIsGround)).Hit()) {
             Vector2 downOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
             RaycastHit2D down = Raycast(downOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
-            bool grabIsClear = GrabCheckIfIsClear(midPoint, grabMid, down, right);
-            if(grabIsClear && down) GrabBegin(down.point, right);
+            if(down.Hit() && GrabCheckIfClear(down.point, right)) GrabBegin(down.point, right);
             return;
         }
 
         // If mid fails, check for down.
-//        Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset));
-//        RaycastHit2D grabDown = Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
-//        if(grabDown) {
-//            Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
-//            grabMid = Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
-//            bool grabIsClear = GrabCheckIfIsClear(midPoint, grabMid, grabDown, right);
-//            bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
-//            if(grabIsClear && pointNotInGround && grabMid)
-//                GrabBegin(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd, right);
-//        }
+        Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset));
+        RaycastHit2D grabDown = Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
+        if(grabDown.Hit()) {
+            Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
+            grabMid = Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
+            bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
+            if(pointNotInGround && grabMid.Hit() && GrabCheckIfClear(midPoint, right))
+                GrabBegin(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd, right);
+        }
     }
 
     /// <summary> Used to set end of grab </summary>
@@ -371,25 +371,31 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Checks if its clear to grab by circlecasting up and to the side </summary>
-    private bool GrabCheckIfIsClear(Vector2 upCheckStart, RaycastHit2D grabMid, RaycastHit2D grabDown, Vector2 right) {
-        upCheckStart += right * (grabMid.distance - grabCheckRadiusV);
-        float upCheckDist = grabTopOffset - grabDown.distance + grabCheckRadiusV;
+    private bool GrabCheckIfClear(Vector2 grabPoint, Vector2 right) {
+        Vector2 grabPointLocal = tf.InverseTransformPoint(grabPoint);
+        Vector2 upCheckStart = tf.TransformPoint(new Vector2(grabPointLocal.x - GrabAdd * 2 - grabCheckRadiusV, 0));
+        float upCheckDist = grabPointLocal.y + grabCheckDistanceV;
         RaycastHit2D upCheck = CircleCast(upCheckStart, grabCheckRadiusV, tf.up, upCheckDist, whatIsGround);
-        Vector2 sideCheckStart = upCheckStart + right * GrabAdd +
-                                 (Vector2) tf.up * (grabTopOffset - grabDown.distance + GrabAdd + grabCheckRadiusH);
-        Vector2 sideCheckSize = new Vector2(GrabAdd, grabCheckRadiusH);
-        RaycastHit2D sideCheck = CapsuleCast(sideCheckStart, sideCheckSize, CapsuleDirection2D.Vertical,
-                                             Vector2.SignedAngle(Vector2.up, tf.up), right, grabCheckDistanceH,
-                                             whatIsGround);
+        Vector2 sideCheckStart = tf.TransformPoint(new Vector2(0, grabPointLocal.y + GrabAdd + grabCheckRadiusH));
+        float sideCheckDist = grabPointLocal.x + grabCheckDistanceH;
+        RaycastHit2D sideCheck = Raycast(sideCheckStart, right, sideCheckDist, whatIsGround);
+        Vector2 upRadH = (Vector2) tf.up * grabCheckRadiusH;
+        if(!sideCheck.Hit())
+            sideCheck = Raycast(sideCheckStart + upRadH, right, sideCheckDist,whatIsGround);
+        if(!sideCheck.Hit())
+            sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist,whatIsGround);
         //TODO if upCheck clear and side check not, we might still be able to pull up with a (different?) animation,
         //TODO or we can hang on the ledge, based on how far until horizontal check hits
 #if UNITY_EDITOR
         if(_visualizeDebug) {
             Debug.DrawRay(upCheckStart, tf.up * upCheckDist, Color.red);
-            Debug.DrawRay(sideCheckStart, right * grabCheckDistanceH, Color.red);
+            Debug.DrawRay(sideCheckStart, right * sideCheckDist, Color.red);
+            Debug.DrawRay(sideCheckStart + upRadH, right * sideCheckDist, Color.red);
+            Debug.DrawRay(sideCheckStart - upRadH, right * sideCheckDist, Color.red);
         }
 #endif
-        return !upCheck && !sideCheck;
+        print($"{upCheck.collider}   :   {sideCheck.collider}");
+        return !upCheck.Hit() && !sideCheck.Hit();
     }
 
     /// <summary> Update whether or not this character is touching the ground </summary>
@@ -403,12 +409,12 @@ public class HumanoidMovement : MovementAbstract {
              * walkSlope is set to the chosen angle, and is used in the Move(...) method. */
             RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up,
                                             groundCheckDistance, whatIsGround);
-            if(!rightHit)
+            if(rightHit.Hit())
                 rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up,
                                    groundCheckDistance, whatIsGround);
             RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up,
                                            groundCheckDistance, whatIsGround);
-            if(!leftHit)
+            if(leftHit.Hit())
                 leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up,
                                   groundCheckDistance, whatIsGround);
             float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
@@ -420,15 +426,15 @@ public class HumanoidMovement : MovementAbstract {
             walkSlope = rightGreater ? rightAngle : leftAngle;
 
             wasGrounded = grounded;
-            grounded = (rightHit || leftHit) && walkSlope < maxWalkSlope;
+            grounded = (rightHit.Hit() || leftHit.Hit()) && walkSlope < maxWalkSlope;
         } else { // Rolling
             // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
             // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
             RaycastHit2D rollHit = Raycast(tf.position, -tf.up, rollingGroundCheckDistance, whatIsGround);
-            groundNormal = rollHit ? rollHit.normal : (Vector2) tf.up;
+            groundNormal = rollHit.collider != null ? rollHit.normal : (Vector2) tf.up;
             walkSlope = Vector2.Angle(rollHit.normal, tf.up);
             wasGrounded = grounded;
-            grounded = rollHit && walkSlope < maxWalkSlope;
+            grounded = rollHit.Hit() && walkSlope < maxWalkSlope;
         }
         // Set this so the animator can play or transition to/from the appropriate animations
         anim.SetBool(_groundedAnim, grounded);
@@ -621,7 +627,7 @@ public class HumanoidMovement : MovementAbstract {
     // ReSharper disable once UnusedParameter.Local
     private void OnCollisionEnter2D(Collision2D collInfo) {
         _isTouching = true;
-        if(!_grabbing) GrabSetPoint(collInfo.GetContact(0));
+        if(!_grabbing) GrabSetPoint(collInfo.GetContact(0).normal, collInfo.GetContact(0).point);
 //        print(collInfo.collider + "    :::   " + Time.time);
     }
 

@@ -348,13 +348,13 @@ public class CharacterPhysics : MonoBehaviour {
                     if(delta - _prevFootDelta > steppingThreshold) {
                         RaycastHit2D heightHit = Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
                         RaycastHit2D maxHeightHit = Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp._movement.whatIsGround);
-                        if(heightHit.collider != null && maxHeightHit.collider == null) {
+                        if(heightHit.Hit() && !maxHeightHit.Hit()) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
                             RaycastHit2D topHit = Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
 
-                            if(topHit.collider != null)
+                            if(topHit.Hit())
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
 
 #if UNITY_EDITOR
@@ -503,10 +503,12 @@ public class CharacterPhysics : MonoBehaviour {
 
 #if UNITY_EDITOR || DEBUG
     private void Update() {
+#if UNITY_EDITOR
         if(EditorApplication.isPlaying) {
             if(animationMode) Debug.LogError($"Animation mode is still on for gameObject {gameObject.name}");
             return;
         }
+#endif
         _parts = GetComponent<PartsAbstract>();
         _parts.AddPartsToLists();
         if(!_wasAnimationMode && animationMode) SwapPartsWithTargets(_parts.parts, _parts.targets);
