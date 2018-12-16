@@ -589,7 +589,8 @@ namespace Light2D {
                 _oldPos = _currPos;
 
                 ambientLightComputeMaterial.SetTexture("_LightSourcesTex", _ambientEmissionTexture);
-                ambientLightComputeMaterial.SetTexture("_MainTex", _prevAmbientTexture);
+                if(_prevAmbientTexture.IsCreated())
+                    ambientLightComputeMaterial.SetTexture("_MainTex", _prevAmbientTexture);
                 ambientLightComputeMaterial.SetVector("_Shift", posShift);
 
                 _ambientTexture.DiscardContents();
