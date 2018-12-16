@@ -13,7 +13,7 @@ using static UnityEngine.Physics2D;
 public class CharacterPhysics : MonoBehaviour {
     #region Variables
 
-#if UNITY_EDITOR || DEBUG
+#if UNITY_EDITOR
     [Tooltip("Enable this while animating. Should be disabled before entering play mode or building the game.")]
     public bool animationMode;
 
@@ -501,14 +501,12 @@ public class CharacterPhysics : MonoBehaviour {
 
     #region SetAnimationMode
 
-#if UNITY_EDITOR || DEBUG
-    private void Update() {
 #if UNITY_EDITOR
+    private void Update() {
         if(EditorApplication.isPlaying) {
             if(animationMode) Debug.LogError($"Animation mode is still on for gameObject {gameObject.name}");
             return;
         }
-#endif
         _parts = GetComponent<PartsAbstract>();
         _parts.AddPartsToLists();
         if(!_wasAnimationMode && animationMode) SwapPartsWithTargets(_parts.parts, _parts.targets);
