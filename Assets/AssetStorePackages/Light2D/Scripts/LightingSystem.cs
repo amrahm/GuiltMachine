@@ -9,7 +9,6 @@ namespace Light2D {
     ///     Handles lighting operation like camera setup, shader setup, merging cameras output together, blurring and some
     ///     others.
     /// </summary>
-    [ExecuteInEditMode]
     [RequireComponent(typeof(Camera))]
     public class LightingSystem : MonoBehaviour {
         /// <summary>
