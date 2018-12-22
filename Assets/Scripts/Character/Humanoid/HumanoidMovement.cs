@@ -394,7 +394,6 @@ public class HumanoidMovement : MovementAbstract {
             Debug.DrawRay(sideCheckStart - upRadH, right * sideCheckDist, Color.red);
         }
 #endif
-        print($"{upCheck.collider}   :   {sideCheck.collider}");
         return !upCheck.Hit() && !sideCheck.Hit();
     }
 
@@ -409,12 +408,12 @@ public class HumanoidMovement : MovementAbstract {
              * walkSlope is set to the chosen angle, and is used in the Move(...) method. */
             RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up,
                                             groundCheckDistance, whatIsGround);
-            if(rightHit.Hit())
+            if(!rightHit.Hit())
                 rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up,
                                    groundCheckDistance, whatIsGround);
             RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up,
                                            groundCheckDistance, whatIsGround);
-            if(leftHit.Hit())
+            if(!leftHit.Hit())
                 leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up,
                                   groundCheckDistance, whatIsGround);
             float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
