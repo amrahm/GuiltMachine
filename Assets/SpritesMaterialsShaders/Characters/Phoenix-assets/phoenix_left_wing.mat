@@ -5,14 +5,15 @@ Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: phoenix_left_wing
   m_Shader: {fileID: 4800000, guid: 9d58f1925e9d5d3439405182c37b9645, type: 3}
   m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHABLEND_ON _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2450
+  m_CustomRenderQueue: 3000
   stringTagMap:
     AlphaDepth: true
     IGNOREPROJECTOR: true
@@ -90,7 +91,7 @@ Material:
     - _Mode: 2
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _RenderQueue: 2450
+    - _RenderQueue: 3000
     - _RimPower: 2
     - _Saturation: 1
     - _ShadowAlphaCutoff: 0.1
