@@ -81,12 +81,12 @@ SubShader {
 				half4 ambientLight = tex2D(_AmbientLightTex, i.texcoordAmbient);
 				half4 lightSources = tex2D(_LightSourcesTex, i.texcoordLight)*_LightSourcesMul;
 				half4 light = ambientLight + lightSources;
-				
-				half3 bloom = (game.rgb + _AdditiveLightAdd)*pow(light.rgb, _AdditiveLightPow)*step(0.005, _AdditiveLightPow);
 
-                half3 add = game.rgb*light.rgb*_LightMul + bloom;
-                float prop = (add.r + add.g + add.b)/(game.rgb.r + game.rgb.g + game.rgb.b + add.r + add.g + add.b);
-				return half4((game.rgb * (1 - prop) + (game.rgb/2 + add) * prop)/2, game.a);
+                half3 add = game.rgb / 2 + game.rgb * light.rgb * _LightMul;
+                half3 bloom = (light.rgb + _AdditiveLightAdd)*pow(game.rgb, _AdditiveLightPow)*step(0.005, _AdditiveLightPow);
+                float addSum = add.r + add.g + add.b;
+                float prop = addSum / (game.rgb.r + game.rgb.g + game.rgb.b + addSum);
+                return half4((game.rgb * (1 - prop) + add * prop)/2 + bloom, game.a);
 			}
 		ENDCG
 	}

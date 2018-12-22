@@ -40,8 +40,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _AdditiveLightAdd: 0.45
-    - _AdditiveLightPow: 2
+    - _AdditiveLightAdd: 0
+    - _AdditiveLightPow: 0.8
     - _LightMul: 10
     - _LightPow: 2
     - _LightSourcesMul: 1.27
