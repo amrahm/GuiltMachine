@@ -61,7 +61,7 @@ public abstract class MovementAbstract : MonoBehaviour {
         //Multiply the player's x local scale by -1.
         tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
         // Fix the status indicator to always face the proper direction regardless of phoenix orientation
-        Transform statusTf = master.statusIndicator?.gameObject.transform;
+        Transform statusTf = master?.statusIndicator?.gameObject.transform;
         if(statusTf != null) statusTf.localScale = new Vector3(-statusTf.localScale.x, statusTf.localScale.y, statusTf.localScale.z);
     }
 }
