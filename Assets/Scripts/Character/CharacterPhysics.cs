@@ -137,13 +137,13 @@ public class CharacterPhysics : MonoBehaviour {
     private void CrouchRotation() {
         if(_crouchAmount < 0.1f && _crouchPlus < 0.1f) return;
 
-        _crouchAmount = _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed, Time.fixedDeltaTime, 1); //Quickly move towards crouchAmount
+        _crouchAmount = _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed, Time.fixedDeltaTime); //Quickly move towards crouchAmount
 
         //Bend all the bendy parts
         for(int i = 0; i < _nonLegBendParts.Length; i++)
             _nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * _nonLegBendAmounts[i], Space.Self);
 
-        _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, Time.fixedDeltaTime, 1); //Over time, reduce the crouch from impact
+        _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
     }
 
     [Serializable]
@@ -389,8 +389,8 @@ public class CharacterPhysics : MonoBehaviour {
             }
 
 
-            _stepCrouchAmount = _stepCrouchAmount.SharpInDamp(_stepCrouchAnglePlus + _stepCrouchHeightPlus, _pp.crouchSpeed, Time.fixedDeltaTime, 1);
-            _footRotateAmount = _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, Time.fixedDeltaTime, 1);
+            _stepCrouchAmount = _stepCrouchAmount.SharpInDamp(_stepCrouchAnglePlus + _stepCrouchHeightPlus, _pp.crouchSpeed, Time.fixedDeltaTime);
+            _footRotateAmount = _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, Time.fixedDeltaTime);
 
             //Bend all the bendy parts
             for(int i = 0; i < bendParts.Length; i++)
@@ -455,7 +455,7 @@ public class CharacterPhysics : MonoBehaviour {
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
         internal void HitRotation() {
-            if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation(); //TODO remove the if statement
+            if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation(); //TODO remove the second half of if statement
             if(!_shouldHitRot) return;
 
             _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Anima2D;
 using UnityEditor;
 using UnityEngine;
@@ -19,26 +18,26 @@ public class PhoenixParts : PartsAbstract {
         List<GameObject> partsTemp = new List<GameObject>();
         List<GameObject> targetsTemp = new List<GameObject>();
 
-        Action<GameObject, GameObject> addToLists = (part, target) => {
+        void AddToLists(GameObject part, GameObject target) {
             partsTemp.Add(part);
             targetsTemp.Add(target);
 #if UNITY_EDITOR
-            if(EditorApplication.isPlaying)
+            if(EditorApplication.isPlaying) // Needed because this is called in edit mode from CharacterPhysics
 #endif
-                Destroy(target.GetComponent<Bone2D>()); //We don't actually need these anymore
-        };
+                Destroy(target.GetComponent<Bone2D>()); // We don't actually need these anymore
+        }
 
-        addToLists(hips, hipsTarget);
-        addToLists(torso, torsoTarget);
-        addToLists(head, headTarget);
-        addToLists(wingR, wingRTarget);
-        addToLists(forearmR, forearmRTarget);
-        addToLists(wingL, wingLTarget);
-        addToLists(forearmL, forearmLTarget);
-        addToLists(tailMain, tailMainTarget);
-        addToLists(tailTop, tailTopTarget);
-        addToLists(tailMid, tailMidTarget);
-        addToLists(tailBottom, tailBottomTarget);
+        AddToLists(hips, hipsTarget);
+        AddToLists(torso, torsoTarget);
+        AddToLists(head, headTarget);
+        AddToLists(wingR, wingRTarget);
+        AddToLists(forearmR, forearmRTarget);
+        AddToLists(wingL, wingLTarget);
+        AddToLists(forearmL, forearmLTarget);
+        AddToLists(tailMain, tailMainTarget);
+        AddToLists(tailTop, tailTopTarget);
+        AddToLists(tailMid, tailMidTarget);
+        AddToLists(tailBottom, tailBottomTarget);
 
         parts = partsTemp.ToArray();
         targets = targetsTemp.ToArray();

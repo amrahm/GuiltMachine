@@ -104,8 +104,11 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
     private float _walkSprint;
 
-    /// <summary> Whether or not the character is currently _grabbing </summary>
+    /// <summary> Whether or not the character is currently grabbing </summary>
     private bool _grabbing;
+
+    /// <summary> Where the character is grabbing </summary>
+    private Vector3 _grabPoint;
 
     /// <summary> Distance out to do downward check </summary>
     private float _grabDownDist;
@@ -220,7 +223,17 @@ public class HumanoidMovement : MovementAbstract {
 
     private void FixedUpdate() {
         UpdateGrounded();
-        GrabHandle();
+
+#if UNITY_EDITOR
+        if(_visualizeDebug) {
+            Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)),
+                          (facingRight ? tf.right : -tf.right) * grabDistance);
+            Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
+                          -tf.up * (grabTopOffset - grabBottomOffset), Color.gray);
+            if(_grabbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
+        }
+#endif
+
         if(!_rolling) Move(control.moveHorizontal, control.hPressed, control.sprint);
         Jump(control.upPressed);
         Crouch(control.downPressed);
@@ -235,49 +248,63 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Handle if this character is grabbing a platform </summary>
-    private void GrabHandle() {
-        Vector2 right = facingRight ? tf.right : -tf.right;
-#if UNITY_EDITOR
-        if(_visualizeDebug) {
-            Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)), right * grabDistance);
-            Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
-                          -tf.up * (grabTopOffset - grabBottomOffset), Color.gray);
-            if(_grabbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
-        }
-#endif
-        if(!_grabbing) return;
+    private IEnumerator GrabHandle() {
+        Vector3 armRIKStart = _parts.armRIK.Target().position;
+        Vector3 armLIKStart = _parts.armLIK.Target().position;
+        while(_grabbing) {
+            print("GRABBIBG");
+            Vector3 right = facingRight ? tf.right : -tf.right;
 
-        const float grabMaxVelocityThreshold = 3f;
-        float dT = Time.fixedDeltaTime;
-        _timeBeenGrabbing += dT;
-        if(_timeBeenGrabbing < TimeToGrab) {
-            float ikWeight = Mathf.Lerp(0, 1, _timeBeenGrabbing / TimeToGrab);
-            _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = ikWeight;
-            rb.velocity = rb.velocity.SharpInDamp(Vector2.zero, 1, dT);
-        } else if(Mathf.Abs(rb.velocity.y) < grabMaxVelocityThreshold) {
-            _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = 1;
-            RaycastHit2D sideCheck = Raycast(_parts.footR.transform.position, right, grabDistance, whatIsGround);
-            if(!sideCheck.Hit())
-                Debug.DrawRay(_parts.footR.transform.position, right * grabDistance, Color.cyan);
 
-            float distFromWall = sideCheck ? Vector2.Distance(_parts.footR.transform.position, sideCheck.point) : 0.5f;
-            Vector2 keepAgainstWall = right * .01f * Mathf.Pow(distFromWall * 4, 2);
-            float hIn = control.moveHorizontal * (facingRight ? 1 : -1);
-            Vector2 climbControl = (Vector2) tf.up * 3 * dT * (hIn + control.moveVertical);
-            rb.MovePosition(rb.position + keepAgainstWall + climbControl);
+            const float grabMaxVelocityThreshold = 3f;
+            float dT = Time.fixedDeltaTime;
+            _timeBeenGrabbing += dT;
+            if(_timeBeenGrabbing < TimeToGrab) {
+                _parts.armRIK.Target().position = Vector3.Lerp(armRIKStart, _grabPoint, _timeBeenGrabbing / TimeToGrab);
+                _parts.armLIK.Target().position = Vector3.Lerp(armLIKStart, _grabPoint + right * GrabAdd,
+                                                               _timeBeenGrabbing / TimeToGrab);
 
-            anim.SetFloat(_climbAnimSpeed, hIn + control.moveVertical);
+                float ikWeight = Mathf.Lerp(0, 1, _timeBeenGrabbing / TimeToGrab);
+                _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = ikWeight;
 
-            Vector3 grabPoint = _parts.armRIK.Target().position;
-            float handIKErr = Vector2.Distance(grabPoint, _parts.handRTarget.transform.position);
-            Vector3 handIKMidPoint = (grabPoint + _parts.armLIK.Target().position) / 2;
-            Vector3 headIKPos = handIKMidPoint + tf.up * (1 - handIKErr);
-            _parts.headIK.Target().position = _parts.headIK.Target().position.SharpInDamp(headIKPos, 5, dT);
+                _parts.armRIK.Target().position = _parts.handR.transform.position;
+                _parts.armLIK.Target().position = _parts.handL.transform.position;
+                rb.velocity = rb.velocity.SharpInDamp(Vector2.zero, 1, dT);
+            } else if(Mathf.Abs(rb.velocity.y) < grabMaxVelocityThreshold) {
+                _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = 1;
+                RaycastHit2D sideCheck = Raycast(_parts.footR.transform.position, right, grabDistance, whatIsGround);
+                if(sideCheck.Hit())
+                    Debug.DrawRay(_parts.footR.transform.position, right * grabDistance, Color.cyan);
+                if(!sideCheck.Hit()) {
+                    sideCheck = Raycast(_parts.footL.transform.position, right, grabDistance, whatIsGround);
+                    Debug.DrawRay(_parts.footL.transform.position, right * grabDistance, Color.cyan);
+                }
+                print(sideCheck.Hit());
 
-            bool aboveLedge = !sideCheck || Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
-            if(aboveLedge || hIn < -0.2f) GrabRelease();
-        } else {
-            GrabRelease();
+                float distFromWall =
+                    sideCheck ? Vector2.Distance(_parts.footR.transform.position, sideCheck.point) : 0.5f;
+                Vector2 keepAgainstWall = right * .01f * Mathf.Pow(distFromWall * 4, 2);
+                float hIn = control.moveHorizontal * (facingRight ? 1 : -1);
+                Vector2 climbControl = (Vector2) tf.up * 3 * dT * Mathf.Min(hIn + control.moveVertical, 1f);
+                rb.MovePosition(rb.position + keepAgainstWall + climbControl);
+
+                anim.SetFloat(_climbAnimSpeed, hIn + control.moveVertical);
+
+                Vector3 grabPoint = _parts.armRIK.Target().position;
+                float handIKErr = Vector2.Distance(grabPoint, _parts.handRTarget.transform.position);
+                Vector3 handIKMidPoint = (grabPoint + _parts.armLIK.Target().position) / 2;
+                Vector3 headIKPos = handIKMidPoint + tf.up * (1 - handIKErr);
+                _parts.headIK.Target().position = _parts.headIK.Target().position.SharpInDamp(headIKPos, 5, dT);
+
+                bool aboveLedge = !sideCheck.Hit() || Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
+                if(aboveLedge || hIn < -0.2f) {
+                    print("REL1");
+                    GrabRelease();
+                }
+            } else {
+                GrabRelease();
+            }
+            yield return new WaitForFixedUpdate();
         }
     }
 
@@ -300,7 +327,7 @@ public class HumanoidMovement : MovementAbstract {
                                                grabDistance, whatIsGround)).Hit()) {
             Vector2 downOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
             RaycastHit2D down = Raycast(downOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
-            if(down.Hit() && GrabCheckIfClear(down.point, right)) GrabBegin(down.point, right);
+            if(down.Hit() && GrabCheckIfClear(down.point, right)) GrabBegin(down.point);
             return;
         }
 
@@ -312,7 +339,7 @@ public class HumanoidMovement : MovementAbstract {
             grabMid = Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
             bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
             if(pointNotInGround && grabMid.Hit() && GrabCheckIfClear(midPoint, right))
-                GrabBegin(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd, right);
+                GrabBegin(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd);
         }
     }
 
@@ -329,11 +356,36 @@ public class HumanoidMovement : MovementAbstract {
         anim.SetBool(_climbAnim, false);
         rb.gravityScale = 1f;
 
-        StartCoroutine(GrabReleaseHelper());
+        StartCoroutine(GrabIKReleaseHelper());
+        StartCoroutine(GrabPullUp());
+    }
+
+    /// <summary> Used to finish the grab by moving the character to on top of the ledge </summary>
+    private IEnumerator GrabPullUp() {
+        float timeBeenReleased = 0;
+        _parts.footR.GetComponent<Collider2D>().isTrigger = true;
+        _parts.footL.GetComponent<Collider2D>().isTrigger = true;
+
+        while(timeBeenReleased < .15f) {
+            //FIXME is this frame rate independent?
+            Vector3 climbControl = tf.up * 50 * (control.moveVertical + 0.5f);
+            rb.AddForce((facingRight ? tf.right : -tf.right) * 30 * rb.mass + climbControl);
+//            rb.AddForce(((facingRight ? tf.right : -tf.right) * 10 + tf.up * (grounded ? -30 : 30)) * rb.mass);
+            timeBeenReleased = Time.time - _timeSinceRelease;
+
+            yield return new WaitForFixedUpdate();
+        }
+//        while(timeBeenReleased < .3f || (!grounded && timeBeenReleased < .6f)) {
+//            timeBeenReleased = Time.time - _timeSinceRelease;
+//
+//            yield return null;
+//        }
+        _parts.footR.GetComponent<Collider2D>().isTrigger = false;
+        _parts.footL.GetComponent<Collider2D>().isTrigger = false;
     }
 
     /// <summary> Used to gradually release from IK pose </summary>
-    private IEnumerator GrabReleaseHelper() {
+    private IEnumerator GrabIKReleaseHelper() {
         float timeBeenReleased = 0;
         while(timeBeenReleased < TimeToGrab) {
             timeBeenReleased = Time.time - _timeSinceRelease;
@@ -349,9 +401,10 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Used to start grabbing </summary>
-    private void GrabBegin(Vector2 point, Vector2 right) {
+    private void GrabBegin(Vector2 point) {
         if(Time.time - _timeSinceRelease < 0.5f) return;
         _grabbing = true;
+        _grabPoint = point;
         _parts.handR.GetComponent<Collider2D>().isTrigger = true;
         _parts.handL.GetComponent<Collider2D>().isTrigger = true;
         _parts.lowerArmR.GetComponent<Collider2D>().isTrigger = true;
@@ -364,10 +417,11 @@ public class HumanoidMovement : MovementAbstract {
         _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = 0;
         _timeBeenGrabbing = 0;
         _parts.armRIK.Target().parent = _parts.armLIK.Target().parent = null;
-        _parts.armRIK.Target().position = point;
-        _parts.armLIK.Target().position = point + right * GrabAdd;
+        _parts.armRIK.Target().position = _parts.handR.transform.position;
+        _parts.armLIK.Target().position = _parts.handL.transform.position;
         anim.SetBool(_climbAnim, true);
         rb.gravityScale = 0f;
+        StartCoroutine(GrabHandle());
     }
 
     /// <summary> Checks if its clear to grab by circlecasting up and to the side </summary>
@@ -381,9 +435,9 @@ public class HumanoidMovement : MovementAbstract {
         RaycastHit2D sideCheck = Raycast(sideCheckStart, right, sideCheckDist, whatIsGround);
         Vector2 upRadH = (Vector2) tf.up * grabCheckRadiusH;
         if(!sideCheck.Hit())
-            sideCheck = Raycast(sideCheckStart + upRadH, right, sideCheckDist,whatIsGround);
+            sideCheck = Raycast(sideCheckStart + upRadH, right, sideCheckDist, whatIsGround);
         if(!sideCheck.Hit())
-            sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist,whatIsGround);
+            sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist, whatIsGround);
         //TODO if upCheck clear and side check not, we might still be able to pull up with a (different?) animation,
         //TODO or we can hang on the ledge, based on how far until horizontal check hits
 #if UNITY_EDITOR
@@ -481,12 +535,11 @@ public class HumanoidMovement : MovementAbstract {
         float slopeReducer = Mathf.Lerp(1, .7f, walkSlope / maxWalkSlope); // reduce speed as slopes increase
         moveVec = slopeReducer * rb.mass * tangent * _acceleration * moveIn * Time.fixedDeltaTime;
 
-        Action<float> addKick = force => { // If walking from standstill, gives a kick so walking is more responsive
-            //TODO C# 7 use local function
+        void AddKick(float force) { // If walking from standstill, gives a kick so walking is more responsive
             Vector2 kickAdd = rb.mass * tangent * force * 30 * slopeReducer;
             if(moveIn > 0 && velForward < _maxSpeed / 3) rb.AddForce(kickAdd);
             else if(moveIn < 0 && velForward > -_maxSpeed / 3) rb.AddForce(-kickAdd);
-        };
+        }
 
         // checks if intention is not same direction as motion
         bool moveDirIsNotVelDir = Math.Sign(moveIn) != Math.Sign(velForward);
@@ -522,7 +575,7 @@ public class HumanoidMovement : MovementAbstract {
                 rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
             }
 
-            addKick(_kick);
+            AddKick(_kick);
 
             if((moveIn > 0 && !facingRight || moveIn < 0 && facingRight) && !_grabbing) Flip();
         } else { // Not grounded
@@ -531,7 +584,7 @@ public class HumanoidMovement : MovementAbstract {
             if(!_isTouching) {
                 // If they aren't let them control their movement some
                 moveVec *= _airControl;
-                addKick(_kickAir);
+                AddKick(_kickAir);
                 if(movePressed && (moveIn > 0 && velForward < _maxSpeed || moveIn < 0 && velForward > -_maxSpeed)) {
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
@@ -577,6 +630,7 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Handles character crouching </summary>
     /// <param name="crouch">Is down input pressed</param>
     private void Crouch(bool crouch) {
+        //FIXME crouch walking broken?
         bool wasStanding = !_crouching;                        // Used to check if we should actually just roll
         _crouching = crouch && grounded && _walkSprint < .65f; // Crouch, unless sprinting
 
