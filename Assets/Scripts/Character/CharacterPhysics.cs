@@ -348,13 +348,13 @@ public class CharacterPhysics : MonoBehaviour {
                     if(delta - _prevFootDelta > steppingThreshold) {
                         RaycastHit2D heightHit = Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
                         RaycastHit2D maxHeightHit = Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp._movement.whatIsGround);
-                        if(heightHit.Hit() && !maxHeightHit.Hit()) {
+                        if(heightHit && !maxHeightHit) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
                             RaycastHit2D topHit = Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
 
-                            if(topHit.Hit())
+                            if(topHit)
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
 
 #if UNITY_EDITOR

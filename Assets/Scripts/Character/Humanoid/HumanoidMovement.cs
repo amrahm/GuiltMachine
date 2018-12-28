@@ -107,14 +107,8 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Whether or not the character is currently grabbing </summary>
     private bool _grabbing;
 
-    /// <summary> Where the character is grabbing </summary>
-    private Vector3 _grabPoint;
-
     /// <summary> Distance out to do downward check </summary>
     private float _grabDownDist;
-
-    /// <summary> How long the character has been in grab mode </summary>
-    private float _timeBeenGrabbing;
 
     /// <summary> How long since the character last left grab mode </summary>
     private float _timeSinceRelease;
@@ -223,17 +217,6 @@ public class HumanoidMovement : MovementAbstract {
 
     private void FixedUpdate() {
         UpdateGrounded();
-
-#if UNITY_EDITOR
-        if(_visualizeDebug) {
-            Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)),
-                          (facingRight ? tf.right : -tf.right) * grabDistance);
-            Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
-                          -tf.up * (grabTopOffset - grabBottomOffset), Color.gray);
-            if(_grabbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
-        }
-#endif
-
         if(!_rolling) Move(control.moveHorizontal, control.hPressed, control.sprint);
         Jump(control.upPressed);
         Crouch(control.downPressed);
@@ -245,63 +228,81 @@ public class HumanoidMovement : MovementAbstract {
             tf.position += tf.up * (hipsDelta - _lastHipsDelta) / 2;
             _lastHipsDelta = hipsDelta;
         }
+
+#if UNITY_EDITOR
+        if(_visualizeDebug) { //Visualize grab raycasts
+            Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)),
+                          (facingRight ? tf.right : -tf.right) * grabDistance);
+            Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
+                          -tf.up * (grabTopOffset - grabBottomOffset), Color.gray);
+            if(_grabbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
+        }
+#endif
     }
 
     /// <summary> Handle if this character is grabbing a platform </summary>
-    private IEnumerator GrabHandle() {
-        Vector3 armRIKStart = _parts.armRIK.Target().position;
-        Vector3 armLIKStart = _parts.armLIK.Target().position;
+    private IEnumerator GrabHandle(Vector3 grabPoint) {
+        float timeBeenGrabbing = 0;
+        Vector3 handRStart = _parts.armRIK.Target().position;
+        Vector3 handLStart = _parts.armLIK.Target().position;
         while(_grabbing) {
-            print("GRABBIBG");
             Vector3 right = facingRight ? tf.right : -tf.right;
-
 
             const float grabMaxVelocityThreshold = 3f;
             float dT = Time.fixedDeltaTime;
-            _timeBeenGrabbing += dT;
-            if(_timeBeenGrabbing < TimeToGrab) {
-                _parts.armRIK.Target().position = Vector3.Lerp(armRIKStart, _grabPoint, _timeBeenGrabbing / TimeToGrab);
-                _parts.armLIK.Target().position = Vector3.Lerp(armLIKStart, _grabPoint + right * GrabAdd,
-                                                               _timeBeenGrabbing / TimeToGrab);
 
-                float ikWeight = Mathf.Lerp(0, 1, _timeBeenGrabbing / TimeToGrab);
-                _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = ikWeight;
+            // Move the head to a little above halfway between the two points
+            // Move the head further down if the character can't reach their IK target, which should let them reach it
+            float handIKErr = Vector2.Distance(_parts.armRIK.Target().position, _parts.handRTarget.transform.position);
+            Vector3 handIKMidPoint = (_parts.armRIK.Target().position + _parts.armLIK.Target().position) / 2;
+            Vector3 headIKPos = handIKMidPoint + tf.up * (1 - handIKErr);
+            _parts.headIK.Target().position = _parts.headIK.Target().position.SharpInDamp(headIKPos, 5, dT);
 
-                _parts.armRIK.Target().position = _parts.handR.transform.position;
-                _parts.armLIK.Target().position = _parts.handL.transform.position;
-                rb.velocity = rb.velocity.SharpInDamp(Vector2.zero, 1, dT);
-            } else if(Mathf.Abs(rb.velocity.y) < grabMaxVelocityThreshold) {
-                _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = 1;
-                RaycastHit2D sideCheck = Raycast(_parts.footR.transform.position, right, grabDistance, whatIsGround);
-                if(sideCheck.Hit())
+            timeBeenGrabbing += dT;
+            if(timeBeenGrabbing < TimeToGrab) {
+                // Move the hands from the start to the grab point, and fade in the head IK
+                _parts.armRIK.Target().position = Vector3.Lerp(handRStart, grabPoint, timeBeenGrabbing / TimeToGrab);
+                _parts.armLIK.Target().position = Vector3.Lerp(handLStart, grabPoint + right * GrabAdd,
+                                                               timeBeenGrabbing / TimeToGrab);
+                _parts.headIK.weight = Mathf.Lerp(0, 1, timeBeenGrabbing / TimeToGrab);
+                rb.velocity = rb.velocity.SharpInDamp(Vector2.zero, 1, dT);  // and slow doen the velocity some
+            } else if(Mathf.Abs(rb.velocity.y) < grabMaxVelocityThreshold) { // If the velocity is slow enough:
+                // Make sure the IKs are all at their final positions
+                _parts.armRIK.Target().position = grabPoint;
+                _parts.armLIK.Target().position = grabPoint + right * GrabAdd;
+                _parts.headIK.weight = 1;
+
+                // Raycast check from either foot (whichever hits) to the wall
+                //TODO how to deal with thin floating ledges, like this one:    ————————
+                Vector3 shift = -tf.up * GrabAdd;
+                var sideCheck = Raycast(_parts.footR.transform.position + shift, right, grabDistance, whatIsGround);
+#if UNITY_EDITOR
+                if(_visualizeDebug && sideCheck)
                     Debug.DrawRay(_parts.footR.transform.position, right * grabDistance, Color.cyan);
-                if(!sideCheck.Hit()) {
-                    sideCheck = Raycast(_parts.footL.transform.position, right, grabDistance, whatIsGround);
-                    Debug.DrawRay(_parts.footL.transform.position, right * grabDistance, Color.cyan);
+#endif
+                if(!sideCheck) {
+                    sideCheck = Raycast(_parts.footL.transform.position + shift, right, grabDistance, whatIsGround);
+#if UNITY_EDITOR
+                    if(_visualizeDebug)
+                        Debug.DrawRay(_parts.footL.transform.position, right * grabDistance, Color.cyan);
+#endif
                 }
-                print(sideCheck.Hit());
 
-                float distFromWall =
-                    sideCheck ? Vector2.Distance(_parts.footR.transform.position, sideCheck.point) : 0.5f;
-                Vector2 keepAgainstWall = right * .01f * Mathf.Pow(distFromWall * 4, 2);
+                // Add a force to keep the character pressed against the wall
+                float wallDist = sideCheck ? Vector2.Distance(_parts.footR.transform.position, sideCheck.point) : 0.5f;
+                Vector2 keepAgainstWall = right * .01f * Mathf.Pow(wallDist * 4, 2);
+                // And a force to move them up or down based on input
                 float hIn = control.moveHorizontal * (facingRight ? 1 : -1);
                 Vector2 climbControl = (Vector2) tf.up * 3 * dT * Mathf.Min(hIn + control.moveVertical, 1f);
                 rb.MovePosition(rb.position + keepAgainstWall + climbControl);
 
                 anim.SetFloat(_climbAnimSpeed, hIn + control.moveVertical);
 
-                Vector3 grabPoint = _parts.armRIK.Target().position;
-                float handIKErr = Vector2.Distance(grabPoint, _parts.handRTarget.transform.position);
-                Vector3 handIKMidPoint = (grabPoint + _parts.armLIK.Target().position) / 2;
-                Vector3 headIKPos = handIKMidPoint + tf.up * (1 - handIKErr);
-                _parts.headIK.Target().position = _parts.headIK.Target().position.SharpInDamp(headIKPos, 5, dT);
-
-                bool aboveLedge = !sideCheck.Hit() || Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
-                if(aboveLedge || hIn < -0.2f) {
-                    print("REL1");
-                    GrabRelease();
-                }
+                // If neither foot is on the wall, or the feet have moved past the grab point, release
+                bool aboveLedge = !sideCheck || Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
+                if(aboveLedge || hIn < -0.2f) GrabRelease(); // also release if character moves away from wall
             } else {
+                // If the velocity was too fast, just release
                 GrabRelease();
             }
             yield return new WaitForFixedUpdate();
@@ -323,24 +324,46 @@ public class HumanoidMovement : MovementAbstract {
 #endif
 
         // First check for mid, first at the point of contact, and if that's null, then the normal mid check
-        if(grabMid.Hit() || (grabMid = Raycast(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)), right,
-                                               grabDistance, whatIsGround)).Hit()) {
+        if(grabMid || (grabMid = Raycast(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)), right,
+                                         grabDistance, whatIsGround))) {
             Vector2 downOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
             RaycastHit2D down = Raycast(downOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
-            if(down.Hit() && GrabCheckIfClear(down.point, right)) GrabBegin(down.point);
+            if(down && GrabCheckIfClear(down.point, right)) GrabBegin(down.point);
             return;
         }
 
         // If mid fails, check for down.
         Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset));
         RaycastHit2D grabDown = Raycast(grabDownOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
-        if(grabDown.Hit()) {
+        if(grabDown) {
             Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
             grabMid = Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
             bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
-            if(pointNotInGround && grabMid.Hit() && GrabCheckIfClear(midPoint, right))
+            if(pointNotInGround && grabMid && GrabCheckIfClear(midPoint, right))
                 GrabBegin(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd);
         }
+    }
+
+    /// <summary> Used to start grabbing </summary>
+    private void GrabBegin(Vector2 point) {
+        if(Time.time - _timeSinceRelease < 0.5f) return;
+        _grabbing = true;
+        _parts.handR.GetComponent<Collider2D>().isTrigger = true;
+        _parts.handL.GetComponent<Collider2D>().isTrigger = true;
+        _parts.lowerArmR.GetComponent<Collider2D>().isTrigger = true;
+        _parts.lowerArmL.GetComponent<Collider2D>().isTrigger = true;
+        _parts.upperArmR.GetComponent<Collider2D>().isTrigger = true;
+        _parts.upperArmL.GetComponent<Collider2D>().isTrigger = true;
+        _parts.armRIK.gameObject.SetActive(true);
+        _parts.armLIK.gameObject.SetActive(true);
+        _parts.headIK.gameObject.SetActive(true);
+        _parts.armRIK.weight = _parts.armLIK.weight = 1;
+        _parts.headIK.weight = 0;
+        _parts.armRIK.Target().position = _parts.handR.transform.position;
+        _parts.armLIK.Target().position = _parts.handL.transform.position;
+        anim.SetBool(_climbAnim, true);
+        rb.gravityScale = 0f;
+        StartCoroutine(GrabHandle(point));
     }
 
     /// <summary> Used to set end of grab </summary>
@@ -357,6 +380,8 @@ public class HumanoidMovement : MovementAbstract {
         rb.gravityScale = 1f;
 
         StartCoroutine(GrabIKReleaseHelper());
+
+        //TODO check if this is a pull up release or a cancel release
         StartCoroutine(GrabPullUp());
     }
 
@@ -366,20 +391,14 @@ public class HumanoidMovement : MovementAbstract {
         _parts.footR.GetComponent<Collider2D>().isTrigger = true;
         _parts.footL.GetComponent<Collider2D>().isTrigger = true;
 
-        while(timeBeenReleased < .15f) {
+        while(timeBeenReleased < TimeToGrab) {
             //FIXME is this frame rate independent?
-            Vector3 climbControl = tf.up * 50 * (control.moveVertical + 0.5f);
-            rb.AddForce((facingRight ? tf.right : -tf.right) * 30 * rb.mass + climbControl);
-//            rb.AddForce(((facingRight ? tf.right : -tf.right) * 10 + tf.up * (grounded ? -30 : 30)) * rb.mass);
+            rb.AddForce((facingRight ? tf.right : -tf.right) * 15 * rb.mass);
             timeBeenReleased = Time.time - _timeSinceRelease;
 
             yield return new WaitForFixedUpdate();
         }
-//        while(timeBeenReleased < .3f || (!grounded && timeBeenReleased < .6f)) {
-//            timeBeenReleased = Time.time - _timeSinceRelease;
-//
-//            yield return null;
-//        }
+
         _parts.footR.GetComponent<Collider2D>().isTrigger = false;
         _parts.footL.GetComponent<Collider2D>().isTrigger = false;
     }
@@ -393,51 +412,33 @@ public class HumanoidMovement : MovementAbstract {
             _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = ikWeight;
             yield return null;
         }
-        _parts.armRIK.Target().parent = _parts.armRIK.gameObject.transform;
-        _parts.armLIK.Target().parent = _parts.armLIK.gameObject.transform;
         _parts.armRIK.gameObject.SetActive(false);
         _parts.armLIK.gameObject.SetActive(false);
         _parts.headIK.gameObject.SetActive(false);
     }
 
-    /// <summary> Used to start grabbing </summary>
-    private void GrabBegin(Vector2 point) {
-        if(Time.time - _timeSinceRelease < 0.5f) return;
-        _grabbing = true;
-        _grabPoint = point;
-        _parts.handR.GetComponent<Collider2D>().isTrigger = true;
-        _parts.handL.GetComponent<Collider2D>().isTrigger = true;
-        _parts.lowerArmR.GetComponent<Collider2D>().isTrigger = true;
-        _parts.lowerArmL.GetComponent<Collider2D>().isTrigger = true;
-        _parts.upperArmR.GetComponent<Collider2D>().isTrigger = true;
-        _parts.upperArmL.GetComponent<Collider2D>().isTrigger = true;
-        _parts.armRIK.gameObject.SetActive(true);
-        _parts.armLIK.gameObject.SetActive(true);
-        _parts.headIK.gameObject.SetActive(true);
-        _parts.armRIK.weight = _parts.armLIK.weight = _parts.headIK.weight = 0;
-        _timeBeenGrabbing = 0;
-        _parts.armRIK.Target().parent = _parts.armLIK.Target().parent = null;
-        _parts.armRIK.Target().position = _parts.handR.transform.position;
-        _parts.armLIK.Target().position = _parts.handL.transform.position;
-        anim.SetBool(_climbAnim, true);
-        rb.gravityScale = 0f;
-        StartCoroutine(GrabHandle());
-    }
-
     /// <summary> Checks if its clear to grab by circlecasting up and to the side </summary>
     private bool GrabCheckIfClear(Vector2 grabPoint, Vector2 right) {
+        // Convert the grab point to local coordinates so we can use its x and y without worrying about rotated gravity
         Vector2 grabPointLocal = tf.InverseTransformPoint(grabPoint);
+
+        // Check up with a circle cast that starts at the character's mid-height, offset from the wall horizontally
         Vector2 upCheckStart = tf.TransformPoint(new Vector2(grabPointLocal.x - GrabAdd * 2 - grabCheckRadiusV, 0));
         float upCheckDist = grabPointLocal.y + grabCheckDistanceV;
         RaycastHit2D upCheck = CircleCast(upCheckStart, grabCheckRadiusV, tf.up, upCheckDist, whatIsGround);
+
+        // Check sideways starting from the character's x position, offset above the top of the ledge
         Vector2 sideCheckStart = tf.TransformPoint(new Vector2(0, grabPointLocal.y + GrabAdd + grabCheckRadiusH));
         float sideCheckDist = grabPointLocal.x + grabCheckDistanceH;
         RaycastHit2D sideCheck = Raycast(sideCheckStart, right, sideCheckDist, whatIsGround);
+        // And do two more sideways checks so that the three raycasts span grabCheckRadiusH distance
+        // Which should ensure that at least that distance is clear above the ledge
         Vector2 upRadH = (Vector2) tf.up * grabCheckRadiusH;
-        if(!sideCheck.Hit())
+        if(!sideCheck)
             sideCheck = Raycast(sideCheckStart + upRadH, right, sideCheckDist, whatIsGround);
-        if(!sideCheck.Hit())
+        if(!sideCheck)
             sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist, whatIsGround);
+
         //TODO if upCheck clear and side check not, we might still be able to pull up with a (different?) animation,
         //TODO or we can hang on the ledge, based on how far until horizontal check hits
 #if UNITY_EDITOR
@@ -448,7 +449,7 @@ public class HumanoidMovement : MovementAbstract {
             Debug.DrawRay(sideCheckStart - upRadH, right * sideCheckDist, Color.red);
         }
 #endif
-        return !upCheck.Hit() && !sideCheck.Hit();
+        return !upCheck && !sideCheck;
     }
 
     /// <summary> Update whether or not this character is touching the ground </summary>
@@ -462,12 +463,12 @@ public class HumanoidMovement : MovementAbstract {
              * walkSlope is set to the chosen angle, and is used in the Move(...) method. */
             RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up,
                                             groundCheckDistance, whatIsGround);
-            if(!rightHit.Hit())
+            if(!rightHit)
                 rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up,
                                    groundCheckDistance, whatIsGround);
             RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up,
                                            groundCheckDistance, whatIsGround);
-            if(!leftHit.Hit())
+            if(!leftHit)
                 leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up,
                                   groundCheckDistance, whatIsGround);
             float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
@@ -479,7 +480,7 @@ public class HumanoidMovement : MovementAbstract {
             walkSlope = rightGreater ? rightAngle : leftAngle;
 
             wasGrounded = grounded;
-            grounded = (rightHit.Hit() || leftHit.Hit()) && walkSlope < maxWalkSlope;
+            grounded = (rightHit || leftHit) && walkSlope < maxWalkSlope;
         } else { // Rolling
             // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
             // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
@@ -487,7 +488,7 @@ public class HumanoidMovement : MovementAbstract {
             groundNormal = rollHit.collider != null ? rollHit.normal : (Vector2) tf.up;
             walkSlope = Vector2.Angle(rollHit.normal, tf.up);
             wasGrounded = grounded;
-            grounded = rollHit.Hit() && walkSlope < maxWalkSlope;
+            grounded = rollHit && walkSlope < maxWalkSlope;
         }
         // Set this so the animator can play or transition to/from the appropriate animations
         anim.SetBool(_groundedAnim, grounded);
@@ -630,7 +631,6 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Handles character crouching </summary>
     /// <param name="crouch">Is down input pressed</param>
     private void Crouch(bool crouch) {
-        //FIXME crouch walking broken?
         bool wasStanding = !_crouching;                        // Used to check if we should actually just roll
         _crouching = crouch && grounded && _walkSprint < .65f; // Crouch, unless sprinting
 
