@@ -611,7 +611,7 @@ public class HumanoidMovement : MovementAbstract {
             // Initialize the jump
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true; //This ensures we don't repeat this step a bunch of times per jump
-            rb.velocity += (Vector2) tf.up * _jumpSpeed;
+            rb.velocity = Vector3.Project(rb.velocity, tf.right) + tf.up * _jumpSpeed;
             anim.SetTrigger(rollJump ? _rollJumpAnim : _jumpAnim);
         } else if(jump && _jumpFuelLeft > 0) {
             // Make the character rise higher the longer they hold jump
