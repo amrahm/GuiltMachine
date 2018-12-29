@@ -45,6 +45,15 @@ public class SlimeMovement : MovementAbstract
         }
     }
 
+    ///<summary> Flip the player around the y axis </summary>
+    private void Flip()
+    {
+        facingRight = !facingRight; //Switch the way the player is labelled as facing.
+
+        //Multiply the player's x local scale by -1.
+        tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
+    }
+
     private void UpdateGrounded()
     {
         RaycastHit2D bodyHit = Physics2D.Raycast(gameObject.GetComponent<CircleCollider2D>().transform.TransformPoint(groundCheckOffset), Vector2.down, groundCheckDistance, whatIsGround);

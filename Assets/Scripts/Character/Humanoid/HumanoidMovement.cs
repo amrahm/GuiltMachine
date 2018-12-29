@@ -293,11 +293,10 @@ public class HumanoidMovement : MovementAbstract {
                 Vector2 keepAgainstWall = right * .01f * Mathf.Pow(wallDist * 4, 2);
                 // And a force to move them up or down based on input
                 float hIn = control.moveHorizontal * (facingRight ? 1 : -1);
-                float climbControlSpeed = Mathf.Min(hIn + control.moveVertical, 1f);
-                Vector2 climbControl = (Vector2) tf.up * 3 * dT * climbControlSpeed;
+                Vector2 climbControl = (Vector2) tf.up * 3 * dT * Mathf.Min(hIn + control.moveVertical, 1f);
                 rb.MovePosition(rb.position + keepAgainstWall + climbControl);
 
-                anim.SetFloat(_climbAnimSpeed, climbControlSpeed);
+                anim.SetFloat(_climbAnimSpeed, hIn + control.moveVertical);
 
                 // If neither foot is on the wall, or the feet have moved past the grab point, release
                 bool aboveLedge = !sideCheck || Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
