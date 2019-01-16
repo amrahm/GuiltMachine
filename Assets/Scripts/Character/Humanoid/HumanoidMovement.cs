@@ -105,9 +105,12 @@ public class HumanoidMovement : MovementAbstract {
     [SerializeField]
     private bool _canAirDash;
 
-    [Tooltip("How fast/far the air dash goes")]
+    [Tooltip("How fast/far the air-dash goes")]
     [SerializeField]
     private float _airDashSpeed = 1;
+
+    [Tooltip("The particle effect to spawn when air-dashing")] [SerializeField]
+    private GameObject _airDashParticleEffect;
 
 
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
@@ -687,7 +690,8 @@ public class HumanoidMovement : MovementAbstract {
             _airDashing = true;
             anim.SetBool(_airDashAnim, true);
             CameraShake.Shake(1, 0.25f);
-
+            Instantiate(_airDashParticleEffect, tf);
+            
             Vector2 controlVec = (tf.right * control.moveHorizontal + tf.up * control.moveVertical) / norm;
             Vector2 dashVelocity = controlVec * _jumpSpeed * _airDashSpeed;
 

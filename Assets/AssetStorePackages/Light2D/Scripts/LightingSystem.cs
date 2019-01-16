@@ -115,9 +115,6 @@ namespace Light2D {
         private Material _normalMappedLightMaterial;
         private Material _lightCombiningMaterial;
         private Material _alphaBlendedMaterial;
-#if LIGHT2D_2DTK
-        private tk2dCamera _tk2dCamera;
-#endif
 
         private void Reset() {
             lightSourcesLayer = LayerMask.NameToLayer("LightSources");
@@ -136,7 +133,7 @@ namespace Light2D {
 
         private float LightPixelsPerUnityMeter => 1 / lightPixelSize;
 
-        public static LightingSystem Instance => _instance != null ? _instance : (_instance = FindObjectOfType<LightingSystem>());
+        public static LightingSystem Instance => _instance ?? (_instance = FindObjectOfType<LightingSystem>());
 
 
         private void OnEnable() {
@@ -145,12 +142,6 @@ namespace Light2D {
         }
 
         private void Start() {
-#if UNITY_EDITOR
-            if(!Application.isPlaying) {
-                Shader.SetGlobalTexture("_ObstacleTex", Texture2D.whiteTexture);
-                return;
-            }
-#endif
 
             if(lightCamera == null) {
                 Debug.LogError(
@@ -189,8 +180,6 @@ namespace Light2D {
             _texFormat = hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
 
             float lightPixelsPerUnityMeter = LightPixelsPerUnityMeter;
-
-            InitTk2D();
 
             if(_camera.orthographic) {
                 float rawCamHeight = (_camera.orthographicSize + lightCameraSizeAdd) * 2f;
@@ -297,16 +286,6 @@ namespace Light2D {
         }
 
         private void OnRenderImage(RenderTexture src, RenderTexture dest) {
-#if UNITY_EDITOR
-            if(!Application.isPlaying || Util.IsSceneViewFocused) {
-                Shader.SetGlobalTexture("_ObstacleTex", Texture2D.whiteTexture);
-                if(dest != null)
-                    dest.DiscardContents();
-                Graphics.Blit(src, dest);
-                return;
-            }
-#endif
-            Update2Dtk();
             UpdateCamera();
             RenderObstacles();
             SetupShaders();
@@ -327,44 +306,6 @@ namespace Light2D {
                 Graphics.Blit(_renderTargetTexture, null, _alphaBlendedMaterial);
                 _camera.targetTexture = _renderTargetTexture;
             }
-        }
-
-        private void InitTk2D() {
-#if LIGHT2D_2DTK
-            _tk2dCamera = GetComponent<tk2dCamera>();
-            if (_tk2dCamera != null && _tk2dCamera.CameraSettings.projection == tk2dCameraSettings.ProjectionType.Orthographic)
-            {
-                _camera.orthographic = true;
-                _camera.orthographicSize = _tk2dCamera.ScreenExtents.yMax;
-            }
-#endif
-        }
-
-        private void Update2Dtk() {
-#if LIGHT2D_2DTK
-            if (_tk2dCamera != null && _tk2dCamera.CameraSettings.projection == tk2dCameraSettings.ProjectionType.Orthographic)
-            {
-                _camera.orthographic = true;
-                _camera.orthographicSize = _tk2dCamera.ScreenExtents.yMax;
-            }
-#endif
-        }
-
-        private void LateUpdate() {
-#if UNITY_EDITOR
-            if(!Application.isPlaying && lightCamera != null) {
-                _camera = GetComponent<Camera>();
-                if(_camera != null) {
-                    InitTk2D();
-                    lightCamera.orthographic = _camera.orthographic;
-                    if(_camera.orthographic)
-                        lightCamera.orthographicSize = _camera.orthographicSize + lightCameraSizeAdd;
-                    else
-                        lightCamera.fieldOfView = _camera.fieldOfView + lightCameraFovAdd;
-                }
-            }
-            if(!Application.isPlaying || Util.IsSceneViewFocused) Shader.SetGlobalTexture("_ObstacleTex", Texture2D.whiteTexture);
-#endif
         }
 
         private void RenderObstacles() {

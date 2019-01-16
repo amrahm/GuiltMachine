@@ -14,7 +14,7 @@ using UnityEditor;
 
 namespace Light2D {
     /// <summary>
-    ///     Bunch of utility functions that could be userful sometimes.
+    ///     Bunch of utility functions that could be useful sometimes.
     /// </summary>
     public static class Util {
 #if UNITY_METRO && !UNITY_EDITOR
