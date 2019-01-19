@@ -110,7 +110,7 @@ RectTransform:
   - {fileID: 224594062825389660}
   - {fileID: 224825742391379672}
   m_Father: {fileID: 4337011823225440}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -657,6 +657,7 @@ GameObject:
   - component: {fileID: 114274067218304600}
   - component: {fileID: 114743038608662036}
   - component: {fileID: 2286645430233132623}
+  - component: {fileID: 1839045110}
   m_Layer: 15
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -678,6 +679,7 @@ Transform:
   - {fileID: 4032710339449348}
   - {fileID: 4495916206568828}
   - {fileID: 4926290248173648}
+  - {fileID: 5874661584883175490}
   - {fileID: 224595644534801788}
   - {fileID: 4192663014330868}
   m_Father: {fileID: 0}
@@ -802,6 +804,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ec506a02080d3b49bb625c7e8f614b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1839045110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1747037995242274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 643ca4e9818efa846b378081a2ee6299, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _distortCamera: {fileID: 5769241496811339430}
+  _distortLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _distortQuality: 0
+  _distortFadeEnabled: 1
+  _distortFadeStart: 10
+  _distortFadeEnd: 100
+  _blurEnabled: 0
+  _blurUseSGX: 0
+  _blurDownsample: 1
+  _blurSize: 3
+  _blurIterations: 2
 --- !u!1 &1766598179144266
 GameObject:
   m_ObjectHideFlags: 0
@@ -910,7 +937,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4337011823225440}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &20110290024295906
 Camera:
@@ -1028,3 +1055,103 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
+--- !u!1001 &5875066533454467422
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 4337011823225440}
+    m_Modifications:
+    - target: {fileID: 1452392875479830, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_Name
+      value: DistortCamera
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+        type: 3}
+      propertyPath: far clip plane
+      value: 300
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+--- !u!4 &5874661584883175490 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+    type: 3}
+  m_PrefabInstance: {fileID: 5875066533454467422}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5769241496811339430 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114871964366483448, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+    type: 3}
+  m_PrefabInstance: {fileID: 5875066533454467422}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0b376041bdbf0049a5ba863bb198dd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

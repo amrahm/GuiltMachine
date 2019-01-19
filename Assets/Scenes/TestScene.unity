@@ -544,6 +544,11 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 2082246103}
+    - target: {fileID: 5891348486309618298, guid: 1b82f01fb7a3f874ca4bfa06b42c2680,
+        type: 3}
+      propertyPath: m_TargetTexture
+      value: 
+      objectReference: {fileID: 2031342235}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1b82f01fb7a3f874ca4bfa06b42c2680, type: 3}
 --- !u!1 &92041737
@@ -15452,6 +15457,38 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!84 &2031342235
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Distort Volumes Texture
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_Width: 1250
+  m_Height: 538
+  m_AntiAliasing: 1
+  m_DepthFormat: 0
+  m_ColorFormat: 11
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &2035660444
 GameObject:
   m_ObjectHideFlags: 0
@@ -16419,6 +16456,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: AirDashEffects
+      objectReference: {fileID: 0}
+    - target: {fileID: 8260386366227271329, guid: ca8c19a1d7c5a484f86e999e4f987532,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8260386366227271330, guid: ca8c19a1d7c5a484f86e999e4f987532,
         type: 3}

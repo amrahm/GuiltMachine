@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: ShieldBlue
+  m_Shader: {fileID: 4800000, guid: 9bc394b36052b3a4fa6b8e7c5f7b86d7, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 5
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _DistortTexture:
+        m_Texture: {fileID: 2800000, guid: 42c32112a3eec354d900653ef891067c, type: 3}
+        m_Scale: {x: 3, y: 3}
+        m_Offset: {x: 0.5, y: -0.7}
+    - _DistortTextureMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 3, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _DistortRimFade: 0.1
+    - _DistortSettings2: 0.1
+    - _FadeStrength: -0.2
+    - _IntersectPower: 2.25
+    - _IntersectStep: 4
+    - _InvFade: 3
+    - _MainTexScale: 0
+    - _MainTexScroll: 0
+    - _MainTexStep: 4
+    - _NoiseScale: 0.875
+    - _NoiseStep: 3
+    - _NoiseTimeScale: 0.25
+    - _RimPower: 3.94
+    - _RimStep: 6.5
+    m_Colors:
+    - _Color: {r: 0.06433822, g: 0.23141548, b: 0.625, a: 0.11764706}
+    - _DistortSettings: {r: 20, g: 2.5, b: 1.12, a: 0.1}
+    - _DistortSettings2: {r: 4, g: 8, b: 0, a: 0}
+    - _IntersectColor: {r: 0, g: 1.0555726, b: 1.4860001, a: 1}
+    - _NoiseColor1: {r: 0, g: 0.62758636, b: 1, a: 1}
+    - _NoiseColor2: {r: 0, g: 0, b: 0, a: 0}
+    - _RimColor: {r: 0, g: 1.2404134, b: 1.564, a: 1}
+    - _TintColor: {r: 0, g: 0.2965517, b: 1, a: 1}
