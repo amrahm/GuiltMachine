@@ -101,9 +101,9 @@ public class HumanoidMovement : MovementAbstract {
     private float _grabCheckDistanceH = 0.2f;
 
     [Header("Movement Abilities")]
-    [Tooltip("Gives the character the ability to do a dash-jump while in mid-air")]
+    [Tooltip(" >= 1 gives the character the ability to dash-jump in mid-air this many times")]
     [SerializeField]
-    private bool _canAirDash;
+    private int _numberOfAirDashes;
 
     [Tooltip("How fast/far the air-dash goes")]
     [SerializeField]
@@ -166,6 +166,9 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> True if the character is currently air dashing </summary>
     private bool _airDashing;
+
+    /// <summary> How many more air dashes the character can do in mid-air </summary>
+    private int _airDashesLeft;
 
     /// <summary> Whether or not the character is touching something </summary>
     private bool _isTouching;
@@ -257,9 +260,9 @@ public class HumanoidMovement : MovementAbstract {
 #if UNITY_EDITOR
         if(_visualizeDebug) { //Visualize grab raycasts
             Debug.DrawRay(tf.TransformPoint(new Vector2(0, _grabMidOffset + GrabAdd)),
-                          (facingRight ? tf.right : -tf.right) * _grabDistance);
+                          (facingRight ? tf.right : -tf.right) * _grabDistance, new Color(0.52f, 1f, 0.52f));
             Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, _grabTopOffset)),
-                          -tf.up * (_grabTopOffset - _grabBottomOffset), Color.gray);
+                          -tf.up * (_grabTopOffset - _grabBottomOffset), new Color(0.38f, 0.72f, 0.38f));
             if(_grabbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
         }
 #endif
@@ -657,7 +660,7 @@ public class HumanoidMovement : MovementAbstract {
 
         // If the character tries to jump in mid air, they do an air dash (if they have that ability)
         //TODO Maybe change this to double tap jump?
-        if(jump && !_wasJump && !grounded && _canAirDash) {
+        if(jump && !_wasJump && !grounded && _numberOfAirDashes > 0) {
             if(_airDash != null) StopCoroutine(_airDash);
             _airDash = AirDashHelper();
             StartCoroutine(_airDash);
@@ -665,7 +668,10 @@ public class HumanoidMovement : MovementAbstract {
 
 
         // If landed, allow jumping again
-        if(grounded && !jump) _jumpStarted = false;
+        if(grounded && !jump) {
+            _airDashesLeft = _numberOfAirDashes;
+            _jumpStarted = false;
+        }
 
         // Set the vertical animation for moving up/down through the air
         if(!grounded) anim.SetFloat(_vSpeedAnim, rb.velocity.y / 8);
@@ -686,12 +692,14 @@ public class HumanoidMovement : MovementAbstract {
         // Magnitude of the characters horizontal/vertical input, used to normalize so e.g. diagonal dashes aren't
         // more powerful the cardinal direction dashes, and to make sure that the dash is in *some* direction
         float norm = Mathf.Sqrt(Mathf.Pow(control.moveHorizontal, 2) + Mathf.Pow(control.moveVertical, 2));
-        if(norm > 0.001f) { // Only start dash if directional input is given, otherwise, just end any previous dash
+        // Only start dash if directional input is given and there are air dashes left, else just end any previous dash
+        if(norm > 0.001f && _airDashesLeft > 0) {
             _airDashing = true;
             anim.SetBool(_airDashAnim, true);
             CameraShake.Shake(1, 0.25f);
             Instantiate(_airDashParticleEffect, tf);
-            
+            _airDashesLeft--;
+
             Vector2 controlVec = (tf.right * control.moveHorizontal + tf.up * control.moveVertical) / norm;
             Vector2 dashVelocity = controlVec * _jumpSpeed * _airDashSpeed;
 
@@ -711,7 +719,9 @@ public class HumanoidMovement : MovementAbstract {
             // Start gravity at 0 so movement starts purely in dash direction. This also helps up dashes be as strong
             // as down dashes. Gravity is restored to normal in the while loop below
             rb.gravityScale = 0;
-            while(!grounded) { //FIXME bad code real dumb
+            const float squareVelocityThreshold = 9;
+            RaycastHit2D groundCheck = Raycast(tf.position, -tf.up, _rollingGroundCheckDistance, whatIsGround);
+            while(!groundCheck || rb.velocity.sqrMagnitude > squareVelocityThreshold) {
                 if(rb.gravityScale < 1) rb.gravityScale += Time.deltaTime * 3;
                 else rb.gravityScale = 1;
 
@@ -723,6 +733,7 @@ public class HumanoidMovement : MovementAbstract {
 
                 // WaitForEndOfFrame to make sure all the normal animation stuff has already happened
                 yield return new WaitForEndOfFrame();
+                groundCheck = Raycast(tf.position, -tf.up, _rollingGroundCheckDistance, whatIsGround);
             }
             rb.gravityScale = 1;
         } else if(_airDashing) {
