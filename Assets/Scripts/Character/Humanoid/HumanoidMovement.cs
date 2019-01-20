@@ -7,6 +7,8 @@ using static UnityEngine.Physics2D;
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(HumanoidParts))]
 public class HumanoidMovement : MovementAbstract {
+    /// <summary> How long after walking off a ledge should the character still be considered grounded </summary>
+    private const float CoyoteTime = 0.15f;
     private const string RollStateTag = "Roll";
     private const float GrabAdd = 0.1f;
     private const float TimeToGrab = 0.15f;
@@ -143,6 +145,9 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Used to zero out friction when moving. True if the character's feet have no friction. </summary>
     private bool _frictionZero;
 
+    /// <summary> How much time left till not considered grounded </summary>
+    private float _coyoteTimeLeft;
+
     /// <summary> How much jump fuel is left. Starts at _jumpFuel and moves to 0 </summary>
     private float _jumpFuelLeft;
 
@@ -160,6 +165,9 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> True if the character pressed jump while rolling </summary>
     private bool _wantsToRollJump;
+
+    /// <summary> Time of first jump press, useful in detecting double taps </summary>
+    private float _jumpMidAirFirstPressTime = -10f;
 
     /// <summary> A vector used to help smoothly rotate the character during an air dash </summary>
     private Vector3 _airDashVec;
@@ -523,8 +531,16 @@ public class HumanoidMovement : MovementAbstract {
             wasGrounded = grounded;
             grounded = rollHit && walkSlope < maxWalkSlope;
         }
+        if(grounded) _coyoteTimeLeft = CoyoteTime;
+        else if(!grounded && _coyoteTimeLeft > 0) {
+            _coyoteTimeLeft -= Time.fixedDeltaTime;
+            coyoteGrounded = true;
+        } else {
+            coyoteGrounded = false;
+        }
+
         // Set this so the animator can play or transition to/from the appropriate animations
-        anim.SetBool(_groundedAnim, grounded);
+        anim.SetBool(_groundedAnim, grounded || coyoteGrounded);
         // If the character was grounded and isn't anymore, but they didn't jump, then they must have walked off a ledge or something
         if(wasGrounded && !grounded && !_jumpStarted) _falling = true;
         if(_falling && !(_rolling || _grabbing)) {
@@ -641,10 +657,10 @@ public class HumanoidMovement : MovementAbstract {
 #if UNITY_EDITOR
         if(_allowJumpingInMidair) grounded = true;
 #endif
-        if(_rolling && grounded && jump) {
+        if(_rolling && (grounded || coyoteGrounded) && jump) {
             // If rolling and press jump, set this so that character can jump at a good point in the roll
             _wantsToRollJump = true;
-        } else if((grounded || rollJump) && jump && !_jumpStarted) {
+        } else if((grounded || coyoteGrounded || rollJump) && jump && !_jumpStarted) {
             // Initialize the jump
             _jumpFuelLeft = _jumpFuel;
             _jumpStarted = true; //This ensures we don't repeat this step a bunch of times per jump
@@ -658,9 +674,20 @@ public class HumanoidMovement : MovementAbstract {
             _jumpFuelLeft = 0;
         }
 
-        // If the character tries to jump in mid air, they do an air dash (if they have that ability)
-        //TODO Maybe change this to double tap jump?
-        if(jump && !_wasJump && !grounded && _numberOfAirDashes > 0) {
+        // Check for double tapping jump in mid-air
+        const float doubleTapTime = 0.3f;
+        bool doubleTappedInMidAir = false;
+        if(jump && !_wasJump && !grounded) {
+            if(Time.time - _jumpMidAirFirstPressTime > doubleTapTime) {
+                _jumpMidAirFirstPressTime = Time.time;
+            } else if(Time.time - _jumpMidAirFirstPressTime <= doubleTapTime) {
+                doubleTappedInMidAir = true;
+                _jumpMidAirFirstPressTime -= doubleTapTime; //ensure that they need to double tap again to get back here
+            }
+        }
+
+        // If the character double taps jump in mid-air, they do an air dash (if they have that ability)
+        if(doubleTappedInMidAir && _numberOfAirDashes > 0) {
             if(_airDash != null) StopCoroutine(_airDash);
             _airDash = AirDashHelper();
             StartCoroutine(_airDash);

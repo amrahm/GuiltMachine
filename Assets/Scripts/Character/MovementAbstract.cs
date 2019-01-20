@@ -15,8 +15,11 @@ public abstract class MovementAbstract : MonoBehaviour {
     /// <summary> Which way the character is currently facing </summary>
     protected internal bool facingRight = true;
 
-    /// <summary> Is the player currently on the ground </summary>
+    /// <summary> Is the player currently on the ground? </summary>
     protected internal bool grounded;
+
+    /// <summary> Did the player just leave the ground, but can still jump to account for reaction time? </summary>
+    protected internal bool coyoteGrounded;
 
     /// <summary> The direction that the character wants to move </summary>
     protected internal Vector2 moveVec;
