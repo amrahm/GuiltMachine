@@ -8,7 +8,8 @@ using static UnityEngine.Physics2D;
 [RequireComponent(typeof(HumanoidParts))]
 public class HumanoidMovement : MovementAbstract {
     /// <summary> How long after walking off a ledge should the character still be considered grounded </summary>
-    private const float CoyoteTime = 0.15f;
+    private const float CoyoteTime = 0.08f;
+
     private const string RollStateTag = "Roll";
     private const float GrabAdd = 0.1f;
     private const float TimeToGrab = 0.15f;
@@ -175,6 +176,9 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> True if the character is currently air dashing </summary>
     private bool _airDashing;
 
+    /// <summary> True if the character is on the floor while air dashing </summary>
+    private bool _airDashingGrounded;
+
     /// <summary> How many more air dashes the character can do in mid-air </summary>
     private int _airDashesLeft;
 
@@ -211,11 +215,14 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> The falling bool in the animator </summary>
     private int _fallingAnim;
 
-    /// <summary> The climb trigger in the animator </summary>
+    /// <summary> The climb bool in the animator </summary>
     private int _climbAnim;
 
     /// <summary> The climb speed float in the animator </summary>
     private int _climbAnimSpeed;
+
+    /// <summary> The is against wall while climbing bool in the animator </summary>
+    private int _climbIsAgainstWallAnim;
 
     /// <summary> The air dash trigger in the animator </summary>
     private int _airDashAnim;
@@ -246,6 +253,7 @@ public class HumanoidMovement : MovementAbstract {
         _fallingAnim = Animator.StringToHash("Falling");
         _climbAnim = Animator.StringToHash("Climb");
         _climbAnimSpeed = Animator.StringToHash("ClimbSpeed");
+        _climbIsAgainstWallAnim = Animator.StringToHash("ClimbIsAgainstWall");
         _airDashAnim = Animator.StringToHash("AirDash");
 
         _grabDownDist = _grabDistance * _grabDownDistMult;
@@ -286,7 +294,6 @@ public class HumanoidMovement : MovementAbstract {
         while(_grabbing) {
             Vector3 right = facingRight ? tf.right : -tf.right;
 
-            const float grabMaxVelocityThreshold = 3f;
             float dT = Time.fixedDeltaTime;
 
             // Move the head to a little above halfway between the two points
@@ -304,17 +311,17 @@ public class HumanoidMovement : MovementAbstract {
                                                                timeBeenGrabbing / TimeToGrab);
                 _parts.headIK.weight = Mathf.Lerp(0, 1, timeBeenGrabbing / TimeToGrab);
                 rb.velocity = rb.velocity.SharpInDamp(Vector2.zero, 1, dT); // and slow down the velocity some
-            } else if(Mathf.Abs(rb.velocity.y) < grabMaxVelocityThreshold) { // If the velocity is slow enough:
-                //FIXME remove velocity threshold? Not sure the physics engine is stable enough for this to not cause problems.
+            } else {
                 // Make sure the IKs are all at their final positions
                 _parts.armRIK.Target().position = grabPoint;
                 _parts.armLIK.Target().position = grabPoint + right * GrabAdd;
                 _parts.headIK.weight = 1;
 
                 // Raycast check from either foot (whichever hits) to the wall
-                //TODO how to deal with thin floating ledges, like this one:    ————————
                 Vector3 shift = -tf.up * GrabAdd;
                 var sideCheck = Raycast(_parts.footR.transform.position + shift, right, _grabDistance, whatIsGround);
+                bool sideCheckPastGrabPoint = Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
+                anim.SetBool(_climbIsAgainstWallAnim, sideCheck && !sideCheckPastGrabPoint);
 #if UNITY_EDITOR
                 if(_visualizeDebug && sideCheck)
                     Debug.DrawRay(_parts.footR.transform.position, right * _grabDistance, Color.cyan);
@@ -328,7 +335,10 @@ public class HumanoidMovement : MovementAbstract {
                 }
 
                 // Add a force to keep the character pressed against the wall
-                float wallDist = sideCheck ? Vector2.Distance(_parts.footR.transform.position, sideCheck.point) : 0.5f;
+                float sideDistance = Vector2.Dot(right, _parts.footL.transform.position - grabPoint);
+                float wallDist = sideCheck && !sideCheckPastGrabPoint ?
+                                     Vector2.Distance(_parts.footR.transform.position, sideCheck.point) :
+                                     (sideDistance < -GrabAdd * 3.5f ? 0.5f : 0);
                 Vector2 keepAgainstWall = right * .01f * Mathf.Pow(wallDist * 4, 2);
                 // And a force to move them up or down based on input
                 float hIn = control.moveHorizontal * (facingRight ? 1 : -1);
@@ -337,13 +347,16 @@ public class HumanoidMovement : MovementAbstract {
 
                 anim.SetFloat(_climbAnimSpeed, hIn + control.moveVertical);
 
+                float downDistance = Vector2.Dot(tf.up, _parts.footL.transform.position - grabPoint);
+                float downDistanceHips = Vector2.Dot(tf.up, tf.position - grabPoint);
                 // If neither foot is on the wall, or the feet have moved past the grab point, release
-                bool aboveLedge = !sideCheck || Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
-                if(aboveLedge || hIn < -0.2f) GrabRelease(); // also release if character moves away from wall
-            } else {
-                // If the velocity was too fast, just release
-                GrabRelease();
+                bool aboveLedge = downDistance > GrabAdd && (!sideCheck || sideCheckPastGrabPoint);
+                if(aboveLedge ||
+                   hIn < -0.2f || // also release if character moves away from wall
+                   downDistanceHips < -_grabTopOffset) // or moves too far down
+                    GrabRelease(aboveLedge);
             }
+
             yield return new WaitForFixedUpdate();
         }
     }
@@ -372,8 +385,8 @@ public class HumanoidMovement : MovementAbstract {
         }
 
         // If mid fails, check for down.
-        Vector2 grabDownOrigin = tf.TransformPoint(new Vector2(_grabDownDist, _grabTopOffset));
-        RaycastHit2D grabDown = Raycast(grabDownOrigin, -tf.up, _grabTopOffset - _grabBottomOffset, whatIsGround);
+        RaycastHit2D grabDown = Raycast(tf.TransformPoint(new Vector2(_grabDownDist, _grabTopOffset)),
+                                        -tf.up, _grabTopOffset - _grabBottomOffset, whatIsGround);
         if(grabDown) {
             Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, _grabTopOffset - grabDown.distance - GrabAdd));
             grabMid = Raycast(grabMidOrigin, right, _grabDistance, whatIsGround);
@@ -387,6 +400,7 @@ public class HumanoidMovement : MovementAbstract {
     private void GrabBegin(Vector2 point) {
         if(Time.time - _timeSinceRelease < 0.5f) return;
         _grabbing = true;
+        _airDashing = false;
         _parts.handR.GetComponent<Collider2D>().isTrigger = true;
         _parts.handL.GetComponent<Collider2D>().isTrigger = true;
         _parts.lowerArmR.GetComponent<Collider2D>().isTrigger = true;
@@ -406,7 +420,7 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Used to set end of grab </summary>
-    private void GrabRelease() {
+    private void GrabRelease(bool pullUp) {
         _timeSinceRelease = Time.time;
         _grabbing = false;
         _parts.handR.GetComponent<Collider2D>().isTrigger = false;
@@ -420,20 +434,17 @@ public class HumanoidMovement : MovementAbstract {
 
         StartCoroutine(GrabIKReleaseHelper());
 
-        //TODO check if this is a pull up release or a cancel release
-        StartCoroutine(GrabPullUp());
+        if(pullUp) StartCoroutine(GrabPullUp());
     }
 
     /// <summary> Used to finish the grab by moving the character to on top of the ledge </summary>
     private IEnumerator GrabPullUp() {
-        float timeBeenReleased = 0;
         _parts.footR.GetComponent<Collider2D>().isTrigger = true;
         _parts.footL.GetComponent<Collider2D>().isTrigger = true;
 
-        while(timeBeenReleased < TimeToGrab) {
+        while(Time.time - _timeSinceRelease < TimeToGrab) {
             //FIXME is this frame rate independent?
             rb.AddForce((facingRight ? tf.right : -tf.right) * 15 * rb.mass);
-            timeBeenReleased = Time.time - _timeSinceRelease;
 
             yield return new WaitForFixedUpdate();
         }
@@ -478,8 +489,6 @@ public class HumanoidMovement : MovementAbstract {
         if(!sideCheck)
             sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist, whatIsGround);
 
-        //TODO if upCheck clear and side check not, we might still be able to pull up with a (different?) animation,
-        //TODO or we can hang on the ledge, based on how far until horizontal check hits
 #if UNITY_EDITOR
         if(_visualizeDebug) {
             Debug.DrawRay(upCheckStart, tf.up * upCheckDist, Color.red);
@@ -495,8 +504,18 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> Update whether or not this character is touching the ground </summary>
     private void UpdateGrounded() {
-        bool wasGrounded;
-        if(!_rolling) {
+        bool wasGrounded = grounded;
+
+        RaycastHit2D groundCheckHit;
+        if(_rolling) {
+            // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
+            // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
+            groundCheckHit = Raycast(tf.position, -tf.up, _rollingGroundCheckDistance, whatIsGround);
+        } else if(_airDashing) {
+            // Same as rolling, but they go head first when air dashing
+            groundCheckHit = Raycast(_parts.head.transform.position, -tf.up, _rollingGroundCheckDistance / 2,
+                                     whatIsGround);
+        } else {
             /* This checks both feet to see if they are touching the ground, and if they are, it checks the angle of the ground they are on.
              * For each foot, a raycast checks the back of the foot, and if that hits nothing, then the front of the foot is checked.
              * Then, for any feet that are touching the ground, we check the angle of the ground, and use the larger angle, as long as it's
@@ -516,21 +535,19 @@ public class HumanoidMovement : MovementAbstract {
             float leftAngle = Vector2.Angle(leftHit.normal, tf.up);
 
             // Pick the larger angle that is still within bounds
-            bool rightGreater = rightAngle > leftAngle && rightAngle < maxWalkSlope || leftAngle > maxWalkSlope;
-            groundNormal = rightGreater && rightHit ? rightHit.normal : (leftHit ? leftHit.normal : (Vector2) tf.up);
-            walkSlope = rightGreater ? rightAngle : leftAngle;
-
-            wasGrounded = grounded;
-            grounded = (rightHit || leftHit) && walkSlope < maxWalkSlope;
-        } else { // Rolling
-            // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
-            // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
-            RaycastHit2D rollHit = Raycast(tf.position, -tf.up, _rollingGroundCheckDistance, whatIsGround);
-            groundNormal = rollHit.collider != null ? rollHit.normal : (Vector2) tf.up;
-            walkSlope = Vector2.Angle(rollHit.normal, tf.up);
-            wasGrounded = grounded;
-            grounded = rollHit && walkSlope < maxWalkSlope;
+            bool rightGreater = rightAngle >= leftAngle && rightAngle < maxWalkSlope || leftAngle >= maxWalkSlope;
+            // Now choose the right one if it was greater and actually hit. If leftHit didn't hit, rightGreater = true
+            groundCheckHit = rightGreater && rightHit ? rightHit : leftHit;
         }
+        groundNormal = groundCheckHit ? groundCheckHit.normal : (Vector2) tf.up;
+        walkSlope = Vector2.Angle(groundCheckHit.normal, tf.up);
+        if(_airDashing)
+            _airDashingGrounded = groundCheckHit && walkSlope < maxWalkSlope;
+        else
+            grounded = groundCheckHit && walkSlope < maxWalkSlope;
+
+        // This bit of code gives the character a little extra time to do a jump after walking off an edge
+        // This helps account for human reaction times and such
         if(grounded) _coyoteTimeLeft = CoyoteTime;
         else if(!grounded && _coyoteTimeLeft > 0) {
             _coyoteTimeLeft -= Time.fixedDeltaTime;
@@ -558,7 +575,11 @@ public class HumanoidMovement : MovementAbstract {
 
 #if UNITY_EDITOR
         if(_visualizeDebug) {
-            if(!_rolling) {
+            if(_rolling) {
+                Debug.DrawRay(tf.position, -tf.up * _rollingGroundCheckDistance);
+            } else if(_rolling) {
+                Debug.DrawRay(tf.position, -tf.up * _rollingGroundCheckDistance);
+            } else {
                 Debug.DrawRay(_parts.footR.transform.TransformPoint(_groundCheckOffsetR),
                               -tf.up * _groundCheckDistance);
                 Debug.DrawRay(_parts.footR.transform.TransformPoint(_groundCheckOffsetR2),
@@ -567,8 +588,6 @@ public class HumanoidMovement : MovementAbstract {
                               -tf.up * _groundCheckDistance);
                 Debug.DrawRay(_parts.footL.transform.TransformPoint(_groundCheckOffsetL2),
                               -tf.up * _groundCheckDistance);
-            } else {
-                Debug.DrawRay(tf.position, -tf.up * _rollingGroundCheckDistance);
             }
         }
 #endif
@@ -747,8 +766,7 @@ public class HumanoidMovement : MovementAbstract {
             // as down dashes. Gravity is restored to normal in the while loop below
             rb.gravityScale = 0;
             const float squareVelocityThreshold = 9;
-            RaycastHit2D groundCheck = Raycast(tf.position, -tf.up, _rollingGroundCheckDistance, whatIsGround);
-            while(!groundCheck || rb.velocity.sqrMagnitude > squareVelocityThreshold) {
+            while(_airDashing && (!_airDashingGrounded || rb.velocity.sqrMagnitude > squareVelocityThreshold)) {
                 if(rb.gravityScale < 1) rb.gravityScale += Time.deltaTime * 3;
                 else rb.gravityScale = 1;
 
@@ -760,7 +778,6 @@ public class HumanoidMovement : MovementAbstract {
 
                 // WaitForEndOfFrame to make sure all the normal animation stuff has already happened
                 yield return new WaitForEndOfFrame();
-                groundCheck = Raycast(tf.position, -tf.up, _rollingGroundCheckDistance, whatIsGround);
             }
             rb.gravityScale = 1;
         } else if(_airDashing) {
