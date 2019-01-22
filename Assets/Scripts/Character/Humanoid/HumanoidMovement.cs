@@ -12,7 +12,7 @@ public class HumanoidMovement : MovementAbstract {
 
     private const string RollStateTag = "Roll";
     private const float GrabAdd = 0.1f;
-    private const float TimeToGrab = 0.15f;
+    private const float TimeToGrab = .15f;
 
     #region Variables
 
@@ -122,6 +122,9 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Whether or not the character is currently grabbing </summary>
     private bool _grabbing;
 
+    /// <summary> Point to grab </summary>
+    private Vector3 _grabPoint;
+
     /// <summary> Distance out to do downward check </summary>
     private float _grabDownDist;
 
@@ -192,40 +195,43 @@ public class HumanoidMovement : MovementAbstract {
     private PhysicsMaterial2D _footFrictionMat;
 
     /// <summary> The speed float in the animator </summary>
-    private int _speedAnim;
+    private readonly int _speedAnim = Animator.StringToHash("Speed");
 
     /// <summary> The vertical speed float in the animator </summary>
-    private int _vSpeedAnim;
+    private readonly int _vSpeedAnim = Animator.StringToHash("vSpeed");
 
     /// <summary> The crouching bool in the animator </summary>
-    private int _crouchingAnim;
+    private readonly int _crouchingAnim = Animator.StringToHash("Crouching");
 
     /// <summary> The roll bool in the animator </summary>
-    private int _rollAnim;
+    private readonly int _rollAnim = Animator.StringToHash("Roll");
 
     /// <summary> The jump trigger in the animator </summary>
-    private int _jumpAnim;
+    private readonly int _jumpAnim = Animator.StringToHash("Jump");
 
     /// <summary> The roll jump trigger in the animator </summary>
-    private int _rollJumpAnim;
+    private readonly int _rollJumpAnim = Animator.StringToHash("RollJump");
 
     /// <summary> The land bool in the animator </summary>
-    private int _groundedAnim;
+    private readonly int _groundedAnim = Animator.StringToHash("Grounded");
 
     /// <summary> The falling bool in the animator </summary>
-    private int _fallingAnim;
+    private readonly int _fallingAnim = Animator.StringToHash("Falling");
 
     /// <summary> The climb bool in the animator </summary>
-    private int _climbAnim;
+    private readonly int _climbAnim = Animator.StringToHash("Climb");
 
     /// <summary> The climb speed float in the animator </summary>
-    private int _climbAnimSpeed;
+    private readonly int _climbAnimSpeed = Animator.StringToHash("ClimbSpeed");
 
     /// <summary> The is against wall while climbing bool in the animator </summary>
-    private int _climbIsAgainstWallAnim;
+    private readonly int _climbIsAgainstWallAnim = Animator.StringToHash("ClimbIsAgainstWall");
+
+    /// <summary> The climb step over trigger in the animator </summary>
+    private readonly int _climbStepOverAnim = Animator.StringToHash("ClimbStepOver");
 
     /// <summary> The air dash trigger in the animator </summary>
-    private int _airDashAnim;
+    private readonly int _airDashAnim = Animator.StringToHash("AirDash");
 
     #endregion
 
@@ -241,20 +247,6 @@ public class HumanoidMovement : MovementAbstract {
         _footFrictionMat = new PhysicsMaterial2D(footMat.name + " (Instance)") {friction = footMat.friction};
         _parts.footR.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
         _parts.footL.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
-
-        // Initialize animator parameters
-        _speedAnim = Animator.StringToHash("Speed");
-        _vSpeedAnim = Animator.StringToHash("vSpeed");
-        _crouchingAnim = Animator.StringToHash("Crouching");
-        _rollAnim = Animator.StringToHash("Roll");
-        _jumpAnim = Animator.StringToHash("Jump");
-        _rollJumpAnim = Animator.StringToHash("RollJump");
-        _groundedAnim = Animator.StringToHash("Grounded");
-        _fallingAnim = Animator.StringToHash("Falling");
-        _climbAnim = Animator.StringToHash("Climb");
-        _climbAnimSpeed = Animator.StringToHash("ClimbSpeed");
-        _climbIsAgainstWallAnim = Animator.StringToHash("ClimbIsAgainstWall");
-        _airDashAnim = Animator.StringToHash("AirDash");
 
         _grabDownDist = _grabDistance * _grabDownDistMult;
     }
@@ -287,7 +279,7 @@ public class HumanoidMovement : MovementAbstract {
     #region GrabLedgeStuff
 
     /// <summary> Handle if this character is grabbing a platform </summary>
-    private IEnumerator GrabHandle(Vector3 grabPoint) {
+    private IEnumerator GrabHandle() {
         float timeBeenGrabbing = 0;
         Vector3 handRStart = _parts.armRIK.Target().position;
         Vector3 handLStart = _parts.armLIK.Target().position;
@@ -306,54 +298,49 @@ public class HumanoidMovement : MovementAbstract {
             timeBeenGrabbing += dT;
             if(timeBeenGrabbing < TimeToGrab) {
                 // Move the hands from the start to the grab point, and fade in the head IK
-                _parts.armRIK.Target().position = Vector3.Lerp(handRStart, grabPoint, timeBeenGrabbing / TimeToGrab);
-                _parts.armLIK.Target().position = Vector3.Lerp(handLStart, grabPoint + right * GrabAdd,
+                _parts.armRIK.Target().position = Vector3.Lerp(handRStart, _grabPoint, timeBeenGrabbing / TimeToGrab);
+                _parts.armLIK.Target().position = Vector3.Lerp(handLStart, _grabPoint + right * GrabAdd,
                                                                timeBeenGrabbing / TimeToGrab);
                 _parts.headIK.weight = Mathf.Lerp(0, 1, timeBeenGrabbing / TimeToGrab);
                 rb.velocity = rb.velocity.SharpInDamp(Vector2.zero, 1, dT); // and slow down the velocity some
             } else {
                 // Make sure the IKs are all at their final positions
-                _parts.armRIK.Target().position = grabPoint;
-                _parts.armLIK.Target().position = grabPoint + right * GrabAdd;
+                _parts.armRIK.Target().position = _grabPoint;
+                _parts.armLIK.Target().position = _grabPoint + right * GrabAdd;
                 _parts.headIK.weight = 1;
 
                 // Raycast check from either foot (whichever hits) to the wall
                 Vector3 shift = -tf.up * GrabAdd;
                 var sideCheck = Raycast(_parts.footR.transform.position + shift, right, _grabDistance, whatIsGround);
-                bool sideCheckPastGrabPoint = Vector2.Dot(sideCheck.point, right) > Vector2.Dot(grabPoint, right);
-                anim.SetBool(_climbIsAgainstWallAnim, sideCheck && !sideCheckPastGrabPoint);
 #if UNITY_EDITOR
                 if(_visualizeDebug && sideCheck)
                     Debug.DrawRay(_parts.footR.transform.position, right * _grabDistance, Color.cyan);
 #endif
-                if(!sideCheck) {
-                    sideCheck = Raycast(_parts.footL.transform.position + shift, right, _grabDistance, whatIsGround);
-#if UNITY_EDITOR
-                    if(_visualizeDebug)
-                        Debug.DrawRay(_parts.footL.transform.position, right * _grabDistance, Color.cyan);
-#endif
-                }
+                bool sideCheckPastGrabPoint = Vector2.Dot(sideCheck.point, right) > Vector2.Dot(_grabPoint, right);
+                anim.SetBool(_climbIsAgainstWallAnim, sideCheck && !sideCheckPastGrabPoint);
 
                 // Add a force to keep the character pressed against the wall
-                float sideDistance = Vector2.Dot(right, _parts.footL.transform.position - grabPoint);
+                float sideDistance = Vector2.Dot(right, _parts.footL.transform.position - _grabPoint);
                 float wallDist = sideCheck && !sideCheckPastGrabPoint ?
                                      Vector2.Distance(_parts.footR.transform.position, sideCheck.point) :
                                      (sideDistance < -GrabAdd * 3.5f ? 0.5f : 0);
-                Vector2 keepAgainstWall = right * .01f * Mathf.Pow(wallDist * 4, 2);
+                Vector2 keepAgainstWall = right * Mathf.Pow(wallDist * 4, 2) * dT;
                 // And a force to move them up or down based on input
                 float hIn = control.moveHorizontal * (facingRight ? 1 : -1);
-                Vector2 climbControl = (Vector2) tf.up * 3 * dT * Mathf.Min(hIn + control.moveVertical, 1f);
+                Vector2 climbControl = (Vector2) tf.up * 3 * Mathf.Min(hIn + control.moveVertical, 1f) * dT;
                 rb.MovePosition(rb.position + keepAgainstWall + climbControl);
 
                 anim.SetFloat(_climbAnimSpeed, hIn + control.moveVertical);
 
-                float downDistance = Vector2.Dot(tf.up, _parts.footL.transform.position - grabPoint);
-                float downDistanceHips = Vector2.Dot(tf.up, tf.position - grabPoint);
-                // If neither foot is on the wall, or the feet have moved past the grab point, release
-                bool aboveLedge = downDistance > GrabAdd && (!sideCheck || sideCheckPastGrabPoint);
+                // Vertical distance of back foot to the grab point
+                float downDistance = Vector2.Dot(tf.up, _parts.footR.transform.position - _grabPoint);
+                anim.SetBool(_climbStepOverAnim, downDistance > -GrabAdd * 3);
+
+                float downDistanceHips = Vector2.Dot(tf.up, tf.position - _grabPoint);
+                bool aboveLedge = downDistance > 0;
                 if(aboveLedge ||
                    hIn < -0.2f || // also release if character moves away from wall
-                   downDistanceHips < -_grabTopOffset) // or moves too far down
+                   downDistanceHips < -_grabTopOffset - GrabAdd) // or moves too far down
                     GrabRelease(aboveLedge);
             }
 
@@ -416,7 +403,8 @@ public class HumanoidMovement : MovementAbstract {
         _parts.armLIK.Target().position = _parts.handL.transform.position;
         anim.SetBool(_climbAnim, true);
         rb.gravityScale = 0f;
-        StartCoroutine(GrabHandle(point));
+        _grabPoint = point;
+        StartCoroutine(GrabHandle());
     }
 
     /// <summary> Used to set end of grab </summary>
@@ -430,24 +418,32 @@ public class HumanoidMovement : MovementAbstract {
         _parts.upperArmR.GetComponent<Collider2D>().isTrigger = false;
         _parts.upperArmL.GetComponent<Collider2D>().isTrigger = false;
         anim.SetBool(_climbAnim, false);
-        rb.gravityScale = 1f;
 
         StartCoroutine(GrabIKReleaseHelper());
-
         if(pullUp) StartCoroutine(GrabPullUp());
+        else rb.gravityScale = 1f; // We do this in GrabPullUp if pullUp
     }
 
     /// <summary> Used to finish the grab by moving the character to on top of the ledge </summary>
     private IEnumerator GrabPullUp() {
         _parts.footR.GetComponent<Collider2D>().isTrigger = true;
         _parts.footL.GetComponent<Collider2D>().isTrigger = true;
-
-        while(Time.time - _timeSinceRelease < TimeToGrab) {
-            //FIXME is this frame rate independent?
-            rb.AddForce((facingRight ? tf.right : -tf.right) * 15 * rb.mass);
+        Vector3 right = facingRight ? tf.right : -tf.right;
+        rb.gravityScale = .5f;
+        float hDist = 1;
+        const float maxDistance = .7f;
+        do {
+            tf.Translate((Vector2) (right * (hDist + 0.1f) + _grabPoint - _parts.footR.transform.position) * 4 *
+                         Time.fixedDeltaTime);
+            if(Vector3.Dot(tf.up, _grabPoint - _parts.footR.transform.position) > 0)
+                tf.Translate((Vector2) tf.up * Time.fixedDeltaTime);
 
             yield return new WaitForFixedUpdate();
-        }
+
+            hDist = Vector3.Dot(right, _grabPoint - tf.position);
+        } while(hDist > -GrabAdd && Time.time - _timeSinceRelease < TimeToGrab * 2 &&
+                Vector3.Distance(_grabPoint, _parts.footR.transform.position) < maxDistance);
+        rb.gravityScale = 1f;
 
         _parts.footR.GetComponent<Collider2D>().isTrigger = false;
         _parts.footL.GetComponent<Collider2D>().isTrigger = false;
@@ -852,11 +848,9 @@ public class HumanoidMovement : MovementAbstract {
         Jump(true, true);
     }
 
-    // ReSharper disable once UnusedParameter.Local
     private void OnCollisionEnter2D(Collision2D collInfo) {
         _isTouching = true;
         if(!_grabbing) GrabSetPoint(collInfo.GetContact(0).normal, collInfo.GetContact(0).point);
-//        print(collInfo.collider + "    :::   " + Time.time);
     }
 
     // ReSharper disable once UnusedParameter.Local

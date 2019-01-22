@@ -46,6 +46,7 @@ public class DistortCamera : MonoBehaviour {
 
     if (rt) {
       rt.Release();
+      Destroy(rt);
     }
   }
 
