@@ -5,15 +5,15 @@ public abstract class CharacterControlAbstract : MonoBehaviour {
     [Tooltip("Show the input fields in the inspector")] [SerializeField]
     private bool _showCurrentInput;
 #endif
-    [ConditionalHide("_showCurrentInput", true, true)] public float moveHorizontal;
-    [ConditionalHide("_showCurrentInput", true, true)] public float moveVertical;
-    [ConditionalHide("_showCurrentInput", true, true)] public bool hPressed;
-    [ConditionalHide("_showCurrentInput", true, true)] public bool sprint;
-    [ConditionalHide("_showCurrentInput", true, true)] public bool upPressed;
-    [ConditionalHide("_showCurrentInput", true, true)] public bool downPressed;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public float moveHorizontal;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public float moveVertical;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public bool hPressed;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public bool sprint;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public bool upPressed;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public bool downPressed;
     
-    [ConditionalHide("_showCurrentInput", true, true)] public float attackHorizontal;
-    [ConditionalHide("_showCurrentInput", true, true)] public float attackVertical;
-    [ConditionalHide("_showCurrentInput", true, true)] public bool attackHPressed;
-    [ConditionalHide("_showCurrentInput", true, true)] public bool attackVPressed;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public float attackHorizontal;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public float attackVertical;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public bool attackHPressed;
+    [ConditionalHide(nameof(_showCurrentInput), true, true)] public bool attackVPressed;
 }

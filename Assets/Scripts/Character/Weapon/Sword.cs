@@ -35,17 +35,17 @@ public class Sword : WeaponAbstract {
     /// <summary> Did the sword already hit something this swing </summary>
     private bool _hitSomething;
 
-    /// <summary> The speed parameter in the animator </summary>
-    private int _jabArmRightAnim;
-
-    /// <summary> The vertical speed parameter in the animator </summary>
-    private int _swingArmRightAnim;
-
     /// <summary> Was horizontal attack pressed last frame? </summary>
     private bool _hWasPressed;
 
     /// <summary> Was vertical attack pressed last frame? </summary>
     private bool _vWasPressed;
+
+    /// <summary> The speed parameter in the animator </summary>
+    private readonly int _jabArmRightAnim = Animator.StringToHash("JabForward");
+
+    /// <summary> The vertical speed parameter in the animator </summary>
+    private readonly int _swingArmRightAnim = Animator.StringToHash("SwingArmRight");
 
     #endregion
 
@@ -53,9 +53,6 @@ public class Sword : WeaponAbstract {
     private void Start() {
         anim = holder.gameObject.GetComponent<Animator>();
         movement = holder.gameObject.GetComponent<MovementAbstract>();
-
-        _jabArmRightAnim = Animator.StringToHash("JabArmRight");
-        _swingArmRightAnim = Animator.StringToHash("SwingArmRight");
     }
 
     public override void Attack(float horizontal, float vertical, bool hPressed, bool vPressed) {
