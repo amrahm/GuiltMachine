@@ -191,8 +191,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   healthBarRect: {fileID: 224122416872242044}
   healthText: {fileID: 114765515567774352}
-  _guiltBarRect: {fileID: 224205786232570850}
-  _guiltText: {fileID: 114038789339316620}
+  guiltBarRect: {fileID: 224205786232570850}
+  guiltText: {fileID: 114038789339316620}
 --- !u!1 &1091187499421410
 GameObject:
   m_ObjectHideFlags: 0
@@ -1110,6 +1110,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114871964366483448, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+        type: 3}
+      propertyPath: _targetCamera
+      value: 
+      objectReference: {fileID: 5891348486309618298}
     - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
         type: 3}
       propertyPath: m_BackGroundColor.r
@@ -1135,11 +1140,22 @@ PrefabInstance:
       propertyPath: far clip plane
       value: 300
       objectReference: {fileID: 0}
+    - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+        type: 3}
+      propertyPath: m_TargetTexture
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
 --- !u!4 &5874661584883175490 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
+    type: 3}
+  m_PrefabInstance: {fileID: 5875066533454467422}
+  m_PrefabAsset: {fileID: 0}
+--- !u!20 &5891348486309618298 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
     type: 3}
   m_PrefabInstance: {fileID: 5875066533454467422}
   m_PrefabAsset: {fileID: 0}

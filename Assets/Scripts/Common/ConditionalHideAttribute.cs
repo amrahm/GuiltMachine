@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+// ReSharper disable UnusedMember.Global
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property |
                 AttributeTargets.Class | AttributeTargets.Struct)]

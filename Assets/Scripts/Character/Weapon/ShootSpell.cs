@@ -1,38 +1,46 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using static ExtensionMethods.HelperMethods;
 
 public class ShootSpell : WeaponAbstract {
     #region Variables
 
+    [FormerlySerializedAs("_swingFadeIn")]
     [Tooltip("The ScriptableObject asset signifying when the sword swing animation should start fading in")]
     [SerializeField]
-    private AnimationEventObject _swingFadeIn;
+    private AnimationEventObject swingFadeIn;
 
+    [FormerlySerializedAs("_swingStart")]
     [Tooltip("The ScriptableObject asset signifying a sword swing starting")]
     [SerializeField]
-    private AnimationEventObject _swingStart;
+    private AnimationEventObject swingStart;
 
+    [FormerlySerializedAs("_swingEnd")]
     [Tooltip("The ScriptableObject asset signifying a sword swing ending")]
     [SerializeField]
-    private AnimationEventObject _swingEnd;
+    private AnimationEventObject swingEnd;
 
+    [FormerlySerializedAs("_damage")]
     [Tooltip("How much the weapon hurts")]
     [SerializeField]
-    private int _damage = 17;
+    private int damage = 17;
 
+    [FormerlySerializedAs("_knockback")]
     [Tooltip("Knockback force applied by weapon")]
     [SerializeField]
-    private float _knockback = 50;
+    private float knockback = 50;
 
+    [FormerlySerializedAs("_mass")]
     [Tooltip("How much should this weapon slow down the character, and how much should their velocity increase the weapon's force")]
     [SerializeField]
-    private float _mass = 5;
+    private float mass = 5;
 
+    [FormerlySerializedAs("_tapThreshold")]
     [Tooltip("How long until an attack is considered held down")]
     [SerializeField]
-    private float _tapThreshold;
+    private float tapThreshold;
 
 
     /// <summary> How long an attack key has been held </summary>
@@ -74,7 +82,7 @@ public class ShootSpell : WeaponAbstract {
         anim.ResetTrigger(_jabArmRightAnim); //FIXME? Not sure why I gotta do this, but otherwise the animation plays twice
         anim.ResetTrigger(_swingArmRightAnim);
 
-        if (_attackHoldTime < _tapThreshold && (!hPressed && _hWasPressed || !vPressed && _vWasPressed)) anim.SetTrigger(_jabArmRightAnim);
+        if (_attackHoldTime < tapThreshold && (!hPressed && _hWasPressed || !vPressed && _vWasPressed)) anim.SetTrigger(_jabArmRightAnim);
 
         if (hPressed || vPressed)
         {
@@ -93,15 +101,15 @@ public class ShootSpell : WeaponAbstract {
 
     public override void ReceiveAnimationEvent(AnimationEventObject e, float duration)
     {
-        if (e == _swingFadeIn)
+        if (e == swingFadeIn)
         {
             FadeAnimationLayer(this, anim, FadeType.FadeIn , UpperBodyLayerIndex, duration);
         }
-        else if (e == _swingStart)
+        else if (e == swingStart)
         {
             _swinging = true;
         }
-        else if (e == _swingEnd)
+        else if (e == swingEnd)
         {
             _swinging = false;
             _hitSomething = false;
@@ -124,16 +132,16 @@ public class ShootSpell : WeaponAbstract {
 
             Vector2 force = thisColl.attachedRigidbody.velocity; //Relative Velocity
             if (other.attachedRigidbody) force -= other.attachedRigidbody.velocity;
-            force = _mass * force; //Kinetic Energy = mv^2, but that was too much so just doing mv lol
+            force = mass * force; //Kinetic Energy = mv^2, but that was too much so just doing mv lol
 
             //add knockback in the direction of the swing
             Vector2 rightUp = transform.right + transform.up / 4;
-            force += rightUp * _knockback * (movement.facingRight ? 1 : -1);
+            force += rightUp * knockback * (movement.facingRight ? 1 : -1);
 
             //don't damage if we hit their weapon, otherwise, damage scaled based on relative velocity
-            int damage = other.isTrigger ? 0 : (int)(_damage * force.magnitude / _knockback);
+            int damageGiven = other.isTrigger ? 0 : (int)(damage * force.magnitude / knockback);
             //            print($"{point}, {force}, {damage}");
-            damageable.DamageMe(point, force, damage, other);
+            damageable.DamageMe(point, force, damageGiven, other);
         }
     }
 }

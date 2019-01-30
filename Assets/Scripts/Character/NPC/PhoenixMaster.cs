@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PhoenixMaster : CharacterMasterAbstract {
-    [Tooltip("Explosion to play when phoenix dies")] [SerializeField]
-    private Transform _deathExplosionPrefab;
+    [FormerlySerializedAs("_deathExplosionPrefab")] [Tooltip("Explosion to play when phoenix dies")] [SerializeField]
+    private Transform deathExplosionPrefab;
 
     private bool _exploded;
 
@@ -15,7 +16,7 @@ public class PhoenixMaster : CharacterMasterAbstract {
 
     /// <summary> Makes the phoenix die lol what did you expect </summary>
     private IEnumerator Die() {
-        Transform deathParticle = Instantiate(_deathExplosionPrefab, transform.position, Quaternion.identity);
+        Transform deathParticle = Instantiate(deathExplosionPrefab, transform.position, Quaternion.identity);
         // Destroy particle system after 1 second
         Destroy(deathParticle.gameObject, 1f);
 
@@ -31,7 +32,7 @@ public class PhoenixMaster : CharacterMasterAbstract {
         yield return new WaitForSeconds(deathSound.clip.length);
 
         Destroy(gameObject);
-        Debug.Log("Destroyed " + gameObject.name + " from the scene.");
+//        print("Destroyed " + gameObject.name + " from the scene.");
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {

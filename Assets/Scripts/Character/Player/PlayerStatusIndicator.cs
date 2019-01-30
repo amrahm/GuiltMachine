@@ -1,23 +1,24 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class PlayerStatusIndicator : StatusIndicator
 {
     [SerializeField]
-    private RectTransform _guiltBarRect;
+    private RectTransform guiltBarRect;
     [SerializeField]
-    private Text _guiltText;
+    private Text guiltText;
 
     protected override void Start()
     {
         base.Start();
 
-        if (_guiltBarRect == null)
+        if (guiltBarRect == null)
         {
             Debug.LogError("STATUS INDICATOR: No guilt bar object referenced!");
         }
 
-        if (_guiltText == null)
+        if (guiltText == null)
         {
             Debug.LogError("STATUS INDICATOR: No guilt text object referenced!");
         }
@@ -38,7 +39,7 @@ public class PlayerStatusIndicator : StatusIndicator
     {
         float value = (float)cur / max;
 
-        _guiltBarRect.localScale = new Vector3(value, _guiltBarRect.localScale.y, _guiltBarRect.localScale.z);
-        _guiltText.text = cur + "/" + max + " Guilt";
+        guiltBarRect.localScale = new Vector3(value, guiltBarRect.localScale.y, guiltBarRect.localScale.z);
+        guiltText.text = cur + "/" + max + " Guilt";
     }
 }

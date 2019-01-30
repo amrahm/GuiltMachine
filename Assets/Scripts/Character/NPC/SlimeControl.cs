@@ -12,7 +12,7 @@ public class SlimeControl : CharacterControlAbstract
     public float pathUpdateRate = 2f;
 
     // Caching
-    private Seeker seeker;
+    private Seeker _seeker;
 
     // The calculated path
     public Path path;
@@ -23,26 +23,26 @@ public class SlimeControl : CharacterControlAbstract
     public float nextWaypointDistance = 3;
 
     // The waypoint we are currently moving towards
-    private int currentWaypoint = 0;
+    private int _currentWaypoint = 0;
 
-    private bool searchingForPlayer = false;
+    private bool _searchingForPlayer = false;
 
     void Start()
     {
-        seeker = GetComponent<Seeker>();
+        _seeker = GetComponent<Seeker>();
 
         if (target == null)
         {
-            if (!searchingForPlayer)
+            if (!_searchingForPlayer)
             {
-                searchingForPlayer = true;
+                _searchingForPlayer = true;
                 StartCoroutine(SearchForPlayer());
             }
             return;
         }
 
         // Start a new path to the target position, return the result to the OnComplete method
-        seeker.StartPath(transform.position, target.position, OnPathComplete);
+        _seeker.StartPath(transform.position, target.position, OnPathComplete);
 
         StartCoroutine(UpdatePath());
     }
@@ -61,7 +61,7 @@ public class SlimeControl : CharacterControlAbstract
         {
             // If player is found, stop searching, begin pathfinding
             target = sResult.transform;
-            searchingForPlayer = false;
+            _searchingForPlayer = false;
             StartCoroutine(UpdatePath());
             yield break;
         }
@@ -71,16 +71,16 @@ public class SlimeControl : CharacterControlAbstract
     {
         if (target == null)
         {
-            if (!searchingForPlayer)
+            if (!_searchingForPlayer)
             {
-                searchingForPlayer = true;
+                _searchingForPlayer = true;
                 StartCoroutine(SearchForPlayer());
             }
             yield break;
         }
 
         // Start a new path to the target position, return the result to the OnComplete method
-        seeker.StartPath(transform.position, target.position, OnPathComplete);
+        _seeker.StartPath(transform.position, target.position, OnPathComplete);
 
         yield return new WaitForSeconds(1f / pathUpdateRate);
         StartCoroutine(UpdatePath());
@@ -93,7 +93,7 @@ public class SlimeControl : CharacterControlAbstract
         if (!p.error)
         {
             path = p;
-            currentWaypoint = 0;
+            _currentWaypoint = 0;
         }
     }
 
@@ -102,9 +102,9 @@ public class SlimeControl : CharacterControlAbstract
         //TODO Move to coroutine and update less often
         if (target == null)
         {
-            if (!searchingForPlayer)
+            if (!_searchingForPlayer)
             {
-                searchingForPlayer = true;
+                _searchingForPlayer = true;
                 StartCoroutine(SearchForPlayer());
             }
             return;
@@ -115,7 +115,7 @@ public class SlimeControl : CharacterControlAbstract
             return;
         }
 
-        if (currentWaypoint >= path.vectorPath.Count)
+        if (_currentWaypoint >= path.vectorPath.Count)
         {
             if (pathIsEnded)
             {
@@ -128,15 +128,15 @@ public class SlimeControl : CharacterControlAbstract
         pathIsEnded = false;
 
         // Direction to the next waypoint, scaled by magnitude and mass
-        Vector3 dir = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+        Vector3 dir = (path.vectorPath[_currentWaypoint] - transform.position).normalized;
         
         moveHorizontal = dir.x;
         moveVertical = dir.y;
 
-        float dist = Vector3.Distance(transform.position, path.vectorPath[currentWaypoint]);
+        float dist = Vector3.Distance(transform.position, path.vectorPath[_currentWaypoint]);
         if (dist < nextWaypointDistance)
         {
-            currentWaypoint++;
+            _currentWaypoint++;
             return;
         }
     }

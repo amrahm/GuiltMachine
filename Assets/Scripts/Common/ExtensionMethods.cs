@@ -138,11 +138,8 @@ namespace ExtensionMethods {
 
     public static class HelperMethods {
         public static string GetTooltip(FieldInfo field, bool inherit) {
-            TooltipAttribute[] attributes =
-                field.GetCustomAttributes(typeof(TooltipAttribute), inherit) as TooltipAttribute[];
-
             string ret = "";
-            if(attributes != null && attributes.Length > 0)
+            if (field.GetCustomAttributes(typeof(TooltipAttribute), inherit) is TooltipAttribute[] attributes && attributes.Length > 0)
                 ret = attributes[0].tooltip;
 
             return ret;

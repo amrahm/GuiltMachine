@@ -6,14 +6,14 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [Tooltip("If God Mode on, character cannot take damage.")]
     public bool godMode;
 
-    [Tooltip("Character Stats Asset (Shared)")] [SerializeField]
+    [Tooltip("Character Stats Asset (Shared)"), SerializeField]
     protected CharacterStats characterStats;
-    
-    [Tooltip("The weapon currently being held. Doesn't have to be assigned.")]
-    [CanBeNull] public WeaponAbstract weapon;
 
-    [Tooltip("Status indicator for this character. Doesn't have to be assigned.")]
-    [SerializeField] [CanBeNull] protected internal StatusIndicator statusIndicator;
+    [Tooltip("The weapon currently being held. Doesn't have to be assigned."), CanBeNull]
+    public WeaponAbstract weapon;
+
+    [Tooltip("Status indicator for this character. Doesn't have to be assigned."), SerializeField, CanBeNull]
+    protected internal StatusIndicator statusIndicator;
 
     /// <summary> Reference to this gameObject's rigidbody, if it exists </summary>
     [CanBeNull] protected Rigidbody2D rb;
@@ -22,8 +22,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [CanBeNull] protected CharacterPhysics characterPhysics;
 
     /// <summary> Reference to this gameObject's Control script </summary>
-    [NonSerialized] public CharacterControlAbstract control;
-
+    [NonSerialized] protected CharacterControlAbstract control;
 
 
     public abstract void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider);

@@ -4,8 +4,7 @@ using ExtensionMethods;
 using UnityEngine;
 using static UnityEngine.Physics2D;
 
-[RequireComponent(typeof(Animator))]
-[RequireComponent(typeof(HumanoidParts))]
+[RequireComponent(typeof(Animator)), RequireComponent(typeof(HumanoidParts))]
 public class HumanoidMovement : MovementAbstract {
     /// <summary> How long after walking off a ledge should the character still be considered grounded </summary>
     private const float CoyoteTime = 0.08f;
@@ -17,103 +16,101 @@ public class HumanoidMovement : MovementAbstract {
     #region Variables
 
 #if UNITY_EDITOR
-    [Tooltip("Show debug visualizations")] [SerializeField]
-    private bool _visualizeDebug;
+    [Tooltip("Show debug visualizations"), SerializeField]  
+    private bool visualizeDebug;
 
 
-    [Tooltip("Debug control to allow multiple jumps")] [SerializeField]
-    private bool _allowJumpingInMidair;
+    [Tooltip("Debug control to allow multiple jumps"), SerializeField]  
+    private bool allowJumpingInMidair;
 #endif
 
-    [Tooltip("The fastest the character can travel in the x axis")] [SerializeField]
-    private float _maxSpeed = 10f;
+    [Tooltip("The fastest the character can travel in the x axis"), SerializeField]  
+    private float maxSpeed = 10f;
 
-    [Tooltip("How fast the character speeds up")] [SerializeField]
-    private float _acceleration = 1;
+    [Tooltip("How fast the character speeds up"), SerializeField]  
+    private float acceleration = 1;
 
-    [Tooltip("A kick to make the character start moving faster")] [SerializeField]
-    private float _kick = 1;
+    [Tooltip("A kick to make the character start moving faster"), SerializeField]  
+    private float kick = 1;
 
-    [Tooltip("How much character automatically slows down while not walking but on the ground")] [SerializeField]
-    private float _groundSlowdownMultiplier;
+    [Tooltip("How much character automatically slows down while not walking but on the ground"), SerializeField]  
+    private float groundSlowdownMultiplier;
 
-    [Tooltip("Sprint multiplier for when running")] [SerializeField]
-    private float _sprintSpeed = 2;
+    [Tooltip("Sprint multiplier for when running"), SerializeField]  
+    private float sprintSpeed = 2;
 
-    [Tooltip("Vertical speed of a jump")] [SerializeField]
-    private float _jumpSpeed = 5;
+    [Tooltip("Vertical speed of a jump"), SerializeField]  
+    private float jumpSpeed = 5;
 
-    [Tooltip("Amount of time a jump can be held to jump higher")] [SerializeField]
-    private float _jumpFuel = 100f;
+    [Tooltip("Amount of time a jump can be held to jump higher"), SerializeField]  
+    private float jumpFuel = 100f;
 
-    [Tooltip("Additional force added while holding jump")] [SerializeField]
-    private float _jumpFuelForce = 30f;
+    [Tooltip("Additional force added while holding jump"), SerializeField]  
+    private float jumpFuelForce = 30f;
 
-    [Tooltip("How much character can steer while in mid-air")] [SerializeField]
-    private float _airControl;
+    [Tooltip("How much character can steer while in mid-air"), SerializeField]  
+    private float airControl;
 
-    [Tooltip("How much character automatically slows down while in mid-air")] [SerializeField]
-    private float _airSlowdownMultiplier;
+    [Tooltip("How much character automatically slows down while in mid-air"), SerializeField]  
+    private float airSlowdownMultiplier;
 
-    [Tooltip("A kick to make the character start moving faster while in mid-air")] [SerializeField]
-    private float _kickAir;
+    [Tooltip("A kick to make the character start moving faster while in mid-air"), SerializeField]  
+    private float kickAir;
 
-    [Tooltip("Offset for the back of the right foot ground check raycast")] [SerializeField]
-    private Vector2 _groundCheckOffsetR;
+    [Tooltip("Offset for the back of the right foot ground check raycast"), SerializeField]  
+    private Vector2 groundCheckOffsetR;
 
-    [Tooltip("Offset for the front of the right foot ground check raycast")] [SerializeField]
-    private Vector2 _groundCheckOffsetR2 = new Vector2(0.15f, 0);
+    [Tooltip("Offset for the front of the right foot ground check raycast"), SerializeField]  
+    private Vector2 groundCheckOffsetR2 = new Vector2(0.15f, 0);
 
-    [Tooltip("Offset for the back of the left foot ground check raycast")] [SerializeField]
-    private Vector2 _groundCheckOffsetL;
+    [Tooltip("Offset for the back of the left foot ground check raycast"), SerializeField]  
+    private Vector2 groundCheckOffsetL;
 
-    [Tooltip("Offset for the front of the left foot ground check raycast")] [SerializeField]
-    private Vector2 _groundCheckOffsetL2 = new Vector2(0.15f, 0);
+    [Tooltip("Offset for the front of the left foot ground check raycast"), SerializeField]  
+    private Vector2 groundCheckOffsetL2 = new Vector2(0.15f, 0);
 
-    [Tooltip("How long is the ground check raycast")] [SerializeField]
-    private float _groundCheckDistance = 0.15f;
+    [Tooltip("How long is the ground check raycast"), SerializeField]  
+    private float groundCheckDistance = 0.15f;
 
-    [Tooltip("How far to check down when rolling")] [SerializeField]
-    private float _rollingGroundCheckDistance = 1.3f;
+    [Tooltip("How far to check down when rolling"), SerializeField]  
+    private float rollingGroundCheckDistance = 1.3f;
 
-    [Tooltip("How long is the grab check raycast")] [SerializeField]
-    private float _grabDistance = 1;
+    [Tooltip("How long is the grab check raycast"), SerializeField]  
+    private float grabDistance = 1;
 
-    [Tooltip("How far along the horizontal check is the downward check")] [SerializeField]
-    private float _grabDownDistMult = 0.7f;
+    [Tooltip("How far along the horizontal check is the downward check"), SerializeField]  
+    private float grabDownDistMult = 0.7f;
 
-    [Tooltip("How high is the highest grabbable")] [SerializeField]
-    private float _grabTopOffset = 0.65f;
+    [Tooltip("How high is the highest grabbable"), SerializeField]  
+    private float grabTopOffset = 0.65f;
 
-    [Tooltip("How high is the middle grabbable")] [SerializeField]
-    private float _grabMidOffset;
+    [Tooltip("How high is the middle grabbable"), SerializeField]  
+    private float grabMidOffset;
 
-    [Tooltip("How high is the lowest grabbable")] [SerializeField]
-    private float _grabBottomOffset = -0.75f;
+    [Tooltip("How high is the lowest grabbable"), SerializeField]  
+    private float grabBottomOffset = -0.75f;
 
-    [Tooltip("How wide a radius vertically needs to be clear to initiate a grab")] [SerializeField]
-    private float _grabCheckRadiusV = 0.3f;
+    [Tooltip("How wide a radius vertically needs to be clear to initiate a grab"), SerializeField]  
+    private float grabCheckRadiusV = 0.3f;
 
-    [Tooltip("How far vertically beyond the grab point needs to be clear to initiate a grab")] [SerializeField]
-    private float _grabCheckDistanceV = 1f;
+    [Tooltip("How far vertically beyond the grab point needs to be clear to initiate a grab"), SerializeField]  
+    private float grabCheckDistanceV = 1f;
 
-    [Tooltip("How wide a radius horizontally needs to be clear to initiate a grab")] [SerializeField]
-    private float _grabCheckRadiusH = 0.4f;
+    [Tooltip("How wide a radius horizontally needs to be clear to initiate a grab"), SerializeField]  
+    private float grabCheckRadiusH = 0.4f;
 
-    [Tooltip("How far horizontally beyond the grab point needs to be clear to initiate a grab")] [SerializeField]
-    private float _grabCheckDistanceH = 0.2f;
+    [Tooltip("How far horizontally beyond the grab point needs to be clear to initiate a grab"), SerializeField]  
+    private float grabCheckDistanceH = 0.2f;
 
     [Header("Movement Abilities")]
-    [Tooltip(" >= 1 gives the character the ability to dash-jump in mid-air this many times")]
-    [SerializeField]
-    private int _numberOfAirDashes;
+    [Tooltip(" >= 1 gives the character the ability to dash-jump in mid-air this many times"), SerializeField]
+    private int numberOfAirDashes;
 
-    [Tooltip("How fast/far the air-dash goes")]
-    [SerializeField]
-    private float _airDashSpeed = 1;
+    [Tooltip("How fast/far the air-dash goes"), SerializeField]
+    private float airDashSpeed = 1;
 
-    [Tooltip("The particle effect to spawn when air-dashing")] [SerializeField]
-    private GameObject _airDashParticleEffect;
+    [Tooltip("The particle effect to spawn when air-dashing"), SerializeField]  
+    private GameObject airDashParticleEffect;
 
 
     /// <summary> Number between 0 and 1 indicating transition between standing still and sprinting </summary>
@@ -248,7 +245,7 @@ public class HumanoidMovement : MovementAbstract {
         _parts.footR.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
         _parts.footL.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
 
-        _grabDownDist = _grabDistance * _grabDownDistMult;
+        _grabDownDist = grabDistance * grabDownDistMult;
     }
 
     private void FixedUpdate() {
@@ -266,11 +263,11 @@ public class HumanoidMovement : MovementAbstract {
         }
 
 #if UNITY_EDITOR
-        if(_visualizeDebug) { //Visualize grab raycasts
-            Debug.DrawRay(tf.TransformPoint(new Vector2(0, _grabMidOffset + GrabAdd)),
-                          (facingRight ? tf.right : -tf.right) * _grabDistance, new Color(0.52f, 1f, 0.52f));
-            Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, _grabTopOffset)),
-                          -tf.up * (_grabTopOffset - _grabBottomOffset), new Color(0.38f, 0.72f, 0.38f));
+        if(visualizeDebug) { //Visualize grab raycasts
+            Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)),
+                          (facingRight ? tf.right : -tf.right) * grabDistance, new Color(0.52f, 1f, 0.52f));
+            Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
+                          -tf.up * (grabTopOffset - grabBottomOffset), new Color(0.38f, 0.72f, 0.38f));
             if(_climbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
         }
 #endif
@@ -310,10 +307,10 @@ public class HumanoidMovement : MovementAbstract {
 
                 // Raycast check from either foot (whichever hits) to the wall
                 Vector3 shift = -tf.up * GrabAdd;
-                var sideCheck = Raycast(_parts.footR.transform.position + shift, right, _grabDistance, whatIsGround);
+                var sideCheck = Raycast(_parts.footR.transform.position + shift, right, grabDistance, whatIsGround);
 #if UNITY_EDITOR
-                if(_visualizeDebug && sideCheck)
-                    Debug.DrawRay(_parts.footR.transform.position, right * _grabDistance, Color.cyan);
+                if(visualizeDebug && sideCheck)
+                    Debug.DrawRay(_parts.footR.transform.position, right * grabDistance, Color.cyan);
 #endif
                 bool sideCheckPastGrabPoint = Vector2.Dot(sideCheck.point, right) > Vector2.Dot(_grabPoint, right);
                 anim.SetBool(_climbIsAgainstWallAnim, sideCheck && !sideCheckPastGrabPoint);
@@ -340,7 +337,7 @@ public class HumanoidMovement : MovementAbstract {
 
                 bool aboveLedge = downDistance > 0; // Release if the character has climbed high enough
                 // or moves too far down
-                bool tooFarToHoldOn = Vector2.Dot(tf.up, tf.position - _grabPoint) < -_grabTopOffset - GrabAdd;
+                bool tooFarToHoldOn = Vector2.Dot(tf.up, tf.position - _grabPoint) < -grabTopOffset - GrabAdd;
                 bool movingAway = horizontalInput < -0.2f; // also release if character moves away from wall
                 if(aboveLedge || tooFarToHoldOn || movingAway)
                     ClimbRelease(aboveLedge);
@@ -359,26 +356,26 @@ public class HumanoidMovement : MovementAbstract {
 
         Vector2 right = facingRight ? tf.right : -tf.right;
         Vector2 midPoint = tf.TransformPoint(new Vector2(0, tf.InverseTransformPoint(hitPoint).y + GrabAdd));
-        RaycastHit2D grabMid = Raycast(midPoint, right, _grabDistance, whatIsGround);
+        RaycastHit2D grabMid = Raycast(midPoint, right, grabDistance, whatIsGround);
 #if UNITY_EDITOR
-        if(_visualizeDebug) Debug.DrawRay(midPoint, right * _grabDistance, Color.magenta);
+        if(visualizeDebug) Debug.DrawRay(midPoint, right * grabDistance, Color.magenta);
 #endif
 
         // First check for mid, first at the point of contact, and if that's null, then the normal mid check
-        if(grabMid || (grabMid = Raycast(tf.TransformPoint(new Vector2(0, _grabMidOffset + GrabAdd)), right,
-                                         _grabDistance, whatIsGround))) {
-            Vector2 downOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, _grabTopOffset));
-            RaycastHit2D down = Raycast(downOrigin, -tf.up, _grabTopOffset - _grabBottomOffset, whatIsGround);
+        if(grabMid || (grabMid = Raycast(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)), right,
+                                         grabDistance, whatIsGround))) {
+            Vector2 downOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
+            RaycastHit2D down = Raycast(downOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
             if(down && ClimbCheckIfClear(down.point, right)) ClimbBegin(down.point);
             return;
         }
 
         // If mid fails, check for down.
-        RaycastHit2D grabDown = Raycast(tf.TransformPoint(new Vector2(_grabDownDist, _grabTopOffset)),
-                                        -tf.up, _grabTopOffset - _grabBottomOffset, whatIsGround);
+        RaycastHit2D grabDown = Raycast(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
+                                        -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
         if(grabDown) {
-            Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, _grabTopOffset - grabDown.distance - GrabAdd));
-            grabMid = Raycast(grabMidOrigin, right, _grabDistance, whatIsGround);
+            Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
+            grabMid = Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
             bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
             if(pointNotInGround && grabMid && ClimbCheckIfClear(midPoint, right))
                 ClimbBegin(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd);
@@ -471,24 +468,24 @@ public class HumanoidMovement : MovementAbstract {
         Vector2 grabPointLocal = tf.InverseTransformPoint(grabPoint);
 
         // Check up with a circle cast that starts at the character's mid-height, offset from the wall horizontally
-        Vector2 upCheckStart = tf.TransformPoint(new Vector2(grabPointLocal.x - GrabAdd * 2 - _grabCheckRadiusV, 0));
-        float upCheckDist = grabPointLocal.y + _grabCheckDistanceV;
-        RaycastHit2D upCheck = CircleCast(upCheckStart, _grabCheckRadiusV, tf.up, upCheckDist, whatIsGround);
+        Vector2 upCheckStart = tf.TransformPoint(new Vector2(grabPointLocal.x - GrabAdd * 2 - grabCheckRadiusV, 0));
+        float upCheckDist = grabPointLocal.y + grabCheckDistanceV;
+        RaycastHit2D upCheck = CircleCast(upCheckStart, grabCheckRadiusV, tf.up, upCheckDist, whatIsGround);
 
         // Check sideways starting from the character's x position, offset above the top of the ledge
-        Vector2 sideCheckStart = tf.TransformPoint(new Vector2(0, grabPointLocal.y + GrabAdd + _grabCheckRadiusH));
-        float sideCheckDist = grabPointLocal.x + _grabCheckDistanceH;
+        Vector2 sideCheckStart = tf.TransformPoint(new Vector2(0, grabPointLocal.y + GrabAdd + grabCheckRadiusH));
+        float sideCheckDist = grabPointLocal.x + grabCheckDistanceH;
         RaycastHit2D sideCheck = Raycast(sideCheckStart, right, sideCheckDist, whatIsGround);
         // And do two more sideways checks so that the three raycasts span grabCheckRadiusH distance
         // Which should ensure that at least that distance is clear above the ledge
-        Vector2 upRadH = (Vector2) tf.up * _grabCheckRadiusH;
+        Vector2 upRadH = (Vector2) tf.up * grabCheckRadiusH;
         if(!sideCheck)
             sideCheck = Raycast(sideCheckStart + upRadH, right, sideCheckDist, whatIsGround);
         if(!sideCheck)
             sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist, whatIsGround);
 
 #if UNITY_EDITOR
-        if(_visualizeDebug) {
+        if(visualizeDebug) {
             Debug.DrawRay(upCheckStart, tf.up * upCheckDist, Color.red);
             Debug.DrawRay(sideCheckStart, right * sideCheckDist, Color.red);
             Debug.DrawRay(sideCheckStart + upRadH, right * sideCheckDist, Color.red);
@@ -508,10 +505,10 @@ public class HumanoidMovement : MovementAbstract {
         if(_rolling) {
             // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
             // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
-            groundCheckHit = Raycast(tf.position, -tf.up, _rollingGroundCheckDistance, whatIsGround);
+            groundCheckHit = Raycast(tf.position, -tf.up, rollingGroundCheckDistance, whatIsGround);
         } else if(_airDashing) {
             // Same as rolling, but they go head first when air dashing
-            groundCheckHit = Raycast(_parts.head.transform.position, -tf.up, _rollingGroundCheckDistance / 2,
+            groundCheckHit = Raycast(_parts.head.transform.position, -tf.up, rollingGroundCheckDistance / 2,
                                      whatIsGround);
         } else {
             /* This checks both feet to see if they are touching the ground, and if they are, it checks the angle of the ground they are on.
@@ -519,16 +516,16 @@ public class HumanoidMovement : MovementAbstract {
              * Then, for any feet that are touching the ground, we check the angle of the ground, and use the larger angle, as long as it's
              * still less than the maxWalkSlope. This is so that uneven surfaces will still be walked up quickly.
              * walkSlope is set to the chosen angle, and is used in the Move(...) method. */
-            RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(_groundCheckOffsetR), -tf.up,
-                                            _groundCheckDistance, whatIsGround);
+            RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up,
+                                            groundCheckDistance, whatIsGround);
             if(!rightHit)
-                rightHit = Raycast(_parts.footR.transform.TransformPoint(_groundCheckOffsetR2), -tf.up,
-                                   _groundCheckDistance, whatIsGround);
-            RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(_groundCheckOffsetL), -tf.up,
-                                           _groundCheckDistance, whatIsGround);
+                rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up,
+                                   groundCheckDistance, whatIsGround);
+            RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up,
+                                           groundCheckDistance, whatIsGround);
             if(!leftHit)
-                leftHit = Raycast(_parts.footL.transform.TransformPoint(_groundCheckOffsetL2), -tf.up,
-                                  _groundCheckDistance, whatIsGround);
+                leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up,
+                                  groundCheckDistance, whatIsGround);
             float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
             float leftAngle = Vector2.Angle(leftHit.normal, tf.up);
 
@@ -572,20 +569,20 @@ public class HumanoidMovement : MovementAbstract {
 
 
 #if UNITY_EDITOR
-        if(_visualizeDebug) {
+        if(visualizeDebug) {
             if(_rolling) {
-                Debug.DrawRay(tf.position, -tf.up * _rollingGroundCheckDistance);
+                Debug.DrawRay(tf.position, -tf.up * rollingGroundCheckDistance);
             } else if(_rolling) {
-                Debug.DrawRay(tf.position, -tf.up * _rollingGroundCheckDistance);
+                Debug.DrawRay(tf.position, -tf.up * rollingGroundCheckDistance);
             } else {
-                Debug.DrawRay(_parts.footR.transform.TransformPoint(_groundCheckOffsetR),
-                              -tf.up * _groundCheckDistance);
-                Debug.DrawRay(_parts.footR.transform.TransformPoint(_groundCheckOffsetR2),
-                              -tf.up * _groundCheckDistance);
-                Debug.DrawRay(_parts.footL.transform.TransformPoint(_groundCheckOffsetL),
-                              -tf.up * _groundCheckDistance);
-                Debug.DrawRay(_parts.footL.transform.TransformPoint(_groundCheckOffsetL2),
-                              -tf.up * _groundCheckDistance);
+                Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR),
+                              -tf.up * groundCheckDistance);
+                Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR2),
+                              -tf.up * groundCheckDistance);
+                Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL),
+                              -tf.up * groundCheckDistance);
+                Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2),
+                              -tf.up * groundCheckDistance);
             }
         }
 #endif
@@ -601,35 +598,35 @@ public class HumanoidMovement : MovementAbstract {
         float velForward = Vector2.Dot(rb.velocity, tf.right); // Use this so that running down slopes is faster
         float velTangent = Vector2.Dot(rb.velocity, tangent);  // And use this so that the animation looks right
 #if UNITY_EDITOR
-        if(_visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.blue);
+        if(visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.blue);
 #endif
         float slopeReducer = Mathf.Lerp(1, .7f, walkSlope / maxWalkSlope); // reduce speed as slopes increase
-        moveVec = slopeReducer * rb.mass * tangent * _acceleration * moveIn * Time.fixedDeltaTime;
+        moveVec = slopeReducer * rb.mass * tangent * acceleration * moveIn * Time.fixedDeltaTime;
 
         void AddKick(float force) { // If walking from standstill, gives a kick so walking is more responsive
             Vector2 kickAdd = rb.mass * tangent * force * 30 * slopeReducer;
-            if(moveIn > 0 && velForward < _maxSpeed / 3) rb.AddForce(kickAdd);
-            else if(moveIn < 0 && velForward > -_maxSpeed / 3) rb.AddForce(-kickAdd);
+            if(moveIn > 0 && velForward < maxSpeed / 3) rb.AddForce(kickAdd);
+            else if(moveIn < 0 && velForward > -maxSpeed / 3) rb.AddForce(-kickAdd);
         }
 
         // checks if intention is not same direction as motion
         bool moveDirIsNotVelDir = Math.Sign(moveIn) != Math.Sign(velForward);
 
         if(grounded) {
-            float sprintAmt = sprint ? _sprintSpeed : 1;
+            float sprintAmt = sprint ? sprintSpeed : 1;
             moveVec *= sprintAmt; // We do this here because we don't want them to be able to start sprinting in mid-air
 
             // Set animation params
-            _walkSprint = Mathf.Abs(velTangent) <= _maxSpeed + 1f ?
-                              Mathf.Abs(velTangent) / _maxSpeed / 2 :
-                              Mathf.Abs(velTangent) / (_maxSpeed * _sprintSpeed);
+            _walkSprint = Mathf.Abs(velTangent) <= maxSpeed + 1f ?
+                              Mathf.Abs(velTangent) / maxSpeed / 2 :
+                              Mathf.Abs(velTangent) / (maxSpeed * sprintSpeed);
             // avg it with player intention
-            _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * _sprintSpeed * slopeReducer)) / 2;
+            _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * sprintSpeed * slopeReducer)) / 2;
             // avg it for smoothing
             anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
 
             //Check that the character wants to walk, but isn't walking too fast
-            if(movePressed && (Mathf.Abs(velForward) < _maxSpeed * sprintAmt || moveDirIsNotVelDir)) {
+            if(movePressed && (Mathf.Abs(velForward) < maxSpeed * sprintAmt || moveDirIsNotVelDir)) {
                 rb.AddForce(moveVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
                     // zero out friction so that movement is smooth
@@ -643,10 +640,10 @@ public class HumanoidMovement : MovementAbstract {
                     _frictionZero = false;
                 }
                 // and slow the character down so that movement isn't all slidey
-                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _groundSlowdownMultiplier;
+                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * groundSlowdownMultiplier;
             }
 
-            AddKick(_kick);
+            AddKick(kick);
 
             if((moveIn > 0 && !facingRight || moveIn < 0 && facingRight) && !_climbing) Flip();
         } else { // Not grounded
@@ -654,15 +651,15 @@ public class HumanoidMovement : MovementAbstract {
             // First, make sure the character isn't trying to move into a wall or something, since otherwise they'll stick to it
             if(!_isTouching) {
                 // If they aren't let them control their movement some
-                moveVec *= _airControl;
-                AddKick(_kickAir);
-                if(movePressed && (moveIn > 0 && velForward < _maxSpeed || moveIn < 0 && velForward > -_maxSpeed)) {
+                moveVec *= airControl;
+                AddKick(kickAir);
+                if(movePressed && (moveIn > 0 && velForward < maxSpeed || moveIn < 0 && velForward > -maxSpeed)) {
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
             }
             // If they aren't holding move in the direction of motion, slow them down a little
             if(!movePressed || moveDirIsNotVelDir)
-                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * _airSlowdownMultiplier;
+                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * airSlowdownMultiplier;
             anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(0)); //TODO not used while in midair yet
         }
     }
@@ -672,21 +669,21 @@ public class HumanoidMovement : MovementAbstract {
     /// <param name="rollJump">Is this a jump from a roll?</param>
     private void Jump(bool jump, bool rollJump = false) {
 #if UNITY_EDITOR
-        if(_allowJumpingInMidair) grounded = true;
+        if(allowJumpingInMidair) grounded = true;
 #endif
         if(_rolling && (grounded || coyoteGrounded) && jump) {
             // If rolling and press jump, set this so that character can jump at a good point in the roll
             _wantsToRollJump = true;
         } else if((grounded || coyoteGrounded || rollJump) && jump && !_jumpStarted) {
             // Initialize the jump
-            _jumpFuelLeft = _jumpFuel;
+            _jumpFuelLeft = jumpFuel;
             _jumpStarted = true; //This ensures we don't repeat this step a bunch of times per jump
-            rb.velocity = Vector3.Project(rb.velocity, tf.right) + tf.up * _jumpSpeed;
+            rb.velocity = Vector3.Project(rb.velocity, tf.right) + tf.up * jumpSpeed;
             anim.SetTrigger(rollJump ? _rollJumpAnim : _jumpAnim);
         } else if(jump && _jumpFuelLeft > 0) {
             // Make the character rise higher the longer they hold jump
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
-            rb.AddForce(tf.up * rb.mass * _jumpFuelForce, ForceMode2D.Force);
+            rb.AddForce(tf.up * rb.mass * jumpFuelForce, ForceMode2D.Force);
         } else {
             _jumpFuelLeft = 0;
         }
@@ -704,7 +701,7 @@ public class HumanoidMovement : MovementAbstract {
         }
 
         // If the character double taps jump in mid-air, they do an air dash (if they have that ability)
-        if(doubleTappedInMidAir && _numberOfAirDashes > 0) {
+        if(doubleTappedInMidAir && numberOfAirDashes > 0) {
             if(_airDash != null) StopCoroutine(_airDash);
             _airDash = AirDashHelper();
             StartCoroutine(_airDash);
@@ -713,7 +710,7 @@ public class HumanoidMovement : MovementAbstract {
 
         // If landed, allow jumping again
         if(grounded && !jump) {
-            _airDashesLeft = _numberOfAirDashes;
+            _airDashesLeft = numberOfAirDashes;
             _jumpStarted = false;
         }
 
@@ -741,11 +738,11 @@ public class HumanoidMovement : MovementAbstract {
             _airDashing = true;
             anim.SetBool(_airDashAnim, true);
             CameraShake.Shake(1, 0.25f);
-            Instantiate(_airDashParticleEffect, tf);
+            Instantiate(airDashParticleEffect, tf);
             _airDashesLeft--;
 
             Vector2 controlVec = (tf.right * control.moveHorizontal + tf.up * control.moveVertical) / norm;
-            Vector2 dashVelocity = controlVec * _jumpSpeed * _airDashSpeed;
+            Vector2 dashVelocity = controlVec * jumpSpeed * airDashSpeed;
 
             // This makes sure dashes only increase speed in the direction of the dash, never decrease
             float velDot = Vector2.Dot(rb.velocity, controlVec);
