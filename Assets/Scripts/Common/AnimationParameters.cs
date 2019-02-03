@@ -46,10 +46,10 @@ namespace AnimationParameters {
     }
 
     public static class Weapon {
-        /// <summary> Trigger: Jabbing melee weapon forward </summary>
+        /// <summary> Bool: Jabbing melee weapon forward </summary>
         public static readonly int JabForwardAnim = Animator.StringToHash("JabForward");
 
-        /// <summary> Trigger: Swinging melee weapon forward </summary>
+        /// <summary> Bool: Swinging melee weapon forward </summary>
         public static  readonly int SwingForwardAnim = Animator.StringToHash("SwingForward");
     }
 }

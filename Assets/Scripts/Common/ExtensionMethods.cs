@@ -3,6 +3,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.U2D.IK;
 
+// ReSharper disable UnusedMethodReturnValue.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedMember.Global
 
@@ -139,7 +140,8 @@ namespace ExtensionMethods {
     public static class HelperMethods {
         public static string GetTooltip(FieldInfo field, bool inherit) {
             string ret = "";
-            if (field.GetCustomAttributes(typeof(TooltipAttribute), inherit) is TooltipAttribute[] attributes && attributes.Length > 0)
+            if(field.GetCustomAttributes(typeof(TooltipAttribute), inherit) is TooltipAttribute[] attributes &&
+               attributes.Length > 0)
                 ret = attributes[0].tooltip;
 
             return ret;
@@ -153,9 +155,9 @@ namespace ExtensionMethods {
         /// <param name="layerIndex"> index of animation layer to fade </param>
         /// <param name="duration"> How long the fade should take </param>
         /// <param name="smooth"> Smooth if true else linear </param>
-        public static void FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType,
-                                              int layerIndex, float duration, bool smooth = false) {
-            caller.StartCoroutine(
+        public static Coroutine FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType,
+                                                   int layerIndex, float duration, bool smooth = false) {
+            return caller.StartCoroutine(
                 FadeAnimationLayerHelper(caller, animator, fadeType, layerIndex, duration, 1, smooth));
         }
 
@@ -167,9 +169,9 @@ namespace ExtensionMethods {
         /// <param name="duration"> How long the fade should take </param>
         /// <param name="extent"> How far to fade in, if fading in </param>
         /// <param name="smooth"> Smooth if true else linear </param>
-        public static void FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType,
-                                              int layerIndex, float duration, float extent, bool smooth = false) {
-            caller.StartCoroutine(
+        public static Coroutine FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType,
+                                                   int layerIndex, float duration, float extent, bool smooth = false) {
+            return caller.StartCoroutine(
                 FadeAnimationLayerHelper(caller, animator, fadeType, layerIndex, duration, extent, smooth));
         }
 
