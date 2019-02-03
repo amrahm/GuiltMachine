@@ -2,6 +2,7 @@
 using System.Collections;
 using ExtensionMethods;
 using UnityEngine;
+using static AnimationParameters.Humanoid;
 using static UnityEngine.Physics2D;
 
 [RequireComponent(typeof(Animator)), RequireComponent(typeof(HumanoidParts))]
@@ -16,90 +17,90 @@ public class HumanoidMovement : MovementAbstract {
     #region Variables
 
 #if UNITY_EDITOR
-    [Tooltip("Show debug visualizations"), SerializeField]  
+    [Tooltip("Show debug visualizations"), SerializeField]
     private bool visualizeDebug;
 
 
-    [Tooltip("Debug control to allow multiple jumps"), SerializeField]  
+    [Tooltip("Debug control to allow multiple jumps"), SerializeField]
     private bool allowJumpingInMidair;
 #endif
 
-    [Tooltip("The fastest the character can travel in the x axis"), SerializeField]  
+    [Tooltip("The fastest the character can travel in the x axis"), SerializeField]
     private float maxSpeed = 10f;
 
-    [Tooltip("How fast the character speeds up"), SerializeField]  
+    [Tooltip("How fast the character speeds up"), SerializeField]
     private float acceleration = 1;
 
-    [Tooltip("A kick to make the character start moving faster"), SerializeField]  
+    [Tooltip("A kick to make the character start moving faster"), SerializeField]
     private float kick = 1;
 
-    [Tooltip("How much character automatically slows down while not walking but on the ground"), SerializeField]  
+    [Tooltip("How much character automatically slows down while not walking but on the ground"), SerializeField]
     private float groundSlowdownMultiplier;
 
-    [Tooltip("Sprint multiplier for when running"), SerializeField]  
+    [Tooltip("Sprint multiplier for when running"), SerializeField]
     private float sprintSpeed = 2;
 
-    [Tooltip("Vertical speed of a jump"), SerializeField]  
+    [Tooltip("Vertical speed of a jump"), SerializeField]
     private float jumpSpeed = 5;
 
-    [Tooltip("Amount of time a jump can be held to jump higher"), SerializeField]  
+    [Tooltip("Amount of time a jump can be held to jump higher"), SerializeField]
     private float jumpFuel = 100f;
 
-    [Tooltip("Additional force added while holding jump"), SerializeField]  
+    [Tooltip("Additional force added while holding jump"), SerializeField]
     private float jumpFuelForce = 30f;
 
-    [Tooltip("How much character can steer while in mid-air"), SerializeField]  
+    [Tooltip("How much character can steer while in mid-air"), SerializeField]
     private float airControl;
 
-    [Tooltip("How much character automatically slows down while in mid-air"), SerializeField]  
+    [Tooltip("How much character automatically slows down while in mid-air"), SerializeField]
     private float airSlowdownMultiplier;
 
-    [Tooltip("A kick to make the character start moving faster while in mid-air"), SerializeField]  
+    [Tooltip("A kick to make the character start moving faster while in mid-air"), SerializeField]
     private float kickAir;
 
-    [Tooltip("Offset for the back of the right foot ground check raycast"), SerializeField]  
+    [Tooltip("Offset for the back of the right foot ground check raycast"), SerializeField]
     private Vector2 groundCheckOffsetR;
 
-    [Tooltip("Offset for the front of the right foot ground check raycast"), SerializeField]  
+    [Tooltip("Offset for the front of the right foot ground check raycast"), SerializeField]
     private Vector2 groundCheckOffsetR2 = new Vector2(0.15f, 0);
 
-    [Tooltip("Offset for the back of the left foot ground check raycast"), SerializeField]  
+    [Tooltip("Offset for the back of the left foot ground check raycast"), SerializeField]
     private Vector2 groundCheckOffsetL;
 
-    [Tooltip("Offset for the front of the left foot ground check raycast"), SerializeField]  
+    [Tooltip("Offset for the front of the left foot ground check raycast"), SerializeField]
     private Vector2 groundCheckOffsetL2 = new Vector2(0.15f, 0);
 
-    [Tooltip("How long is the ground check raycast"), SerializeField]  
+    [Tooltip("How long is the ground check raycast"), SerializeField]
     private float groundCheckDistance = 0.15f;
 
-    [Tooltip("How far to check down when rolling"), SerializeField]  
+    [Tooltip("How far to check down when rolling"), SerializeField]
     private float rollingGroundCheckDistance = 1.3f;
 
-    [Tooltip("How long is the grab check raycast"), SerializeField]  
+    [Tooltip("How long is the grab check raycast"), SerializeField]
     private float grabDistance = 1;
 
-    [Tooltip("How far along the horizontal check is the downward check"), SerializeField]  
+    [Tooltip("How far along the horizontal check is the downward check"), SerializeField]
     private float grabDownDistMult = 0.7f;
 
-    [Tooltip("How high is the highest grabbable"), SerializeField]  
+    [Tooltip("How high is the highest grabbable"), SerializeField]
     private float grabTopOffset = 0.65f;
 
-    [Tooltip("How high is the middle grabbable"), SerializeField]  
+    [Tooltip("How high is the middle grabbable"), SerializeField]
     private float grabMidOffset;
 
-    [Tooltip("How high is the lowest grabbable"), SerializeField]  
+    [Tooltip("How high is the lowest grabbable"), SerializeField]
     private float grabBottomOffset = -0.75f;
 
-    [Tooltip("How wide a radius vertically needs to be clear to initiate a grab"), SerializeField]  
+    [Tooltip("How wide a radius vertically needs to be clear to initiate a grab"), SerializeField]
     private float grabCheckRadiusV = 0.3f;
 
-    [Tooltip("How far vertically beyond the grab point needs to be clear to initiate a grab"), SerializeField]  
+    [Tooltip("How far vertically beyond the grab point needs to be clear to initiate a grab"), SerializeField]
     private float grabCheckDistanceV = 1f;
 
-    [Tooltip("How wide a radius horizontally needs to be clear to initiate a grab"), SerializeField]  
+    [Tooltip("How wide a radius horizontally needs to be clear to initiate a grab"), SerializeField]
     private float grabCheckRadiusH = 0.4f;
 
-    [Tooltip("How far horizontally beyond the grab point needs to be clear to initiate a grab"), SerializeField]  
+    [Tooltip("How far horizontally beyond the grab point needs to be clear to initiate a grab"), SerializeField]
     private float grabCheckDistanceH = 0.2f;
 
     [Header("Movement Abilities")]
@@ -109,7 +110,7 @@ public class HumanoidMovement : MovementAbstract {
     [Tooltip("How fast/far the air-dash goes"), SerializeField]
     private float airDashSpeed = 1;
 
-    [Tooltip("The particle effect to spawn when air-dashing"), SerializeField]  
+    [Tooltip("The particle effect to spawn when air-dashing"), SerializeField]
     private GameObject airDashParticleEffect;
 
 
@@ -190,45 +191,6 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> The physics material on the foot colliders </summary>
     private PhysicsMaterial2D _footFrictionMat;
-
-    /// <summary> The speed float in the animator </summary>
-    private readonly int _speedAnim = Animator.StringToHash("Speed");
-
-    /// <summary> The vertical speed float in the animator </summary>
-    private readonly int _vSpeedAnim = Animator.StringToHash("vSpeed");
-
-    /// <summary> The crouching bool in the animator </summary>
-    private readonly int _crouchingAnim = Animator.StringToHash("Crouching");
-
-    /// <summary> The roll bool in the animator </summary>
-    private readonly int _rollAnim = Animator.StringToHash("Roll");
-
-    /// <summary> The jump trigger in the animator </summary>
-    private readonly int _jumpAnim = Animator.StringToHash("Jump");
-
-    /// <summary> The roll jump trigger in the animator </summary>
-    private readonly int _rollJumpAnim = Animator.StringToHash("RollJump");
-
-    /// <summary> The land bool in the animator </summary>
-    private readonly int _groundedAnim = Animator.StringToHash("Grounded");
-
-    /// <summary> The falling bool in the animator </summary>
-    private readonly int _fallingAnim = Animator.StringToHash("Falling");
-
-    /// <summary> The climb bool in the animator </summary>
-    private readonly int _climbAnim = Animator.StringToHash("Climb");
-
-    /// <summary> The climb speed float in the animator </summary>
-    private readonly int _climbAnimSpeed = Animator.StringToHash("ClimbSpeed");
-
-    /// <summary> The is against wall while climbing bool in the animator </summary>
-    private readonly int _climbIsAgainstWallAnim = Animator.StringToHash("ClimbIsAgainstWall");
-
-    /// <summary> The climb step over trigger in the animator </summary>
-    private readonly int _climbStepOverAnim = Animator.StringToHash("ClimbStepOver");
-
-    /// <summary> The air dash trigger in the animator </summary>
-    private readonly int _airDashAnim = Animator.StringToHash("AirDash");
 
     #endregion
 
@@ -313,7 +275,7 @@ public class HumanoidMovement : MovementAbstract {
                     Debug.DrawRay(_parts.footR.transform.position, right * grabDistance, Color.cyan);
 #endif
                 bool sideCheckPastGrabPoint = Vector2.Dot(sideCheck.point, right) > Vector2.Dot(_grabPoint, right);
-                anim.SetBool(_climbIsAgainstWallAnim, sideCheck && !sideCheckPastGrabPoint);
+                anim.SetBool(ClimbIsAgainstWallAnim, sideCheck && !sideCheckPastGrabPoint);
 
                 // Add a force to keep the character pressed against the wall
                 float sideDistance = Vector2.Dot(right, _parts.footL.transform.position - _grabPoint);
@@ -326,14 +288,14 @@ public class HumanoidMovement : MovementAbstract {
                 float horizontalInput = control.moveHorizontal * (facingRight ? 1 : -1);
                 float climbInput = Mathf.Min(horizontalInput + control.moveVertical, 1f);
                 Vector2 climbControl = (Vector2) tf.up * 3 * climbInput * dT;
-                anim.SetFloat(_climbAnimSpeed, climbInput);
+                anim.SetFloat(ClimbAnimSpeed, climbInput);
 
                 rb.MovePosition(rb.position + keepAgainstWall + climbControl);
 
 
                 // Vertical distance of back foot to the grab point
                 float downDistance = Vector2.Dot(tf.up, _parts.footR.transform.position - _grabPoint);
-                anim.SetBool(_climbStepOverAnim, downDistance > -GrabAdd * 3);
+                anim.SetBool(ClimbStepOverAnim, downDistance > -GrabAdd * 3);
 
                 bool aboveLedge = downDistance > 0; // Release if the character has climbed high enough
                 // or moves too far down
@@ -400,7 +362,7 @@ public class HumanoidMovement : MovementAbstract {
         _parts.headIK.weight = 0;
         _parts.armRIK.Target().position = _parts.handR.transform.position;
         _parts.armLIK.Target().position = _parts.handL.transform.position;
-        anim.SetBool(_climbAnim, true);
+        anim.SetBool(ClimbAnim, true);
         rb.gravityScale = 0f;
         _grabPoint = point;
         StartCoroutine(ClimbHandle());
@@ -416,7 +378,7 @@ public class HumanoidMovement : MovementAbstract {
         _parts.lowerArmL.GetComponent<Collider2D>().isTrigger = false;
         _parts.upperArmR.GetComponent<Collider2D>().isTrigger = false;
         _parts.upperArmL.GetComponent<Collider2D>().isTrigger = false;
-        anim.SetBool(_climbAnim, false);
+        anim.SetBool(ClimbAnim, false);
 
         StartCoroutine(ClimbIKReleaseHelper());
         if(pullUp) StartCoroutine(ClimbPullUp());
@@ -500,15 +462,16 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Update whether or not this character is touching the ground </summary>
     private void UpdateGrounded() {
         bool wasGrounded = grounded;
+        Vector2 up = tf.up; // cache up cast to Vector2
 
         RaycastHit2D groundCheckHit;
         if(_rolling) {
             // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
             // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
-            groundCheckHit = Raycast(tf.position, -tf.up, rollingGroundCheckDistance, whatIsGround);
+            groundCheckHit = Raycast(tf.position, -up, rollingGroundCheckDistance, whatIsGround);
         } else if(_airDashing) {
             // Same as rolling, but they go head first when air dashing
-            groundCheckHit = Raycast(_parts.head.transform.position, -tf.up, rollingGroundCheckDistance / 2,
+            groundCheckHit = Raycast(_parts.head.transform.position, -up, rollingGroundCheckDistance / 2,
                                      whatIsGround);
         } else {
             /* This checks both feet to see if they are touching the ground, and if they are, it checks the angle of the ground they are on.
@@ -516,26 +479,26 @@ public class HumanoidMovement : MovementAbstract {
              * Then, for any feet that are touching the ground, we check the angle of the ground, and use the larger angle, as long as it's
              * still less than the maxWalkSlope. This is so that uneven surfaces will still be walked up quickly.
              * walkSlope is set to the chosen angle, and is used in the Move(...) method. */
-            RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -tf.up,
+            RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -up,
                                             groundCheckDistance, whatIsGround);
             if(!rightHit)
-                rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -tf.up,
+                rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -up,
                                    groundCheckDistance, whatIsGround);
-            RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -tf.up,
+            RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -up,
                                            groundCheckDistance, whatIsGround);
             if(!leftHit)
-                leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -tf.up,
+                leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -up,
                                   groundCheckDistance, whatIsGround);
-            float rightAngle = Vector2.Angle(rightHit.normal, tf.up);
-            float leftAngle = Vector2.Angle(leftHit.normal, tf.up);
+            float rightAngle = Vector2.Angle(rightHit.normal, up);
+            float leftAngle = Vector2.Angle(leftHit.normal, up);
 
             // Pick the larger angle that is still within bounds
             bool rightGreater = rightAngle >= leftAngle && rightAngle < maxWalkSlope || leftAngle >= maxWalkSlope;
             // Now choose the right one if it was greater and actually hit. If leftHit didn't hit, rightGreater = true
             groundCheckHit = rightGreater && rightHit ? rightHit : leftHit;
         }
-        groundNormal = groundCheckHit ? groundCheckHit.normal : (Vector2) tf.up;
-        walkSlope = Vector2.Angle(groundCheckHit.normal, tf.up);
+        groundNormal = groundCheckHit ? groundCheckHit.normal : up;
+        walkSlope = Vector2.Angle(groundCheckHit.normal, up);
         if(_airDashing)
             _airDashingGrounded = groundCheckHit && walkSlope < maxWalkSlope;
         else
@@ -552,37 +515,37 @@ public class HumanoidMovement : MovementAbstract {
         }
 
         // Set this so the animator can play or transition to/from the appropriate animations
-        anim.SetBool(_groundedAnim, grounded || coyoteGrounded);
+        anim.SetBool(GroundedAnim, grounded || coyoteGrounded);
         // If the character was grounded and isn't anymore, but they didn't jump, then they must have walked off a ledge or something
         if(wasGrounded && !grounded && !_jumpStarted) _falling = true;
         if(_falling && !(_rolling || _climbing)) {
             // If they are falling for long enough (but not still rolling), set the fall animation
             _fallDuration += Time.fixedDeltaTime;
-            if(_fallDuration > 0.15f) anim.SetBool(_fallingAnim, true); // falling without jumping
+            if(_fallDuration > 0.15f) anim.SetBool(FallingAnim, true); // falling without jumping
         }
         if(grounded) {
             // Reset all of those things when they aren't falling
             _fallDuration = 0;
             _falling = false;
-            anim.SetBool(_fallingAnim, false);
+            anim.SetBool(FallingAnim, false);
         }
 
 
 #if UNITY_EDITOR
         if(visualizeDebug) {
             if(_rolling) {
-                Debug.DrawRay(tf.position, -tf.up * rollingGroundCheckDistance);
+                Debug.DrawRay(tf.position, -up * rollingGroundCheckDistance);
             } else if(_rolling) {
-                Debug.DrawRay(tf.position, -tf.up * rollingGroundCheckDistance);
+                Debug.DrawRay(tf.position, -up * rollingGroundCheckDistance);
             } else {
                 Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR),
-                              -tf.up * groundCheckDistance);
+                              -up * groundCheckDistance);
                 Debug.DrawRay(_parts.footR.transform.TransformPoint(groundCheckOffsetR2),
-                              -tf.up * groundCheckDistance);
+                              -up * groundCheckDistance);
                 Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL),
-                              -tf.up * groundCheckDistance);
+                              -up * groundCheckDistance);
                 Debug.DrawRay(_parts.footL.transform.TransformPoint(groundCheckOffsetL2),
-                              -tf.up * groundCheckDistance);
+                              -up * groundCheckDistance);
             }
         }
 #endif
@@ -623,7 +586,7 @@ public class HumanoidMovement : MovementAbstract {
             // avg it with player intention
             _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * sprintSpeed * slopeReducer)) / 2;
             // avg it for smoothing
-            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
+            anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
 
             //Check that the character wants to walk, but isn't walking too fast
             if(movePressed && (Mathf.Abs(velForward) < maxSpeed * sprintAmt || moveDirIsNotVelDir)) {
@@ -660,7 +623,7 @@ public class HumanoidMovement : MovementAbstract {
             // If they aren't holding move in the direction of motion, slow them down a little
             if(!movePressed || moveDirIsNotVelDir)
                 rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * airSlowdownMultiplier;
-            anim.SetFloat(_speedAnim, anim.GetFloat(_speedAnim).SharpInDamp(0)); //TODO not used while in midair yet
+            anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(0)); //TODO not used while in midair yet
         }
     }
 
@@ -679,7 +642,7 @@ public class HumanoidMovement : MovementAbstract {
             _jumpFuelLeft = jumpFuel;
             _jumpStarted = true; //This ensures we don't repeat this step a bunch of times per jump
             rb.velocity = Vector3.Project(rb.velocity, tf.right) + tf.up * jumpSpeed;
-            anim.SetTrigger(rollJump ? _rollJumpAnim : _jumpAnim);
+            anim.SetTrigger(rollJump ? RollJumpAnim : JumpAnim);
         } else if(jump && _jumpFuelLeft > 0) {
             // Make the character rise higher the longer they hold jump
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
@@ -715,7 +678,7 @@ public class HumanoidMovement : MovementAbstract {
         }
 
         // Set the vertical animation for moving up/down through the air
-        if(!grounded) anim.SetFloat(_vSpeedAnim, rb.velocity.y / 8);
+        if(!grounded) anim.SetFloat(VSpeedAnim, rb.velocity.y / 8);
 
         if(_jumpStarted && !jump) _wasJump = true;
 
@@ -736,7 +699,7 @@ public class HumanoidMovement : MovementAbstract {
         // Only start dash if directional input is given and there are air dashes left, else just end any previous dash
         if(norm > 0.001f && _airDashesLeft > 0) {
             _airDashing = true;
-            anim.SetBool(_airDashAnim, true);
+            anim.SetBool(AirDashAnim, true);
             CameraShake.Shake(1, 0.25f);
             Instantiate(airDashParticleEffect, tf);
             _airDashesLeft--;
@@ -785,7 +748,7 @@ public class HumanoidMovement : MovementAbstract {
 
         // At this point, the air dash is over, so we stop the animation
         // And rotate the character back to where they would otherwise be
-        anim.SetBool(_airDashAnim, false);
+        anim.SetBool(AirDashAnim, false);
         bool wasFacingRight = facingRight; //This is used in case the character flips, so we can flip _airDashVector too
         while(Vector3.Angle(_airDashVec, _parts.hipsTarget.transform.right) > 5f) {
             if(wasFacingRight != facingRight)
@@ -809,7 +772,7 @@ public class HumanoidMovement : MovementAbstract {
             Roll(true);
         else {
             // otherwise, set the animator
-            anim.SetBool(_crouchingAnim, _crouching);
+            anim.SetBool(CrouchingAnim, _crouching);
             // and deal with rolling if that's still happening
             Roll(false);
         }
@@ -821,7 +784,7 @@ public class HumanoidMovement : MovementAbstract {
         if(rollStart) {
             // Start the roll and set the direction
             _rolling = true;
-            anim.SetBool(_rollAnim, true);
+            anim.SetBool(RollAnim, true);
             _rollDir = Mathf.Sign(control.moveHorizontal);
         } else if(_rolling) {
             // Continue the roll and check if it should end, or if the character should RollJump
@@ -835,7 +798,7 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Used to end roll </summary>
     private void RollEnd() {
         _rolling = false;
-        anim.SetBool(_rollAnim, false);
+        anim.SetBool(RollAnim, false);
         _rollingTime = 0;
     }
 

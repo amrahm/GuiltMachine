@@ -2,7 +2,8 @@
 
 public abstract class MovementAbstract : MonoBehaviour {
     [Header("Movement Setup")]
-    [Tooltip("The shared WhatIsGround asset specifying what characters should consider to be ground. Ignore for enemies that only fly.")]
+    [Tooltip(
+        "The shared WhatIsGround asset specifying what characters should consider to be ground. Ignore for enemies that only fly.")]
     public WhatIsGround whatIsGroundMaster;
 
     [Tooltip("The greatest slope that the character can walk up. Ignore for enemies that only fly.")]
@@ -57,7 +58,7 @@ public abstract class MovementAbstract : MonoBehaviour {
             whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
     }
 
-    
+
     ///<summary> Flip the player around the y axis </summary>
     protected void Flip() {
         facingRight = !facingRight; //Switch the way the player is labelled as facing.
@@ -65,6 +66,7 @@ public abstract class MovementAbstract : MonoBehaviour {
         tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
         // Fix the status indicator to always face the proper direction regardless of phoenix orientation
         Transform statusTf = master.statusIndicator?.gameObject.transform;
-        if(statusTf != null) statusTf.localScale = new Vector3(-statusTf.localScale.x, statusTf.localScale.y, statusTf.localScale.z);
+        if(statusTf != null)
+            statusTf.localScale = new Vector3(-statusTf.localScale.x, statusTf.localScale.y, statusTf.localScale.z);
     }
 }

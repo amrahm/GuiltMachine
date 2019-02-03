@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using static ExtensionMethods.HelperMethods;
+using static AnimationParameters.Weapon;
 
 public class Sword : WeaponAbstract {
     /// <summary> How long until an attack is considered held down </summary>
@@ -11,16 +12,16 @@ public class Sword : WeaponAbstract {
      SerializeField]
     private AnimationEventObject swingFadeIn;
 
-    [Tooltip("The ScriptableObject asset signifying a sword swing starting"), SerializeField] 
+    [Tooltip("The ScriptableObject asset signifying a sword swing starting"), SerializeField]
     private AnimationEventObject swingStart;
 
-    [Tooltip("The ScriptableObject asset signifying a sword swing ending"), SerializeField] 
+    [Tooltip("The ScriptableObject asset signifying a sword swing ending"), SerializeField]
     private AnimationEventObject swingEnd;
 
-    [Tooltip("How much the weapon hurts"), SerializeField] 
+    [Tooltip("How much the weapon hurts"), SerializeField]
     private int damage = 17;
 
-    [Tooltip("Knockback force applied by weapon"), SerializeField] 
+    [Tooltip("Knockback force applied by weapon"), SerializeField]
     private float knockback = 50;
 
     //TODO Should also affect swing speed
@@ -44,12 +45,6 @@ public class Sword : WeaponAbstract {
     /// <summary> Was vertical attack pressed last frame? </summary>
     private bool _vWasPressed;
 
-    /// <summary> The speed parameter in the animator </summary>
-    private readonly int _jabForwardAnim = Animator.StringToHash("JabForward");
-
-    /// <summary> The vertical speed parameter in the animator </summary>
-    private readonly int _swingForwardAnim = Animator.StringToHash("SwingForward");
-
     #endregion
 
 
@@ -62,16 +57,16 @@ public class Sword : WeaponAbstract {
         //TODO can this become a coroutine?
         //TODO How about instead of doing this based on held down length, we do it based on player velocity
         //FIXME? Not sure why I gotta do this, but otherwise the animation plays twice
-        anim.ResetTrigger(_jabForwardAnim);
-        anim.ResetTrigger(_swingForwardAnim);
+        anim.ResetTrigger(JabForwardAnim);
+        anim.ResetTrigger(SwingForwardAnim);
 
         //&& (!hPressed && _hWasPressed || !vPressed && _vWasPressed)
-        if(_attackHoldTime > TapThreshold )
-            anim.SetTrigger(_swingForwardAnim);
+        if(_attackHoldTime > TapThreshold)
+            anim.SetTrigger(SwingForwardAnim);
 
         if(hPressed || vPressed) {
             if(!anim.IsInTransition(1))
-                anim.SetTrigger(_jabForwardAnim);
+                anim.SetTrigger(JabForwardAnim);
             _attackHoldTime += Time.deltaTime;
         } else {
             _attackHoldTime = 0;
@@ -95,8 +90,8 @@ public class Sword : WeaponAbstract {
 
     private void OnTriggerEnter2D(Collider2D other) {
         if(!_swinging || _hitSomething) return;
-        _hitSomething =
-            true; //FIXME? Right now this means if you hit anything (even not damageable), you won't be able to hit anything else that swing
+        //FIXME? Right now this means if you hit anything (even not damageable), you won't be able to hit anything else that swing
+        _hitSomething = true;
         // We could fix this by moving it down, but then you'll be able to swing your sword and hit people through walls
         IDamageable damageable = (other.GetComponent<IDamageable>() ??
                                   other.attachedRigidbody?.GetComponent<IDamageable>()) ??
