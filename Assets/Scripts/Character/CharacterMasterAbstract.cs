@@ -37,7 +37,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
         statusIndicator?.SubscribeToChangeEvents(characterStats);
         characterStats.Initialize();
 
-        if(weapon != null) weapon.holder = this;
+        if(weapon != null) weapon.OnEquip(this);
     }
 
     private void OnEnable() {

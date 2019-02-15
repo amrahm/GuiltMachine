@@ -31,23 +31,31 @@ public class Sword : WeaponAbstract {
     #endregion
 
 
-    private void Start() {
-        anim = holder.gameObject.GetComponent<Animator>();
-        movement = holder.gameObject.GetComponent<MovementAbstract>();
+    public override void OnEquip(CharacterMasterAbstract newHolder) {
+        base.OnEquip(newHolder);
+        anim.SetBool(SwordEquipped, true);
+    }
+
+    public override void OnUnequip() {
+        //TODO have to make weapon move to holster or something
+        anim.SetBool(SwordEquipped, false);
     }
 
     public override void Attack(float horizontal, float vertical, bool hPressed, bool vPressed) {
         //TODO can this become a coroutine?
         //&& (!hPressed && _hWasPressed || !vPressed && _vWasPressed)
-        if(_attackHoldTime < TapThreshold) {
-            if(!anim.IsInTransition(1)) {
-                anim.SetBool(JabForwardAnim, true);
-                anim.SetBool(SwingForwardAnim, false);
-            }
-        } else {
+        if(_attackHoldTime > TapThreshold) {
             anim.SetBool(SwingForwardAnim, true);
             anim.SetBool(JabForwardAnim, false);
+        } else if(_attackHoldTime > 0.00001f){
+//            if(!anim.IsInTransition(1)) {
+            anim.SetBool(JabForwardAnim, true);
+            anim.SetBool(SwingForwardAnim, false);
+//            }
         }
+
+        if(vPressed) //TODO FIXME DEBUG CODE
+            anim.SetTrigger(UnequipWeapon);
 
         if(hPressed || vPressed) {
             _attackHoldTime += Time.deltaTime;
