@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Anima2D;
 using ExtensionMethods;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.U2D.Animation;
 using static UnityEngine.Physics2D;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -522,18 +522,22 @@ public class CharacterPhysics : MonoBehaviour {
 
     private void SwapPartsWithTargets(GameObject[] currents, GameObject[] news) {
         foreach(Transform sprite in transform.Find("Sprites")) {
-            List<Bone2D> bones = sprite.GetComponent<SpriteMeshInstance>().bones;
-            for(int i = 0; i < bones.Count; i++) {
-                int index = Array.IndexOf(currents, bones[i].gameObject);
-                if(index != -1) {
-                    Bone2D bone2D = news[index].GetComponent<Bone2D>();
-                    if(bone2D == null) Debug.LogError($"Can't find Bone2D component on {news[index]}");
-                    bones[i] = bone2D;
-                } else {
-                    Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
-                }
-            }
-            sprite.GetComponent<SpriteMeshInstance>().bones = bones;
+            //Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git
+//            SpriteSkin spriteSkin = sprite.GetComponent<SpriteSkin>();
+//            Transform[] bones = spriteSkin.m_BoneTransforms;
+//            Transform root = spriteSkin.m_RootBone;
+//            for(int i = 0; i < bones.Length; i++) {
+//                int index = Array.IndexOf(currents, bones[i].gameObject);
+//                if(index != -1) {
+//                    Transform bone2D = news[index].transform;
+//                    bones[i] = bone2D;
+//                    if(bone2D.name == root.name) root = bone2D;
+//                } else {
+//                    Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
+//                }
+//            }
+//            spriteSkin.m_BoneTransforms = bones;
+//            spriteSkin.m_RootBone = root;
         }
     }
 #endif

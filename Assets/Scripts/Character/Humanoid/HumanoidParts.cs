@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using Anima2D;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.U2D.IK;
 
@@ -27,10 +25,6 @@ public class HumanoidParts : PartsAbstract {
         void AddToLists(GameObject part, GameObject target) {
             partsTemp.Add(part);
             targetsTemp.Add(target);
-#if UNITY_EDITOR
-            if(EditorApplication.isPlaying) // Needed because this is called in edit mode from CharacterPhysics
-#endif
-            Destroy(target.GetComponent<Bone2D>()); // We don't actually need these anymore
         }
 
         AddToLists(hips, hipsTarget);

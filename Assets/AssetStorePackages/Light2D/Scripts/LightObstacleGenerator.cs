@@ -1,8 +1,8 @@
-﻿using Anima2D;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace Light2D {
+    /// <inheritdoc />
     /// <summary>
     ///     That class is generating obstacles for object it attached to.
     ///     Obect must have MeshRenderer, SpriteRenderer or CustomSprite script from which texture for obstacle will be
@@ -33,7 +33,9 @@ namespace Light2D {
 
         private void Start() {
 #if UNITY_EDITOR
-            if(material == null) material = (Material) AssetDatabase.LoadAssetAtPath("Assets/AssetStorePackages/Light2D/Materials/DualColor.mat", typeof(Material));
+            if(material == null)
+                material = (Material) AssetDatabase.LoadAssetAtPath(
+                    "Assets/AssetStorePackages/Light2D/Materials/DualColor.mat", typeof(Material));
 #endif
 
             if(!Application.isPlaying)
@@ -53,12 +55,6 @@ namespace Light2D {
                 obstacleSprite.color = multiplicativeColor;
                 obstacleSprite.additiveColor = additiveColor;
                 obstacleSprite.material = material;
-            } else if(GetComponent<SpriteMeshInstance>() != null) {
-                LightObstacleAnima obstacleSprite = obstacleObj.AddComponent<LightObstacleAnima>();
-                obstacleSprite.color = multiplicativeColor;
-                obstacleSprite.additiveColor = additiveColor;
-                obstacleSprite.material = material;
-                obstacleObj.transform.parent = gameObject.GetComponent<SpriteMeshInstance>().bones[0].transform;
             } else {
                 LightObstacleMesh obstacleMesh = obstacleObj.AddComponent<LightObstacleMesh>();
                 obstacleMesh.multiplicativeColor = multiplicativeColor;
