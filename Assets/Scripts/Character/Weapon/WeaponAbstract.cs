@@ -6,6 +6,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected const int UpperBodyLayerIndex = 1;
 
     [NonSerialized] public CharacterMasterAbstract holder;
+    [NonSerialized] public CharacterControlAbstract control;
     protected Animator anim;
     protected MovementAbstract movement;
 
@@ -22,12 +23,12 @@ public abstract class WeaponAbstract : MonoBehaviour {
         _animEventObjs = WeaponAnimationEventObjects.Instance;
     }
 
-    public abstract void Attack(float horizontal, float vertical, bool hPressed, bool vPressed);
-
     /// <summary> Call this when you pickup or switch to this weapon </summary>
     /// <param name="newHolder"> The CharacterMasterAbstract of the character that just picked up this weapon </param>
     public virtual void OnEquip(CharacterMasterAbstract newHolder) {
         holder = newHolder;
+        control = holder.control;
+        holder.weapon = this;
         anim = holder.gameObject.GetComponent<Animator>();
         movement = holder.gameObject.GetComponent<MovementAbstract>();
     }
@@ -39,6 +40,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
     public void OnDrop(CharacterMasterAbstract newHolder) {
         OnUnequip();
         holder = null;
+        control = null;
         anim = null;
         movement = null;
     }

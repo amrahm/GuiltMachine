@@ -2,8 +2,8 @@
 
 public abstract class MovementAbstract : MonoBehaviour {
     [Header("Movement Setup")]
-    [Tooltip(
-        "The shared WhatIsGround asset specifying what characters should consider to be ground. Ignore for enemies that only fly.")]
+    [Tooltip("The shared WhatIsGround asset specifying what characters should consider to be ground." +
+             " Ignore for enemies that only fly.")]
     public WhatIsGround whatIsGroundMaster;
 
     [Tooltip("The greatest slope that the character can walk up. Ignore for enemies that only fly.")]

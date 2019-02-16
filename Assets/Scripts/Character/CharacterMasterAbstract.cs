@@ -22,7 +22,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [CanBeNull] protected CharacterPhysics characterPhysics;
 
     /// <summary> Reference to this gameObject's Control script </summary>
-    [NonSerialized] protected CharacterControlAbstract control;
+    [NonSerialized] public CharacterControlAbstract control;
 
 
     public abstract void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider);

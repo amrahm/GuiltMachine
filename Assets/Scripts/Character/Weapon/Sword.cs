@@ -41,7 +41,11 @@ public class Sword : WeaponAbstract {
         anim.SetBool(SwordEquipped, false);
     }
 
-    public override void Attack(float horizontal, float vertical, bool hPressed, bool vPressed) {
+    private void Update() {
+        Attack(control.attackHorizontal, control.attackVertical, control.attackHPressed, control.attackVPressed);
+    }
+
+    private void Attack(float horizontal, float vertical, bool hPressed, bool vPressed) {
         //TODO can this become a coroutine?
         //&& (!hPressed && _hWasPressed || !vPressed && _vWasPressed)
         if(_attackHoldTime > TapThreshold) {

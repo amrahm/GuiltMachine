@@ -3,8 +3,6 @@
 [RequireComponent(typeof(CharacterPhysics))]
 public class HumanoidMaster : CharacterMasterAbstract {
     private void Update() {
-        weapon?.Attack(control.attackHorizontal, control.attackVertical, control.attackHPressed, control.attackVPressed);
-        
         if(Input.GetKey("n")) characterStats.DamagePlayer(10); //TODO temp code
         if(Input.GetKey("m")) characterStats.HealPlayer(10);
         if(Input.GetKey("v")) characterStats.DecreaseGuilt(10);

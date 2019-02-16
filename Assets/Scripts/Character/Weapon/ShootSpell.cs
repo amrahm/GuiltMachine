@@ -40,9 +40,5 @@ public class ShootSpell : WeaponAbstract {
 
     #endregion
 
-    public override void Attack(float horizontal, float vertical, bool hPressed, bool vPressed) {
-        throw new System.NotImplementedException();
-    }
-
     public override void OnUnequip() { throw new System.NotImplementedException(); }
 }
