@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using UnityEngine;
 using static AnimationParameters.Weapon;
 
 public class Sword : WeaponAbstract {
@@ -18,16 +20,6 @@ public class Sword : WeaponAbstract {
              "and how much should their velocity increase the weapon's force"), SerializeField]
     private float mass = 5;
 
-
-    /// <summary> How long an attack key has been held </summary>
-    private float _attackHoldTime;
-
-    /// <summary> Was horizontal attack pressed last frame? </summary>
-    private bool _hWasPressed;
-
-    /// <summary> Was vertical attack pressed last frame? </summary>
-    private bool _vWasPressed;
-
     #endregion
 
 
@@ -42,35 +34,53 @@ public class Sword : WeaponAbstract {
     }
 
     private void Update() {
-        Attack(control.attackHorizontal, control.attackVertical, control.attackHPressed, control.attackVPressed);
+        if((control.attackHPress || control.attackVPress) && !attacking) {
+            StartCoroutine(Attack());
+        }
     }
 
-    private void Attack(float horizontal, float vertical, bool hPressed, bool vPressed) {
-        //TODO can this become a coroutine?
-        //&& (!hPressed && _hWasPressed || !vPressed && _vWasPressed)
-        if(_attackHoldTime > TapThreshold) {
-            anim.SetBool(SwingForwardAnim, true);
-            anim.SetBool(JabForwardAnim, false);
-        } else if(_attackHoldTime > 0.00001f){
-//            if(!anim.IsInTransition(1)) {
-            anim.SetBool(JabForwardAnim, true);
-            anim.SetBool(SwingForwardAnim, false);
-//            }
+    enum Direction {
+        Up,
+        Down,
+        Left,
+        Right
+    }
+
+    private IEnumerator Attack() {
+        print("ATTACK" + Time.time);
+        int flipSign = movement.facingRight ? 1 : -1;
+        attacking = true;
+        Direction attackDir = control.attackHPress ?
+                                  (int) Mathf.Sign(control.attackHorizontal) == flipSign ?
+                                      Direction.Right :
+                                      Direction.Left :
+                                  (int) Mathf.Sign(control.attackVertical) == 1 ?
+                                      Direction.Up :
+                                      Direction.Down;
+
+        float attackHoldTime = 0;
+        switch(attackDir) {
+            case Direction.Up:
+                break;
+            case Direction.Down:
+                anim.SetTrigger(JumpStabDownAnim);
+                break;
+            case Direction.Left:
+                break;
+            case Direction.Right:
+                anim.SetTrigger(JabForwardAnim);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
-
-        if(vPressed) //TODO FIXME DEBUG CODE
-            anim.SetTrigger(UnequipWeapon);
-
-        if(hPressed || vPressed) {
-            _attackHoldTime += Time.deltaTime;
-        } else {
-            _attackHoldTime = 0;
-            anim.SetBool(JabForwardAnim, false);
-            anim.SetBool(SwingForwardAnim, false);
+        while(control.attackHPressed || control.attackVPressed) {
+            attackHoldTime += Time.deltaTime;
+            if(attackHoldTime > TapThreshold) {
+                anim.SetTrigger(SwingForwardAnim);
+                break;
+            }
+            yield return null;
         }
-
-        _hWasPressed = hPressed;
-        _vWasPressed = vPressed;
     }
 
     private void OnTriggerEnter2D(Collider2D other) {

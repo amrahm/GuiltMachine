@@ -14,8 +14,8 @@ public class NpcGroundHumanoidControl : CharacterControlAbstract {
         hPressed = Mathf.Abs(moveHorizontal) > 0.05f;
         sprint = Random.Range(0f, 1f) > 0.1f;
         moveVertical = Random.Range(-1f, 1f);
-        upPressed = moveVertical > 0.7f;
-        downPressed = moveVertical < -0.8f;
+        jumpPressed = moveVertical > 0.7f;
+        crouchPressed = moveVertical < -0.8f;
 
         //Attack
         float horiz = Random.Range(-1f, 1f);

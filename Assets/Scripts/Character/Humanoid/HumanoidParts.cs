@@ -9,12 +9,14 @@ public class HumanoidParts : PartsAbstract {
     public GameObject upperArmL, lowerArmL, handL;
     public GameObject thighR, shinR, footR;
     public GameObject thighL, shinL, footL;
+    public GameObject weaponHolder;
 
     public GameObject hipsTarget, torsoTarget, headTarget;
     public GameObject upperArmRTarget, lowerArmRTarget, handRTarget;
     public GameObject upperArmLTarget, lowerArmLTarget, handLTarget;
     public GameObject thighRTarget, shinRTarget, footRTarget;
     public GameObject thighLTarget, shinLTarget, footLTarget;
+    public GameObject weaponHolderTarget;
 
     public Solver2D armRIK, armLIK, headIK;
 
@@ -42,6 +44,7 @@ public class HumanoidParts : PartsAbstract {
         AddToLists(thighL, thighLTarget);
         AddToLists(shinL, shinLTarget);
         AddToLists(footL, footLTarget);
+        AddToLists(weaponHolder, weaponHolderTarget);
 
         parts = partsTemp.ToArray();
         targets = targetsTemp.ToArray();

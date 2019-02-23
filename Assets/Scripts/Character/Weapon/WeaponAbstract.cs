@@ -10,6 +10,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected Animator anim;
     protected MovementAbstract movement;
 
+    /// <summary> Is an attack started (not necessarily swinging yet) </summary>
+    protected bool attacking;
+
     /// <summary> Is the weapon swinging </summary>
     protected bool swinging;
 
@@ -58,6 +61,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
         } else if(e == _animEventObjs.swingStart) {
             swinging = true;
         } else if(e == _animEventObjs.swingEnd) {
+            attacking = false;
             swinging = false;
             hitSomething = false;
             if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);

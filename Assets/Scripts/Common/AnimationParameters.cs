@@ -52,10 +52,13 @@ namespace AnimationParameters {
         /// <summary> Bool: A sword is equipped </summary>
         public static readonly int SwordEquipped = Animator.StringToHash("SwordEquipped");
 
-        /// <summary> Bool: Jabbing melee weapon forward </summary>
+        /// <summary> Trigger: Jab melee weapon forward </summary>
         public static readonly int JabForwardAnim = Animator.StringToHash("JabForward");
 
-        /// <summary> Bool: Swinging melee weapon forward </summary>
+        /// <summary> Trigger: Swing melee weapon forward </summary>
         public static readonly int SwingForwardAnim = Animator.StringToHash("SwingForward");
+
+        /// <summary> Trigger: Swing melee weapon forward </summary>
+        public static readonly int JumpStabDownAnim = Animator.StringToHash("JumpStabDown");
     }
 }
