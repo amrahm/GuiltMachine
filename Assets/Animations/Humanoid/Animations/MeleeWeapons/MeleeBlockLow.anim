@@ -1324,15 +1324,31 @@ AnimationClip:
   - time: 0
     functionName: HandleEventWithDuration
     data: 
-    objectReferenceParameter: {fileID: 11400000, guid: 14c37f0c48e177e4ea309dd02490f1a1,
+    objectReferenceParameter: {fileID: 11400000, guid: 4aadeb1e4190d49408d114193661a820,
       type: 2}
     floatParameter: 0.15
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.11666667
+    functionName: HandleEvent
+    data: 
+    objectReferenceParameter: {fileID: 11400000, guid: 14c37f0c48e177e4ea309dd02490f1a1,
+      type: 2}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.35
+    functionName: HandleEvent
+    data: 
+    objectReferenceParameter: {fileID: 11400000, guid: b93c50c5f43974e419b425c273e75dbc,
+      type: 2}
+    floatParameter: 0
     intParameter: 0
     messageOptions: 0
   - time: 0.36666667
     functionName: HandleEventWithDuration
     data: 
-    objectReferenceParameter: {fileID: 11400000, guid: b93c50c5f43974e419b425c273e75dbc,
+    objectReferenceParameter: {fileID: 11400000, guid: e51a50a15a1f89d43b938f16b5ea8937,
       type: 2}
     floatParameter: 0.2666667
     intParameter: 0

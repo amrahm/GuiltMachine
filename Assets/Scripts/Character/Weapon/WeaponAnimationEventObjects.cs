@@ -4,6 +4,9 @@
 public class WeaponAnimationEventObjects : UnitySingleton<WeaponAnimationEventObjects> {
     [Tooltip("The ScriptableObject asset signifying when the sword swing animation should start fading in")]
     public AnimationEventObject swingFadeIn;
+    
+    [Tooltip("The ScriptableObject asset signifying when the sword swing animation should start fading out")]
+    public AnimationEventObject swingFadeOut;
 
     [Tooltip("The ScriptableObject asset signifying a sword swing starting")]
     public AnimationEventObject swingStart;

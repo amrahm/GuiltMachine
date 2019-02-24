@@ -52,13 +52,19 @@ namespace AnimationParameters {
         /// <summary> Bool: A sword is equipped </summary>
         public static readonly int SwordEquipped = Animator.StringToHash("SwordEquipped");
 
-        /// <summary> Trigger: Jab melee weapon forward </summary>
-        public static readonly int JabForwardAnim = Animator.StringToHash("JabForward");
+        /// <summary> Trigger: Tap forward attack </summary>
+        public static readonly int TapForwardAnim = Animator.StringToHash("TapForward");
 
-        /// <summary> Trigger: Swing melee weapon forward </summary>
-        public static readonly int SwingForwardAnim = Animator.StringToHash("SwingForward");
+        /// <summary> Trigger: Hold forward attack </summary>
+        public static readonly int HoldForwardAnim = Animator.StringToHash("HoldForward");
 
-        /// <summary> Trigger: Swing melee weapon forward </summary>
-        public static readonly int JumpStabDownAnim = Animator.StringToHash("JumpStabDown");
+        /// <summary> Trigger: Tap down attack </summary>
+        public static readonly int TapDownAnim = Animator.StringToHash("TapDown");
+
+        /// <summary> Trigger: Hold down attack </summary>
+        public static readonly int HoldDownAnim = Animator.StringToHash("HoldDown");
+
+        /// <summary> Trigger: Tap or hold down attack while in midair </summary>
+        public static readonly int TapHoldDownAirAnim = Animator.StringToHash("TapHoldDownAir");
     }
 }

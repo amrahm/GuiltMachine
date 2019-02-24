@@ -6,11 +6,14 @@ public class PhoenixMaster : CharacterMasterAbstract {
     [FormerlySerializedAs("_deathExplosionPrefab")] [Tooltip("Explosion to play when phoenix dies")] [SerializeField]
     private Transform deathExplosionPrefab;
 
+    /// <summary> prevents multiple damaging collisions to player </summary>
     private bool _exploded;
+    /// <summary> helps reset _exploded </summary>
+    private float _timeExploded;
 
     public override void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {
-        if (!godMode) characterStats.DamagePlayer(damage);
-        if (characterStats.CurHealth <= 0) StartCoroutine(Die());
+        if(!godMode) characterStats.DamagePlayer(damage);
+        if(characterStats.CurHealth <= 0) StartCoroutine(Die());
         characterPhysics?.AddForceAt(point, force, hitCollider);
     }
 
@@ -37,20 +40,20 @@ public class PhoenixMaster : CharacterMasterAbstract {
 
     private void OnCollisionEnter2D(Collision2D collision) {
         IDamageable damageable = collision.gameObject.GetComponent<IDamageable>();
-        if (damageable != null)
-        {
-            // exploded flag prevents multiple damaging collisions to player
-            if (!_exploded)
-            {
+        if(damageable != null) {
+            if(Time.time - _timeExploded > 0.5f) _exploded = false;
+            
+            if(!_exploded) {
                 Vector2 point = collision.GetContact(0).point;
                 var relativeVelocity = collision.GetContact(0).relativeVelocity;
-                damageable.DamageMe(point, -relativeVelocity*15, 34, collision.collider);
-                
+                damageable.DamageMe(point, -collision.GetContact(0).normal * collision.GetContact(0).normalImpulse, 34, collision.collider);
+
                 // Enemy self-destructs and causes damage to player
                 // Comment out line below if you do not want enemy to self-destruct
 //                StartCoroutine(Die());
 
                 _exploded = true;
+                _timeExploded = Time.time;
             }
         }
     }

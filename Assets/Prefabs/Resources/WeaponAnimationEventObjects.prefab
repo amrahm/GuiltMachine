@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1863162451519585692}
   - component: {fileID: 3918276826377931313}
   m_Layer: 0
-  m_Name: CommonWeaponAnimationEventObjectsContainer
+  m_Name: WeaponAnimationEventObjects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,5 +44,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   swingFadeIn: {fileID: 11400000, guid: 4aadeb1e4190d49408d114193661a820, type: 2}
+  swingFadeOut: {fileID: 11400000, guid: e51a50a15a1f89d43b938f16b5ea8937, type: 2}
   swingStart: {fileID: 11400000, guid: 14c37f0c48e177e4ea309dd02490f1a1, type: 2}
   swingEnd: {fileID: 11400000, guid: b93c50c5f43974e419b425c273e75dbc, type: 2}

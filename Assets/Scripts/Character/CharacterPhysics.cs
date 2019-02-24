@@ -23,7 +23,8 @@ public class CharacterPhysics : MonoBehaviour {
     [Tooltip("How fast to crouch from an impact")]
     public float crouchSpeed = 2;
 
-    [Tooltip("A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
+    [Tooltip(
+        "A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend")]
     public GameObject[] nonLegBendParts;
 
     /// <summary> A list of all objects that are not parts of legs that should bend when crouching, along with an amount from -1 to 1 that they should bend </summary>
@@ -137,13 +138,18 @@ public class CharacterPhysics : MonoBehaviour {
     private void CrouchRotation() {
         if(_crouchAmount < 0.1f && _crouchPlus < 0.1f) return;
 
-        _crouchAmount = _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed, Time.fixedDeltaTime); //Quickly move towards crouchAmount
+        _crouchAmount =
+            _crouchAmount.SharpInDamp(_crouchPlus, crouchSpeed,
+                                      Time.fixedDeltaTime); //Quickly move towards crouchAmount
 
         //Bend all the bendy parts
         for(int i = 0; i < _nonLegBendParts.Length; i++)
-            _nonLegBendParts[i].transform.Rotate(Vector3.forward, (_facingRight ? 1 : -1) * _crouchAmount * _nonLegBendAmounts[i], Space.Self);
+            _nonLegBendParts[i].transform.Rotate(Vector3.forward,
+                                                 (_facingRight ? 1 : -1) * _crouchAmount * _nonLegBendAmounts[i],
+                                                 Space.Self);
 
-        _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
+        _crouchPlus =
+            _crouchPlus.SharpInDamp(0, crouchSpeed / 4, Time.fixedDeltaTime); //Over time, reduce the crouch from impact
     }
 
     [Serializable]
@@ -162,10 +168,12 @@ public class CharacterPhysics : MonoBehaviour {
         [Tooltip("How intensely this part reacts to impacts")]
         public float partWeakness = 65;
 
-        [Tooltip("The farthest back this part should rotate. Must be less than and within 360 of upper limit, and between -360 and 720.")]
+        [Tooltip(
+            "The farthest back this part should rotate. Must be less than and within 360 of upper limit, and between -360 and 720.")]
         public float lowerLimit = -180;
 
-        [Tooltip("The farthest forward this part should rotate. Must be more than and within 360 of lower limit, and between -360 and 720.")]
+        [Tooltip(
+            "The farthest forward this part should rotate. Must be more than and within 360 of lower limit, and between -360 and 720.")]
         public float upperLimit = 180;
 
         [Tooltip("Is this body part a leg, i.e. should it handle touching the floor differently")]
@@ -195,14 +203,16 @@ public class CharacterPhysics : MonoBehaviour {
         [Tooltip("Specifies how forward a foot needs to be moving to be considered stepping for the foot step checks")]
         public float steppingThreshold;
 
-        [Tooltip("Vector that specifies length and height of steps. Should go out as far as the step will, and just above flat ground")]
+        [Tooltip(
+            "Vector that specifies length and height of steps. Should go out as far as the step will, and just above flat ground")]
         public Vector2 stepVec;
 
         [Tooltip("The direction, in local space, that points from the base of this body part to the tip")]
         public Vector2 partDir = Vector2.right;
 
 #if UNITY_EDITOR
-        [Tooltip("Lets you see the setting vectors in the editor for setting them properly. White is partDir, green is stepVec.")]
+        [Tooltip(
+            "Lets you see the setting vectors in the editor for setting them properly. White is partDir, green is stepVec.")]
         public bool visSettings;
 #endif
 
@@ -264,6 +274,12 @@ public class CharacterPhysics : MonoBehaviour {
         /// <summary> Vector from the base to the tip of this part </summary>
         private Vector3 _topVector;
 
+        /// <summary> Cache to avoid generating garbage </summary>
+        private static readonly WaitForSeconds WaitForTenthSecond = new WaitForSeconds(0.1f);
+
+        /// <summary> Cache to avoid generating garbage </summary>
+        private static readonly WaitForFixedUpdate WaitForFixedUpdate = new WaitForFixedUpdate();
+
         #endregion
 
         /// <summary> Adds all of the colliderObjects to a handy dictionary named collToPart.
@@ -288,9 +304,11 @@ public class CharacterPhysics : MonoBehaviour {
                     _pp.collToPart.Add(collider, this);
                 }
             }
-            farPoint = Vector3.Distance(farPoint + farColl.bounds.extents, objPos) < Vector3.Distance(farPoint - farColl.bounds.extents, objPos)
-                           ? bodyPart.transform.InverseTransformPoint(farPoint - farColl.bounds.extents)
-                           : bodyPart.transform.InverseTransformPoint(farPoint + farColl.bounds.extents);
+            farPoint =
+                Vector3.Distance(farPoint + farColl.bounds.extents, objPos) <
+                Vector3.Distance(farPoint - farColl.bounds.extents, objPos) ?
+                    bodyPart.transform.InverseTransformPoint(farPoint - farColl.bounds.extents) :
+                    bodyPart.transform.InverseTransformPoint(farPoint + farColl.bounds.extents);
             _topVector = new Vector3(farPoint.x, 0);
 
             if(lowerLimit < -360) {
@@ -333,26 +351,33 @@ public class CharacterPhysics : MonoBehaviour {
 #if UNITY_EDITOR
                     if(visSettings) {
                         Debug.DrawRay(heightStart, heightDir, isLeadingLeg ? Color.cyan : new Color(0f, 1f, 0.72f));
-                        Debug.DrawRay(maxHeightStart, maxHeightDir, isLeadingLeg ? new Color(0f, 0.86f, 0.86f) : new Color(0f, 0.92f, 0.66f));
+                        Debug.DrawRay(maxHeightStart, maxHeightDir,
+                                      isLeadingLeg ? new Color(0f, 0.86f, 0.86f) : new Color(0f, 0.92f, 0.66f));
                     }
 #endif
 
                     if(delta - _prevFootDelta < -0.1f || fastCheckTime > 1f) fastCheck = false;
-                    float angle = Vector2.SignedAngle(_pp._movement.groundNormal, _root.up) * (_pp._facingRight ? -1 : 1);
-                    if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) && Mathf.Abs(angle) < maxWalkSlope) {
+                    float angle = Vector2.SignedAngle(_pp._movement.groundNormal, _root.up) *
+                                  (_pp._facingRight ? -1 : 1);
+                    if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) &&
+                       Mathf.Abs(angle) < maxWalkSlope) {
                         fastCheck = true;
-                        _stepCrouchAnglePlus = Mathf.Abs(angle) * (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
+                        _stepCrouchAnglePlus = Mathf.Abs(angle) *
+                                               (1 - (float) Math.Tanh(Mathf.Abs(angle) / maxWalkSlope * .8f));
                         _footRotatePlus = angle;
                     }
 
                     if(delta - _prevFootDelta > steppingThreshold) {
-                        RaycastHit2D heightHit = Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
-                        RaycastHit2D maxHeightHit = Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude, _pp._movement.whatIsGround);
+                        RaycastHit2D heightHit =
+                            Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
+                        RaycastHit2D maxHeightHit = Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude,
+                                                            _pp._movement.whatIsGround);
                         if(heightHit && !maxHeightHit) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
-                            RaycastHit2D topHit = Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
+                            RaycastHit2D topHit =
+                                Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
 
                             if(topHit)
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
@@ -374,9 +399,11 @@ public class CharacterPhysics : MonoBehaviour {
                 }
 
                 if(fastCheck) {
-                    yield return new WaitForFixedUpdate();
+                    yield return WaitForFixedUpdate;
                     fastCheckTime += Time.fixedDeltaTime;
-                } else yield return new WaitForSeconds(0.1f);
+                } else {
+                    yield return WaitForTenthSecond;
+                }
             }
             //ReSharper disable once IteratorNeverReturns
         }
@@ -389,12 +416,17 @@ public class CharacterPhysics : MonoBehaviour {
             }
 
 
-            _stepCrouchAmount = _stepCrouchAmount.SharpInDamp(_stepCrouchAnglePlus + _stepCrouchHeightPlus, _pp.crouchSpeed, Time.fixedDeltaTime);
-            _footRotateAmount = _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, Time.fixedDeltaTime);
+            _stepCrouchAmount =
+                _stepCrouchAmount.SharpInDamp(_stepCrouchAnglePlus + _stepCrouchHeightPlus, _pp.crouchSpeed,
+                                              Time.fixedDeltaTime);
+            _footRotateAmount =
+                _footRotateAmount.SharpInDamp(_footRotatePlus, _pp.crouchSpeed / 4, Time.fixedDeltaTime);
 
             //Bend all the bendy parts
             for(int i = 0; i < bendParts.Length; i++)
-                bendParts[i].transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * _stepCrouchAmount * bendAmounts[i], Space.Self);
+                bendParts[i].transform.Rotate(Vector3.forward,
+                                              (_pp._facingRight ? 1 : -1) * _stepCrouchAmount * bendAmounts[i],
+                                              Space.Self);
 
             foot.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * _footRotateAmount, Space.Self);
 
@@ -411,13 +443,16 @@ public class CharacterPhysics : MonoBehaviour {
             _shouldHitRot = true; //enable HitRot() to apply rotation
             _positionVector = point - bodyPart.transform.position; //A vector to the position of the hit
 
-            Vector3 toTop = bodyPart.transform.TransformPoint(_topVector) - bodyPart.transform.position; //A vector to the top of this part
-            _upDown = Mathf.Clamp(Vector3.Dot(toTop, _positionVector) / Vector3.SqrMagnitude(toTop), -1, 1); //Clamped in case of errors
+            Vector3 toTop = bodyPart.transform.TransformPoint(_topVector) -
+                            bodyPart.transform.position; //A vector to the top of this part
+            _upDown = Mathf.Clamp(Vector3.Dot(toTop, _positionVector) / Vector3.SqrMagnitude(toTop), -1,
+                                  1); //Clamped in case of errors
 
             //All of the impulse in the direction of the collision normal
             Vector2 forceVectorPre = impulse * _upDown;
             //If it's a leg, only take the horizontal component
-            Vector2 forceVector = isLeg ? Vector2.Dot(forceVectorPre, _root.right) * (Vector2) _root.right : forceVectorPre;
+            Vector2 forceVector =
+                isLeg ? Vector2.Dot(forceVectorPre, _root.right) * (Vector2) _root.right : forceVectorPre;
 
             if(isLeg) { //Add crouching using the vertical component for legs
                 float verticalForce = Vector2.Dot(forceVectorPre - forceVector, _root.up);
@@ -432,7 +467,8 @@ public class CharacterPhysics : MonoBehaviour {
 
             if(rotCorrected > lowerLimit && rotCorrected < upperLimit) {
                 //Add the magnitude of this force to torqueAmount, which will make the part rotate. The cross product gives us the proper direction.
-                _torqueAmount += (_pp._facingRight ? 1 : -1) * forceVector.magnitude * Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
+                _torqueAmount += (_pp._facingRight ? 1 : -1) * forceVector.magnitude *
+                                 Mathf.Sign(Vector3.Cross(_positionVector, forceVector).z);
 
                 HandleTouching(collisionNormal);
 
@@ -449,8 +485,10 @@ public class CharacterPhysics : MonoBehaviour {
             //TODO Is massMult needed here? partStrength?
             if(Vector3.Dot(collisionNormal, (DirPre - DirPost).normalized) < -0.1f) return;
 
-            _torqueAmount += (_pp._facingRight ? -2 : 2) * Time.fixedDeltaTime * _upDown * Vector3.Angle(DirPost, DirPre) *
-                             Mathf.Sign(Vector3.Cross(collisionNormal, DirPre).z) * (isLeg ? Vector2.Dot(collisionNormal, Vector2.right) : 1);
+            _torqueAmount += (_pp._facingRight ? -2 : 2) * Time.fixedDeltaTime * _upDown *
+                             Vector3.Angle(DirPost, DirPre) *
+                             Mathf.Sign(Vector3.Cross(collisionNormal, DirPre).z) *
+                             (isLeg ? Vector2.Dot(collisionNormal, Vector2.right) : 1);
         }
 
         /// <summary> Rotates the body part, dispersing the collision torque over time to return to the resting position </summary>
@@ -458,14 +496,21 @@ public class CharacterPhysics : MonoBehaviour {
             if(isLeg && !Input.GetKey("left ctrl")) StepCrouchRotation(); //TODO remove the second half of if statement
             if(!_shouldHitRot) return;
 
-            _rotAmount += _torqueAmount * Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
+            _rotAmount +=
+                _torqueAmount *
+                Time.fixedDeltaTime; //Build up a rotation based on the amount of torque from the collision
             //Rotate the part _rotAmount past where it is animated
-            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2, Space.Self);
+            bodyPart.transform.Rotate(Vector3.forward, (_pp._facingRight ? 1 : -1) * partWeakness * _rotAmount / 2,
+                                      Space.Self);
 
-            _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
-            _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, Time.fixedDeltaTime, 0.02f); //and return the body part back to rest
+            _torqueAmount -=
+                _torqueAmount * 3 * Time.fixedDeltaTime; //Over time, reduce the torque added from the collision
+            _rotAmount =
+                _rotAmount.SharpInDamp(7 * _rotAmount / 8, 0.8f, Time.fixedDeltaTime,
+                                       0.02f); //and return the body part back to rest
 
-            _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
+            _shouldHitRot =
+                Mathf.Abs(_rotAmount) * partWeakness >= 0.01f; //If the rotation is small enough, stop calling this code
         }
     }
 
@@ -475,20 +520,19 @@ public class CharacterPhysics : MonoBehaviour {
         foreach(var c in contacts) {
             if(collToPart.ContainsKey(c.otherCollider)) {
                 BodyPartClass part = collToPart[c.otherCollider];
-                Vector2 force = float.IsNaN(c.normalImpulse) ? collInfo.relativeVelocity : c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
+                Vector2 force = float.IsNaN(c.normalImpulse) ?
+                                    collInfo.relativeVelocity :
+                                    c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
                 part.HitCalc(c.point, c.normal, force);
             }
         }
     }
 
     public void AddForceAt(Vector2 point, Vector2 force, Collider2D hitCollider) {
-        if(!hitCollider.isTrigger) _rb.AddForceAtPosition(force, point, ForceMode2D.Impulse);
-        BodyPartClass part = null;
-        while(part == null) {
-            if(collToPart.ContainsKey(hitCollider)) part = collToPart[hitCollider];
-            else hitCollider = hitCollider.transform.parent.GetComponent<Collider2D>();
+        _rb.AddForceAtPosition(force, point, ForceMode2D.Impulse);
+        if(collToPart.ContainsKey(hitCollider)) {
+            collToPart[hitCollider].HitCalc(point, -force, force / 7);
         }
-        part.HitCalc(point, -force, force / 7);
     }
 
     private void OnCollisionEnter2D(Collision2D collInfo) {
@@ -522,22 +566,22 @@ public class CharacterPhysics : MonoBehaviour {
 
     private void SwapPartsWithTargets(GameObject[] currents, GameObject[] news) {
         foreach(Transform sprite in transform.Find("Sprites")) {
-            //Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git
-//            SpriteSkin spriteSkin = sprite.GetComponent<SpriteSkin>();
-//            Transform[] bones = spriteSkin.m_BoneTransforms;
-//            Transform root = spriteSkin.m_RootBone;
-//            for(int i = 0; i < bones.Length; i++) {
-//                int index = Array.IndexOf(currents, bones[i].gameObject);
-//                if(index != -1) {
-//                    Transform bone2D = news[index].transform;
-//                    bones[i] = bone2D;
-//                    if(bone2D.name == root.name) root = bone2D;
-//                } else {
-//                    Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
-//                }
-//            }
-//            spriteSkin.m_BoneTransforms = bones;
-//            spriteSkin.m_RootBone = root;
+//            Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git
+            SpriteSkin spriteSkin = sprite.GetComponent<SpriteSkin>();
+            Transform[] bones = spriteSkin.m_BoneTransforms;
+            Transform root = spriteSkin.m_RootBone;
+            for(int i = 0; i < bones.Length; i++) {
+                int index = Array.IndexOf(currents, bones[i].gameObject);
+                if(index != -1) {
+                    Transform bone2D = news[index].transform;
+                    bones[i] = bone2D;
+                    if(bone2D.name == root.name) root = bone2D;
+                } else {
+                    Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
+                }
+            }
+            spriteSkin.m_BoneTransforms = bones;
+            spriteSkin.m_RootBone = root;
         }
     }
 #endif

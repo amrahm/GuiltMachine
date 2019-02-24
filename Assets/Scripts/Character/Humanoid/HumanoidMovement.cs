@@ -49,13 +49,13 @@ public class HumanoidMovement : MovementAbstract {
     [Tooltip("Additional force added while holding jump"), SerializeField]
     private float jumpFuelForce = 30f;
 
-    [Tooltip("How much character can steer while in mid-air"), SerializeField]
+    [Tooltip("How much character can steer while in midair"), SerializeField]
     private float airControl;
 
-    [Tooltip("How much character automatically slows down while in mid-air"), SerializeField]
+    [Tooltip("How much character automatically slows down while in midair"), SerializeField]
     private float airSlowdownMultiplier;
 
-    [Tooltip("A kick to make the character start moving faster while in mid-air"), SerializeField]
+    [Tooltip("A kick to make the character start moving faster while in midair"), SerializeField]
     private float kickAir;
 
     [Tooltip("Offset for the back of the right foot ground check raycast"), SerializeField]
@@ -104,7 +104,7 @@ public class HumanoidMovement : MovementAbstract {
     private float grabCheckDistanceH = 0.2f;
 
     [Header("Movement Abilities")]
-    [Tooltip(" >= 1 gives the character the ability to dash-jump in mid-air this many times"), SerializeField]
+    [Tooltip(" >= 1 gives the character the ability to dash-jump in midair this many times"), SerializeField]
     private int numberOfAirDashes;
 
     [Tooltip("How fast/far the air-dash goes"), SerializeField]
@@ -180,7 +180,7 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> True if the character is on the floor while air dashing </summary>
     private bool _airDashingGrounded;
 
-    /// <summary> How many more air dashes the character can do in mid-air </summary>
+    /// <summary> How many more air dashes the character can do in midair </summary>
     private int _airDashesLeft;
 
     /// <summary> Whether or not the character is touching something </summary>
@@ -191,6 +191,15 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> The physics material on the foot colliders </summary>
     private PhysicsMaterial2D _footFrictionMat;
+
+    /// <summary> Reference to AirDashHelper Coroutine </summary>
+    private IEnumerator _airDashHelper;
+
+    /// <summary> Cache to avoid generating garbage </summary>
+    private static readonly WaitForFixedUpdate WaitForFixedUpdate = new WaitForFixedUpdate();
+
+    /// <summary> Cache to avoid generating garbage </summary>
+    private static readonly WaitForEndOfFrame WaitForEndOfFrame = new WaitForEndOfFrame();
 
     #endregion
 
@@ -305,14 +314,14 @@ public class HumanoidMovement : MovementAbstract {
                     ClimbRelease(aboveLedge);
             }
 
-            yield return new WaitForFixedUpdate();
+            yield return WaitForFixedUpdate;
         }
     }
 
     /// <summary> Update whether or not this character can grab a platform </summary>
     private void ClimbSetGrabPoint(Vector2 hitNormal, Vector2 hitPoint) {
         if(_climbing) return;
-        //Ensure character isn't grabbing and is in mid-air or about to be, and is trying to move into the hit platform
+        //Ensure character isn't grabbing and is in midair or about to be, and is trying to move into the hit platform
         if(_climbing || grounded && !_jumpStarted ||
            Vector2.Dot(control.moveHorizontal * hitNormal, tf.right) > -0.1f) return;
 
@@ -399,7 +408,7 @@ public class HumanoidMovement : MovementAbstract {
             if(Vector3.Dot(tf.up, _grabPoint - _parts.footR.transform.position) > 0)
                 tf.Translate((Vector2) tf.up * Time.fixedDeltaTime);
 
-            yield return new WaitForFixedUpdate();
+            yield return WaitForFixedUpdate;
 
             hDist = Vector3.Dot(right, _grabPoint - tf.position);
         } while(hDist > -GrabAdd && Time.time - _timeSinceRelease < TimeToGrab * 2 &&
@@ -577,7 +586,7 @@ public class HumanoidMovement : MovementAbstract {
 
         if(grounded) {
             float sprintAmt = sprint ? sprintSpeed : 1;
-            moveVec *= sprintAmt; // We do this here because we don't want them to be able to start sprinting in mid-air
+            moveVec *= sprintAmt; // We do this here because we don't want them to be able to start sprinting in midair
 
             // Set animation params
             _walkSprint = Mathf.Abs(velTangent) <= maxSpeed + 1f ?
@@ -651,7 +660,7 @@ public class HumanoidMovement : MovementAbstract {
             _jumpFuelLeft = 0;
         }
 
-        // Check for double tapping jump in mid-air
+        // Check for double tapping jump in midair
         const float doubleTapTime = 0.3f;
         bool doubleTappedInMidAir = false;
         if(jump && !_wasJump && !grounded) {
@@ -663,11 +672,11 @@ public class HumanoidMovement : MovementAbstract {
             }
         }
 
-        // If the character double taps jump in mid-air, they do an air dash (if they have that ability)
+        // If the character double taps jump in midair, they do an air dash (if they have that ability)
         if(doubleTappedInMidAir && numberOfAirDashes > 0) {
-            if(_airDash != null) StopCoroutine(_airDash);
-            _airDash = AirDashHelper();
-            StartCoroutine(_airDash);
+            if(_airDashHelper != null) StopCoroutine(_airDashHelper);
+            _airDashHelper = AirDashHelper();
+            StartCoroutine(_airDashHelper);
         }
 
 
@@ -684,8 +693,6 @@ public class HumanoidMovement : MovementAbstract {
 
         _wasJump = jump;
     }
-
-    private IEnumerator _airDash;
 
     /// <summary> Handles launching and rotating the character during their air dash </summary>
     private IEnumerator AirDashHelper() {
@@ -735,7 +742,7 @@ public class HumanoidMovement : MovementAbstract {
                 _parts.hipsTarget.transform.right = _airDashVec;
 
                 // WaitForEndOfFrame to make sure all the normal animation stuff has already happened
-                yield return new WaitForEndOfFrame();
+                yield return WaitForEndOfFrame;
             }
             rb.gravityScale = 1;
         } else if(_airDashing) {
@@ -743,7 +750,7 @@ public class HumanoidMovement : MovementAbstract {
             // dash is canceled when we stop the coroutine, then we need to wait till a new frame for the while loop
             // below to work (otherwise the hips will still be rotated to _airDashVec and the while loop will skip)
             rb.gravityScale = 1;
-            yield return new WaitForEndOfFrame();
+            yield return WaitForEndOfFrame;
         }
 
         // At this point, the air dash is over, so we stop the animation
@@ -756,7 +763,7 @@ public class HumanoidMovement : MovementAbstract {
             _airDashVec = _airDashVec.SharpInDamp(_parts.hipsTarget.transform.right, 1f);
             _parts.hipsTarget.transform.right = _airDashVec;
             wasFacingRight = facingRight;
-            yield return new WaitForEndOfFrame();
+            yield return WaitForEndOfFrame;
         }
         _airDashing = false;
     }

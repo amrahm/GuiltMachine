@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections;
 using UnityEngine;
 using static AnimationParameters.Weapon;
 
 public class Sword : WeaponAbstract {
-    /// <summary> How long until an attack is considered held down </summary>
-    private const float TapThreshold = 0.1f;
-
     #region Variables
 
     [Tooltip("How much the weapon hurts"), SerializeField]
@@ -23,6 +19,15 @@ public class Sword : WeaponAbstract {
     #endregion
 
 
+    protected override void UpTap() {  EndSwing(); }
+    protected override void UpHold() {  EndSwing(); }
+    protected override void DownTap() { anim.SetTrigger(movement.grounded ? TapDownAnim : TapHoldDownAirAnim); }
+    protected override void DownHold() { anim.SetTrigger(movement.grounded ? HoldDownAnim : TapHoldDownAirAnim); }
+    protected override void BackwardTap() {  EndSwing(); }
+    protected override void BackwardHold() {  EndSwing(); }
+    protected override void ForwardTap() { anim.SetTrigger(TapForwardAnim); }
+    protected override void ForwardHold() { anim.SetTrigger(HoldForwardAnim); }
+
     public override void OnEquip(CharacterMasterAbstract newHolder) {
         base.OnEquip(newHolder);
         anim.SetBool(SwordEquipped, true);
@@ -33,55 +38,6 @@ public class Sword : WeaponAbstract {
         anim.SetBool(SwordEquipped, false);
     }
 
-    private void Update() {
-        if((control.attackHPress || control.attackVPress) && !attacking) {
-            StartCoroutine(Attack());
-        }
-    }
-
-    enum Direction {
-        Up,
-        Down,
-        Left,
-        Right
-    }
-
-    private IEnumerator Attack() {
-        print("ATTACK" + Time.time);
-        int flipSign = movement.facingRight ? 1 : -1;
-        attacking = true;
-        Direction attackDir = control.attackHPress ?
-                                  (int) Mathf.Sign(control.attackHorizontal) == flipSign ?
-                                      Direction.Right :
-                                      Direction.Left :
-                                  (int) Mathf.Sign(control.attackVertical) == 1 ?
-                                      Direction.Up :
-                                      Direction.Down;
-
-        float attackHoldTime = 0;
-        switch(attackDir) {
-            case Direction.Up:
-                break;
-            case Direction.Down:
-                anim.SetTrigger(JumpStabDownAnim);
-                break;
-            case Direction.Left:
-                break;
-            case Direction.Right:
-                anim.SetTrigger(JabForwardAnim);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-        while(control.attackHPressed || control.attackVPressed) {
-            attackHoldTime += Time.deltaTime;
-            if(attackHoldTime > TapThreshold) {
-                anim.SetTrigger(SwingForwardAnim);
-                break;
-            }
-            yield return null;
-        }
-    }
 
     private void OnTriggerEnter2D(Collider2D other) {
         if(!swinging || hitSomething) return;
