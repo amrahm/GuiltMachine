@@ -1,9 +1,22 @@
-﻿using System;
+﻿using System.Collections;
+using ExtensionMethods;
 using UnityEngine;
 using static AnimationParameters.Weapon;
+using static UnityEngine.Physics2D;
 
 public class Sword : WeaponAbstract {
     #region Variables
+
+#if UNITY_EDITOR
+    [Tooltip("Show debug visualizations"), SerializeField]
+    private bool visualizeDebug;
+#endif
+
+    [Tooltip("Base of the blade of the sword"), SerializeField]
+    private Transform swordBase;
+
+    [Tooltip("Tip of the blade of the sword"), SerializeField]
+    private Transform swordTip;
 
     [Tooltip("How much the weapon hurts"), SerializeField]
     private int damage = 17;
@@ -15,6 +28,13 @@ public class Sword : WeaponAbstract {
     [Tooltip("How much should this weapon slow down the character (and their swing), " +
              "and how much should their velocity increase the weapon's force"), SerializeField]
     private float mass = 5;
+
+
+    /// <summary> previous position of the base </summary>
+    private Vector2 _prevBase;
+
+    /// <summary> previous position of the tip </summary>
+    private Vector2 _prevTip;
 
     #endregion
 
@@ -38,31 +58,122 @@ public class Sword : WeaponAbstract {
         anim.SetBool(SwordEquipped, false);
     }
 
+    protected override void BeginSwing() {
+        base.BeginSwing();
+        StartCoroutine(_CheckHit());
+    }
 
-    private void OnTriggerEnter2D(Collider2D other) {
-        if(!swinging || hitSomething) return;
-        //FIXME? Right now this means if you hit anything (even not damageable), you won't be able to hit anything else that swing
-        hitSomething = true;
-        // We could fix this by moving it down, but then you'll be able to swing your sword and hit people through walls
-        IDamageable damageable = (other.GetComponent<IDamageable>() ??
-                                  other.attachedRigidbody?.GetComponent<IDamageable>()) ??
-                                 other.GetComponentInParent<IDamageable>();
-        if(damageable != null) {
-            Collider2D thisColl = GetComponent<Collider2D>();
-            Vector2 point = other.Distance(thisColl).pointB;
+    private IEnumerator _CheckHit() {
+        _prevBase = swordBase.position;
+        _prevTip = swordTip.position;
+        while(swinging) {
+            bool GetBaddyHit(out RaycastHit2D swingCheck) {
+                bool HitBaddy(RaycastHit2D rHit) {
+#if UNITY_EDITOR
+                    if(visualizeDebug && rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
+                       Linecast(_prevBase, rHit.point,
+                                movement.whatIsGround & ~(1 << rHit.collider.gameObject.layer))) {
+                        Debug.DrawLine(_prevBase, rHit.point, Color.red);
+                    }
+#endif
+                    return rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
+                           !Linecast(_prevBase, rHit.point,
+                                     movement.whatIsGround & ~(1 << rHit.collider.gameObject.layer));
+                }
 
-            Vector2 force = thisColl.attachedRigidbody.velocity; //Relative Velocity
-            if(other.attachedRigidbody) force -= other.attachedRigidbody.velocity;
+//            print("CHECK1");
+                //CHECK1: along blade
+                Vector2 basePos = swordBase.position;
+                Vector2 tipPos = swordTip.position;
+                swingCheck = Linecast(basePos, tipPos, movement.whatIsGround);
+#if UNITY_EDITOR
+                if(visualizeDebug) Debug.DrawLine(basePos, tipPos);
+#endif
+                if(HitBaddy(swingCheck)) return true;
+
+//            print("CHECK2");
+                //CHECK2: along base movement
+                swingCheck = Linecast(_prevBase, basePos, movement.whatIsGround);
+#if UNITY_EDITOR
+                if(visualizeDebug) Debug.DrawLine(_prevBase, basePos);
+#endif
+                if(HitBaddy(swingCheck)) return true;
+
+//            print("CHECK3");
+                //CHECK3: along tip movement
+                swingCheck = Linecast(_prevTip, tipPos, movement.whatIsGround);
+#if UNITY_EDITOR
+                if(visualizeDebug) Debug.DrawLine(_prevTip, tipPos);
+#endif
+                if(HitBaddy(swingCheck)) return true;
+
+//            print("CHECK4");
+                //CHECK4: along lower third movement
+                swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f),
+                                      movement.whatIsGround);
+#if UNITY_EDITOR
+                if(visualizeDebug)
+                    Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f));
+#endif
+                if(HitBaddy(swingCheck))  return true;
+
+//            print("CHECK5");
+                //CHECK5: along upper third movement
+                swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f),
+                                      movement.whatIsGround);
+#if UNITY_EDITOR
+                if(visualizeDebug)
+                    Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f));
+#endif
+                if(HitBaddy(swingCheck))  return true;
+
+//            print("CHECK6");
+                //CHECK6: along first third blade
+                float swordLength = Vector2.Distance(basePos, tipPos);
+                Vector2 baseMid = Vector2.Lerp(_prevBase, basePos, 0.33f);
+                Vector2 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.33f);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, movement.whatIsGround);
+#if UNITY_EDITOR
+                if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
+#endif
+                if(HitBaddy(swingCheck))  return true;
+
+//            print("CHECK7");
+                //CHECK7: along second third blade
+                baseMid = Vector2.Lerp(_prevBase, basePos, 0.66f);
+                tipMid = Vector2.Lerp(_prevTip, tipPos, 0.66f);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, movement.whatIsGround);
+#if UNITY_EDITOR
+                if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
+#endif
+                return HitBaddy(swingCheck);
+            }
+
+            // Check for any hits, then update the prev things
+            bool baddyHit = GetBaddyHit(out RaycastHit2D swingHit);
+            _prevBase = swordBase.position;
+            _prevTip = swordTip.position;
+            // Wait till next frame if we didn't hit anything hittable
+            if(!baddyHit) {
+                yield return Yields.WaitForFixedUpdate;
+                continue;
+            }
+
+            IDamageable damageable = swingHit.collider.GetComponentInParent<IDamageable>();
+            Vector2 point = swingHit.point;
+
+            Vector2 force = movement.rb.velocity; //Relative Velocity
+            if(swingHit.collider.attachedRigidbody) force -= swingHit.collider.attachedRigidbody.velocity;
             force = mass * force; //Kinetic Energy = mv^2, but that was too much so just doing mv lol
 
-            //add knockback in the direction of the swing
+            // Add knockback in the direction of the swing
             Vector2 rightUp = transform.right + transform.up / 4;
             force += rightUp * knockback * (movement.facingRight ? 1 : -1);
 
-            //don't damage if we hit their weapon, otherwise, damage scaled based on relative velocity
-            int damageGiven = other.isTrigger ? 0 : (int) (damage * force.magnitude / knockback);
-//            print($"{point}, {force}, {damage}");
-            damageable.DamageMe(point, force, damageGiven, other);
+            // Damage scaled based on relative velocity
+            int damageGiven = (int) (damage * force.magnitude / knockback);
+            damageable.DamageMe(point, force, damageGiven, swingHit.collider);
+            yield break;
         }
     }
 }

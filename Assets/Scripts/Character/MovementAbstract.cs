@@ -35,7 +35,7 @@ public abstract class MovementAbstract : MonoBehaviour {
     protected Transform tf;
 
     /// <summary> Rigidbody component of the gameObject </summary>
-    protected Rigidbody2D rb;
+    protected internal Rigidbody2D rb;
 
     /// <summary> Reference to Control script, which gives input to this script </summary>
     protected CharacterControlAbstract control;

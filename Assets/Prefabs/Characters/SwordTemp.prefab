@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4692446292442176}
   - component: {fileID: 212522248447657562}
-  - component: {fileID: 70023392966884944}
   - component: {fileID: 114782131370789682}
   m_Layer: 13
   m_Name: SwordTemp
@@ -26,13 +25,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1735059564621952}
-  m_LocalRotation: {x: -0, y: -0, z: -0.12305479, w: 0.9923999}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.23273778, y: 0.54328626, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 635317820988699814}
+  - {fileID: 8500004457861914004}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 5.656}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &212522248447657562
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -81,22 +82,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!70 &70023392966884944
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1735059564621952}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0.002, y: 0}
-  m_Size: {x: 0.2, y: 1.505}
-  m_Direction: 0
 --- !u!114 &114782131370789682
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,10 +94,68 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c676bb8bfc8124693d980acd43be3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  swingFadeIn: {fileID: 11400000, guid: 4aadeb1e4190d49408d114193661a820, type: 2}
-  swingStart: {fileID: 11400000, guid: 14c37f0c48e177e4ea309dd02490f1a1, type: 2}
-  swingEnd: {fileID: 11400000, guid: b93c50c5f43974e419b425c273e75dbc, type: 2}
+  swordBase: {fileID: 635317820988699814}
+  swordTip: {fileID: 8500004457861914004}
   damage: 17
   knockback: 350
   mass: 5
-  tapThreshold: 0.3
+--- !u!1 &2289720762138855564
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8500004457861914004}
+  m_Layer: 13
+  m_Name: Tip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8500004457861914004
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2289720762138855564}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.789, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4692446292442176}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4220050242119473452
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 635317820988699814}
+  m_Layer: 13
+  m_Name: Base
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &635317820988699814
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4220050242119473452}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.307, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4692446292442176}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

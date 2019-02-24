@@ -90,12 +90,12 @@ public class CharacterPhysics : MonoBehaviour {
             part.SuppressAmount = mod.dampPercent;
         }
         if(_actuallySuppressPhysics == null)
-            _actuallySuppressPhysics = StartCoroutine(ActuallySuppressPhysics());
+            _actuallySuppressPhysics = StartCoroutine(_ActuallySuppressPhysics());
     }
 
     private Coroutine _actuallySuppressPhysics;
 
-    private IEnumerator ActuallySuppressPhysics() {
+    private IEnumerator _ActuallySuppressPhysics() {
         //TODO lol
         yield return null;
     }
@@ -274,12 +274,6 @@ public class CharacterPhysics : MonoBehaviour {
         /// <summary> Vector from the base to the tip of this part </summary>
         private Vector3 _topVector;
 
-        /// <summary> Cache to avoid generating garbage </summary>
-        private static readonly WaitForSeconds WaitForTenthSecond = new WaitForSeconds(0.1f);
-
-        /// <summary> Cache to avoid generating garbage </summary>
-        private static readonly WaitForFixedUpdate WaitForFixedUpdate = new WaitForFixedUpdate();
-
         #endregion
 
         /// <summary> Adds all of the colliderObjects to a handy dictionary named collToPart.
@@ -322,7 +316,7 @@ public class CharacterPhysics : MonoBehaviour {
                 lowerLimit += upperLimit - old;
             }
             if(isLeg) {
-                _pp.StartCoroutine(CheckStep());
+                _pp.StartCoroutine(_CheckStep());
 
                 List<GameObject> partsTemp = _pp._nonLegBendParts.ToList();
                 List<float> amountsTemp = _pp._nonLegBendAmounts.ToList();
@@ -334,7 +328,7 @@ public class CharacterPhysics : MonoBehaviour {
         }
 
         /// <summary> Checks which foot is moving forward and adjusts it based on where it will end up </summary>
-        private IEnumerator CheckStep() {
+        private IEnumerator _CheckStep() {
             bool fastCheck = true;
             float fastCheckTime = 0;
             float maxWalkSlope = _pp._movement.maxWalkSlope;
@@ -399,10 +393,10 @@ public class CharacterPhysics : MonoBehaviour {
                 }
 
                 if(fastCheck) {
-                    yield return WaitForFixedUpdate;
+                    yield return Yields.WaitForFixedUpdate;
                     fastCheckTime += Time.fixedDeltaTime;
                 } else {
-                    yield return WaitForTenthSecond;
+                    yield return Yields.WaitForTenthSecond;
                 }
             }
             //ReSharper disable once IteratorNeverReturns

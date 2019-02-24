@@ -193,13 +193,7 @@ public class HumanoidMovement : MovementAbstract {
     private PhysicsMaterial2D _footFrictionMat;
 
     /// <summary> Reference to AirDashHelper Coroutine </summary>
-    private IEnumerator _airDashHelper;
-
-    /// <summary> Cache to avoid generating garbage </summary>
-    private static readonly WaitForFixedUpdate WaitForFixedUpdate = new WaitForFixedUpdate();
-
-    /// <summary> Cache to avoid generating garbage </summary>
-    private static readonly WaitForEndOfFrame WaitForEndOfFrame = new WaitForEndOfFrame();
+    private IEnumerator _airDash;
 
     #endregion
 
@@ -247,7 +241,7 @@ public class HumanoidMovement : MovementAbstract {
     #region ClimbingStuff
 
     /// <summary> Handle if this character is climbing a platform </summary>
-    private IEnumerator ClimbHandle() {
+    private IEnumerator _ClimbHandle() {
         float timeBeenClimbing = 0;
         Vector3 handRStart = _parts.armRIK.Target().position;
         Vector3 handLStart = _parts.armLIK.Target().position;
@@ -314,7 +308,7 @@ public class HumanoidMovement : MovementAbstract {
                     ClimbRelease(aboveLedge);
             }
 
-            yield return WaitForFixedUpdate;
+            yield return Yields.WaitForFixedUpdate;
         }
     }
 
@@ -374,7 +368,7 @@ public class HumanoidMovement : MovementAbstract {
         anim.SetBool(ClimbAnim, true);
         rb.gravityScale = 0f;
         _grabPoint = point;
-        StartCoroutine(ClimbHandle());
+        StartCoroutine(_ClimbHandle());
     }
 
     /// <summary> Used to set end of grab </summary>
@@ -389,13 +383,13 @@ public class HumanoidMovement : MovementAbstract {
         _parts.upperArmL.GetComponent<Collider2D>().isTrigger = false;
         anim.SetBool(ClimbAnim, false);
 
-        StartCoroutine(ClimbIKReleaseHelper());
-        if(pullUp) StartCoroutine(ClimbPullUp());
+        StartCoroutine(_ClimbIKRelease());
+        if(pullUp) StartCoroutine(_ClimbPullUp());
         else rb.gravityScale = 1f; // We do this in GrabPullUp if pullUp
     }
 
     /// <summary> Used to finish the grab by moving the character to on top of the ledge </summary>
-    private IEnumerator ClimbPullUp() {
+    private IEnumerator _ClimbPullUp() {
         _parts.footR.GetComponent<Collider2D>().isTrigger = true;
         _parts.footL.GetComponent<Collider2D>().isTrigger = true;
         Vector3 right = facingRight ? tf.right : -tf.right;
@@ -408,7 +402,7 @@ public class HumanoidMovement : MovementAbstract {
             if(Vector3.Dot(tf.up, _grabPoint - _parts.footR.transform.position) > 0)
                 tf.Translate((Vector2) tf.up * Time.fixedDeltaTime);
 
-            yield return WaitForFixedUpdate;
+            yield return Yields.WaitForFixedUpdate;
 
             hDist = Vector3.Dot(right, _grabPoint - tf.position);
         } while(hDist > -GrabAdd && Time.time - _timeSinceRelease < TimeToGrab * 2 &&
@@ -420,7 +414,7 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Used to gradually release from IK pose </summary>
-    private IEnumerator ClimbIKReleaseHelper() {
+    private IEnumerator _ClimbIKRelease() {
         float timeBeenReleased = 0;
         while(timeBeenReleased < TimeToGrab) {
             timeBeenReleased = Time.time - _timeSinceRelease;
@@ -674,9 +668,9 @@ public class HumanoidMovement : MovementAbstract {
 
         // If the character double taps jump in midair, they do an air dash (if they have that ability)
         if(doubleTappedInMidAir && numberOfAirDashes > 0) {
-            if(_airDashHelper != null) StopCoroutine(_airDashHelper);
-            _airDashHelper = AirDashHelper();
-            StartCoroutine(_airDashHelper);
+            if(_airDash != null) StopCoroutine(_airDash);
+            _airDash = _AirDash();
+            StartCoroutine(_airDash);
         }
 
 
@@ -695,7 +689,7 @@ public class HumanoidMovement : MovementAbstract {
     }
 
     /// <summary> Handles launching and rotating the character during their air dash </summary>
-    private IEnumerator AirDashHelper() {
+    private IEnumerator _AirDash() {
         // Initialize _airDashVector unless it was already being used from another air dash
         // It's initialized to the right direction of the hip under the assumption that the hip bone is pointed upwards
         if(!_airDashing) _airDashVec = _parts.hipsTarget.transform.right;
@@ -742,7 +736,7 @@ public class HumanoidMovement : MovementAbstract {
                 _parts.hipsTarget.transform.right = _airDashVec;
 
                 // WaitForEndOfFrame to make sure all the normal animation stuff has already happened
-                yield return WaitForEndOfFrame;
+                yield return Yields.WaitForEndOfFrame;
             }
             rb.gravityScale = 1;
         } else if(_airDashing) {
@@ -750,7 +744,7 @@ public class HumanoidMovement : MovementAbstract {
             // dash is canceled when we stop the coroutine, then we need to wait till a new frame for the while loop
             // below to work (otherwise the hips will still be rotated to _airDashVec and the while loop will skip)
             rb.gravityScale = 1;
-            yield return WaitForEndOfFrame;
+            yield return Yields.WaitForEndOfFrame;
         }
 
         // At this point, the air dash is over, so we stop the animation
@@ -763,7 +757,7 @@ public class HumanoidMovement : MovementAbstract {
             _airDashVec = _airDashVec.SharpInDamp(_parts.hipsTarget.transform.right, 1f);
             _parts.hipsTarget.transform.right = _airDashVec;
             wasFacingRight = facingRight;
-            yield return WaitForEndOfFrame;
+            yield return Yields.WaitForEndOfFrame;
         }
         _airDashing = false;
     }

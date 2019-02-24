@@ -244,4 +244,16 @@ namespace ExtensionMethods {
             return solver.GetChain(chainIndex).target;
         }
     }
+
+
+    public static class Yields {
+        /// <summary> Cache to avoid generating garbage </summary>
+        public static readonly WaitForFixedUpdate WaitForFixedUpdate = new WaitForFixedUpdate();
+
+        /// <summary> Cache to avoid generating garbage </summary>
+        public static readonly WaitForEndOfFrame WaitForEndOfFrame = new WaitForEndOfFrame();
+
+        /// <summary> Cache to avoid generating garbage </summary>
+        public static readonly WaitForSeconds WaitForTenthSecond = new WaitForSeconds(0.1f);
+    }
 }

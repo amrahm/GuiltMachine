@@ -22,9 +22,6 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <summary> Is the weapon swinging </summary>
     protected bool swinging;
 
-    /// <summary> Did the weapon already hit something this swing </summary>
-    protected bool hitSomething;
-
     private WeaponAnimationEventObjects _animEventObjs;
     private Coroutine _fadeCoroutine;
 
@@ -143,9 +140,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
         if(e == _animEventObjs.swingFadeIn) {
             if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
             _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, UpperBodyLayerIndex, duration);
-        } else if(e == _animEventObjs.swingStart) {
-            swinging = true;
-        } else if(e == _animEventObjs.swingEnd) {
+        } else if(e == _animEventObjs.swingStart) { BeginSwing(); } else if(e == _animEventObjs.swingEnd) {
             EndSwing();
         } else if(e == _animEventObjs.swingFadeOut) {
             if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
@@ -153,9 +148,10 @@ public abstract class WeaponAbstract : MonoBehaviour {
         }
     }
 
+    protected virtual void BeginSwing() { swinging = true; }
+
     protected void EndSwing() {
         attacking = false;
         swinging = false;
-        hitSomething = false;
     }
 }
