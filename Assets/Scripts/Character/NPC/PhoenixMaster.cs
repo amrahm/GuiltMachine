@@ -11,20 +11,14 @@ public class PhoenixMaster : CharacterMasterAbstract {
     /// <summary> helps reset _exploded </summary>
     private float _timeExploded;
 
-    public override void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {
-        if(!godMode) characterStats.DamagePlayer(damage);
-        if(characterStats.CurHealth <= 0) StartCoroutine(Die());
-        characterPhysics?.AddForceAt(point, force, hitCollider);
-    }
-
-    /// <summary> Makes the phoenix die lol what did you expect </summary>
-    private IEnumerator Die() {
+    protected override void Die() { StartCoroutine(_DieHelper()); }
+    private IEnumerator _DieHelper() {
         Transform deathParticle = Instantiate(deathExplosionPrefab, transform.position, Quaternion.identity);
         // Destroy particle system after 1 second
         Destroy(deathParticle.gameObject, 1f);
 
         // TODO: Shake the camera (need to implement CameraShake script)
-        //camShake.Shake(camShakeAmt, camShakeLength);
+        CameraShake.Shake(0.5f, 0.5f);
 
         GetComponent<Rigidbody2D>().isKinematic = true;
         transform.localScale = Vector3.zero;
@@ -35,7 +29,6 @@ public class PhoenixMaster : CharacterMasterAbstract {
         yield return new WaitForSeconds(deathSound.clip.length);
 
         Destroy(gameObject);
-//        print("Destroyed " + gameObject.name + " from the scene.");
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
@@ -57,4 +50,5 @@ public class PhoenixMaster : CharacterMasterAbstract {
             }
         }
     }
+
 }

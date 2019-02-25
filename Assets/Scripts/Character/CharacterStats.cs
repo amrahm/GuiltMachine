@@ -39,10 +39,6 @@ public class CharacterStats : ScriptableObject {
     public void DamagePlayer(int damage)
     {
         CurHealth -= damage;
-        if (CurHealth <= 0)
-        {
-//            GameMaster.KillPlayer(this);
-        }
         HealthChanged?.Invoke(CurHealth, maxHealth);
     }
 

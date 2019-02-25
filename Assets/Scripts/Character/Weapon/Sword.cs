@@ -39,14 +39,37 @@ public class Sword : WeaponAbstract {
     #endregion
 
 
-    protected override void UpTap() {  EndSwing(); }
-    protected override void UpHold() {  EndSwing(); }
+    protected override void UpTap() { anim.SetTrigger(HoldUpAnim); } //TODO
+
+    protected override void UpHold() {
+        anim.SetTrigger(HoldUpAnim);
+        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Up, 9));
+    }
+
     protected override void DownTap() { anim.SetTrigger(movement.grounded ? TapDownAnim : TapHoldDownAirAnim); }
-    protected override void DownHold() { anim.SetTrigger(movement.grounded ? HoldDownAnim : TapHoldDownAirAnim); }
-    protected override void BackwardTap() {  EndSwing(); }
-    protected override void BackwardHold() {  EndSwing(); }
+
+    protected override void DownHold() {
+        if(movement.grounded)
+            anim.SetTrigger(HoldDownAnim);
+        else {
+            anim.SetTrigger(TapHoldDownAirAnim);
+            StartCoroutine(_AttackDash(Direction.Down, 15));
+        }
+    }
+
+    protected override void BackwardTap() { anim.SetTrigger(TapBackwardAnim); }
+
+    protected override void BackwardHold() {
+        anim.SetTrigger(HoldBackwardAnim);
+        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Backward, 10));
+    }
+
     protected override void ForwardTap() { anim.SetTrigger(TapForwardAnim); }
-    protected override void ForwardHold() { anim.SetTrigger(HoldForwardAnim); }
+
+    protected override void ForwardHold() {
+        anim.SetTrigger(HoldForwardAnim);
+        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Forward, 10));
+    }
 
     public override void OnEquip(CharacterMasterAbstract newHolder) {
         base.OnEquip(newHolder);

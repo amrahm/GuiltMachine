@@ -15,6 +15,9 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [Tooltip("Status indicator for this character. Doesn't have to be assigned."), SerializeField, CanBeNull]
     protected internal StatusIndicator statusIndicator;
 
+    [SerializeField] private GameObject bloodEffect;
+
+
     /// <summary> Reference to this gameObject's rigidbody, if it exists </summary>
     [CanBeNull] protected Rigidbody2D rb;
 
@@ -25,7 +28,24 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [NonSerialized] public CharacterControlAbstract control;
 
 
-    public abstract void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider);
+    public virtual void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {
+        if(hitCollider.isTrigger) return;
+
+        characterStats.DamagePlayer(damage);
+        characterPhysics?.AddForceAt(point, force, hitCollider);
+
+        //TODO Object pool
+        if(bloodEffect) {
+            var blood = Instantiate(bloodEffect, transform);
+            blood.transform.position = point;
+            blood.transform.right = force;
+        }
+
+        if(!godMode && characterStats.CurHealth <= 0) Die();
+    }
+
+    /// <summary> Makes the character die lol what did you expect </summary>
+    protected abstract void Die();
 
     protected virtual void Awake() {
         //References

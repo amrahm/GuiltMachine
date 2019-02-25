@@ -58,6 +58,18 @@ namespace AnimationParameters {
         /// <summary> Trigger: Hold forward attack </summary>
         public static readonly int HoldForwardAnim = Animator.StringToHash("HoldForward");
 
+        /// <summary> Trigger: Tap backward attack </summary>
+        public static readonly int TapBackwardAnim = Animator.StringToHash("TapBackward");
+
+        /// <summary> Trigger: Hold backward attack </summary>
+        public static readonly int HoldBackwardAnim = Animator.StringToHash("HoldBackward");
+
+        /// <summary> Trigger: Tap up attack </summary>
+        public static readonly int TapUpAnim = Animator.StringToHash("TapUp");
+
+        /// <summary> Trigger: Hold up attack </summary>
+        public static readonly int HoldUpAnim = Animator.StringToHash("HoldUp");
+
         /// <summary> Trigger: Tap down attack </summary>
         public static readonly int TapDownAnim = Animator.StringToHash("TapDown");
 

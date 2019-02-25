@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using ExtensionMethods;
 using static ExtensionMethods.HelperMethods;
 using UnityEngine;
 
@@ -37,7 +38,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
         }
     }
 
-    private enum Direction {
+    protected enum Direction {
         Forward,
         Backward,
         Up,
@@ -107,6 +108,38 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected abstract void ForwardTap();
     protected abstract void ForwardHold();
 
+    protected IEnumerator _AttackDash(Direction direction, float speed) {
+        Vector2 directionVec;
+        switch(direction) {
+            case Direction.Forward:
+                directionVec = movement.tf.right * (movement.facingRight ? 1 : -1);
+                break;
+            case Direction.Backward:
+                directionVec = -movement.tf.right * (movement.facingRight ? 1 : -1);
+                break;
+            case Direction.Up:
+                directionVec = movement.tf.up;
+                break;
+            case Direction.Down:
+                directionVec = -movement.tf.up;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        float maxVel = Mathf.Max(Mathf.Sqrt(Vector2.Dot(movement.rb.velocity, directionVec)) + speed, speed);
+        bool beforeSwing = !swinging;
+        while(beforeSwing) {
+            if(swinging) beforeSwing = false;
+            yield return null;
+        }
+        while(swinging) {
+            movement.rb.gravityScale = 0;
+            movement.rb.velocity = movement.rb.velocity.SharpInDamp(directionVec * maxVel, 5);
+            yield return null;
+        }
+        movement.rb.gravityScale = 1;
+    }
+
 
     /// <summary> Call this when you pickup or switch to this weapon </summary>
     /// <param name="newHolder"> The CharacterMasterAbstract of the character that just picked up this weapon </param>
@@ -136,11 +169,13 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// </summary>
     /// <param name="e"> The object sent from the animation </param>
     /// <param name="duration"> An optional duration that some events need </param>
-    public virtual void ReceiveAnimationEvent(AnimationEventObject e, float duration) {
+    public void ReceiveAnimationEvent(AnimationEventObject e, float duration) {
         if(e == _animEventObjs.swingFadeIn) {
             if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
             _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, UpperBodyLayerIndex, duration);
-        } else if(e == _animEventObjs.swingStart) { BeginSwing(); } else if(e == _animEventObjs.swingEnd) {
+        } else if(e == _animEventObjs.swingStart) {
+            BeginSwing();
+        } else if(e == _animEventObjs.swingEnd) {
             EndSwing();
         } else if(e == _animEventObjs.swingFadeOut) {
             if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);

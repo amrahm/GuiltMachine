@@ -97,7 +97,7 @@ namespace ExtensionMethods {
             return Vector3.Lerp(current, target, v);
         }
 
-        public static Vector3 SharpInDamp(this Vector3 current, Vector3 target, float speed) {
+        public static Vector3 SharpInDamp(this Vector3 current, Vector3 target, float speed = 1) {
             return SharpInDamp(current, target, speed, Time.deltaTime);
         }
 
@@ -108,7 +108,7 @@ namespace ExtensionMethods {
             return Vector2.Lerp(current, target, v);
         }
 
-        public static Vector2 SharpInDamp(this Vector2 current, Vector2 target, float speed) {
+        public static Vector2 SharpInDamp(this Vector2 current, Vector2 target, float speed = 1) {
             return SharpInDamp(current, target, speed, Time.deltaTime);
         }
 
@@ -119,7 +119,7 @@ namespace ExtensionMethods {
             return Quaternion.Slerp(current, target, v);
         }
 
-        public static Quaternion SharpInDamp(this Quaternion current, Quaternion target, float speed) {
+        public static Quaternion SharpInDamp(this Quaternion current, Quaternion target, float speed = 1) {
             return SharpInDamp(current, target, speed, Time.deltaTime);
         }
 

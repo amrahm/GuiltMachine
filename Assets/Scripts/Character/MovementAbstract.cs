@@ -32,7 +32,7 @@ public abstract class MovementAbstract : MonoBehaviour {
     protected internal Vector2 groundNormal;
 
     /// <summary> Transform component of the gameObject </summary
-    protected Transform tf;
+    protected internal Transform tf;
 
     /// <summary> Rigidbody component of the gameObject </summary>
     protected internal Rigidbody2D rb;
