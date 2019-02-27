@@ -108,19 +108,24 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected abstract void ForwardTap();
     protected abstract void ForwardHold();
 
-    protected IEnumerator _AttackDash(Direction direction, float speed) {
+    protected IEnumerator _AttackDash(Direction direction, float speed, float perpVelCancelSpeed = 1.1f, float acceleration = 1.1f) {
         Vector2 directionVec;
+        Vector2 perpVec;
         switch(direction) {
             case Direction.Forward:
                 directionVec = movement.tf.right * (movement.facingRight ? 1 : -1);
+                perpVec = movement.tf.up;
                 break;
             case Direction.Backward:
                 directionVec = -movement.tf.right * (movement.facingRight ? 1 : -1);
+                perpVec = movement.tf.up;
                 break;
             case Direction.Up:
                 directionVec = movement.tf.up;
+                perpVec = movement.tf.right;
                 break;
             case Direction.Down:
+                perpVec = movement.tf.right;
                 directionVec = -movement.tf.up;
                 break;
             default:
@@ -134,7 +139,10 @@ public abstract class WeaponAbstract : MonoBehaviour {
         }
         while(swinging) {
             movement.rb.gravityScale = 0;
-            movement.rb.velocity = movement.rb.velocity.SharpInDamp(directionVec * maxVel, 5);
+            Vector2 vel = movement.rb.velocity;
+            movement.rb.velocity = vel.SharpInDamp(directionVec * maxVel, 5).Projected(directionVec) +
+                                   vel.Projected(perpVec) / perpVelCancelSpeed;
+            maxVel += acceleration * Time.deltaTime;
             yield return null;
         }
         movement.rb.gravityScale = 1;

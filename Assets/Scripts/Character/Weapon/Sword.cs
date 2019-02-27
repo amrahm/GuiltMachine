@@ -43,7 +43,7 @@ public class Sword : WeaponAbstract {
 
     protected override void UpHold() {
         anim.SetTrigger(HoldUpAnim);
-        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Up, 9));
+        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Up, 9, 1.2f));
     }
 
     protected override void DownTap() { anim.SetTrigger(movement.grounded ? TapDownAnim : TapHoldDownAirAnim); }
@@ -53,7 +53,7 @@ public class Sword : WeaponAbstract {
             anim.SetTrigger(HoldDownAnim);
         else {
             anim.SetTrigger(TapHoldDownAirAnim);
-            StartCoroutine(_AttackDash(Direction.Down, 15));
+            StartCoroutine(_AttackDash(Direction.Down, 15, 1.05f));
         }
     }
 

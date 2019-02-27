@@ -9,27 +9,33 @@ using UnityEngine.Experimental.U2D.IK;
 
 namespace ExtensionMethods {
     public static class DampingExtensions {
+        private const float OutDampDefaultFactor = 1.4f;
+        private const int OutDampMult = 7;
+        private const int InDampMult = 7;
+
         /// <summary> Interpolate from current to target slower when they are far apart, and quickly when they are close </summary>
         /// <param name="current">Current float to interpolate from </param>
         /// <param name="target">Target value</param>
-        /// <param name="smoothTime"> How smooth (slow) to make interpolation </param>
+        /// <param name="speed"> How smooth (slow) to make interpolation </param>
         /// <param name="deltaTime">Time between frames, e.g. Time.deltaTime</param>
+        /// <param name="factor"> Above 1 means sharper out, slower in. Below 1 behaves like SharpInDamp </param>
         /// <returns></returns>
-        public static float SharpOutDamp(this float current, float target, float smoothTime, float deltaTime) {
-            float v = 9 / (Mathf.Abs(current - target) * smoothTime) * deltaTime;
-            v = v * v;
-            return Mathf.Lerp(current, target, v);
+        public static float SharpOutDamp(this float current, float target, float speed, float deltaTime,
+                                         float factor = OutDampDefaultFactor) {
+            return current + (target - current) * speed * deltaTime * OutDampMult /
+                   (Mathf.Pow(Mathf.Abs(current - target), factor) + 0.1f * speed);
         }
 
         #region Overloads
 
-        public static float SharpOutDamp(this float current, float target, float smoothTime = 1) {
-            return SharpOutDamp(current, target, smoothTime, Time.deltaTime);
+        public static float SharpOutDamp(this float current, float target, float speed = 1) {
+            return SharpOutDamp(current, target, speed, Time.deltaTime);
         }
 
-        public static float SharpOutDampAngle(this float current, float target, float smoothTime, float deltaTime) {
+        public static float SharpOutDampAngle(this float current, float target, float smoothTime, float deltaTime,
+                                              float factor = OutDampDefaultFactor) {
             target = current + Mathf.DeltaAngle(current, target);
-            return SharpOutDamp(current, target, smoothTime, deltaTime);
+            return SharpOutDamp(current, target, smoothTime, deltaTime, factor);
         }
 
         public static float SharpOutDampAngle(this float current, float target, float smoothTime = 1) {
@@ -37,24 +43,24 @@ namespace ExtensionMethods {
             return SharpOutDamp(current, target, smoothTime, Time.deltaTime);
         }
 
-        public static Vector3 SharpOutDamp(this Vector3 current, Vector3 target, float smoothTime, float deltaTime) {
-            float v = 9 / (Vector3.Distance(current, target) * smoothTime) * deltaTime;
-            v = v * v;
-            return Vector3.Lerp(current, target, v);
+        public static Vector3 SharpOutDamp(this Vector3 current, Vector3 target, float speed, float deltaTime,
+                                           float factor = OutDampDefaultFactor) {
+            return current + (target - current) * speed * deltaTime * OutDampMult /
+                   (Mathf.Pow(Vector3.Distance(current, target), factor) + 0.1f * speed);
         }
 
-        public static Vector3 SharpOutDamp(this Vector3 current, Vector3 target, float smoothTime = 1) {
-            return SharpOutDamp(current, target, smoothTime, Time.deltaTime);
+        public static Vector3 SharpOutDamp(this Vector3 current, Vector3 target, float speed = 1) {
+            return SharpOutDamp(current, target, speed, Time.deltaTime);
         }
 
-        public static Vector2 SharpOutDamp(this Vector2 current, Vector2 target, float smoothTime, float deltaTime) {
-            float v = 9 / (Vector2.Distance(current, target) * smoothTime) * deltaTime;
-            v = v * v;
-            return Vector2.Lerp(current, target, v);
+        public static Vector2 SharpOutDamp(this Vector2 current, Vector2 target, float speed, float deltaTime,
+                                           float factor = OutDampDefaultFactor) {
+            return current + (target - current) * speed * deltaTime * OutDampMult /
+                   (Mathf.Pow(Vector2.Distance(current, target), factor) + 0.1f * speed);
         }
 
-        public static Vector2 SharpOutDamp(this Vector2 current, Vector2 target, float smoothTime = 1) {
-            return SharpOutDamp(current, target, smoothTime, Time.deltaTime);
+        public static Vector2 SharpOutDamp(this Vector2 current, Vector2 target, float speed = 1) {
+            return SharpOutDamp(current, target, speed, Time.deltaTime);
         }
 
         #endregion
@@ -64,13 +70,9 @@ namespace ExtensionMethods {
         /// <param name="target">Target value</param>
         /// <param name="speed">How quickly to move between them</param>
         /// <param name="deltaTime">Time between frames, e.g. Time.deltaTime</param>
-        /// <param name="factor">Scales what values are considered "far apart". Can't be 0 </param>
         /// <returns>Float between current and target</returns>
-        public static float SharpInDamp(this float current, float target, float speed, float deltaTime,
-                                        float factor = 1) {
-            float s = speed * deltaTime;
-            float v = Mathf.Pow(2, -10 * s) * Mathf.Sin((s - factor / 4) * (2 * Mathf.PI) / factor) + 1;
-            return Mathf.Lerp(current, target, v);
+        public static float SharpInDamp(this float current, float target, float speed, float deltaTime) {
+            return current + (target - current) * speed * deltaTime * InDampMult;
         }
 
         #region Overloads
@@ -79,47 +81,29 @@ namespace ExtensionMethods {
             return SharpInDamp(current, target, speed, Time.deltaTime);
         }
 
-        public static float SharpInDampAngle(this float current, float target, float speed, float deltaTime,
-                                             float factor = 1) {
+        public static float SharpInDampAngle(this float current, float target, float speed, float deltaTime) {
             target = current + Mathf.DeltaAngle(current, target);
-            return SharpInDamp(current, target, speed, deltaTime, factor);
+            return SharpInDamp(current, target, speed, deltaTime);
         }
 
-        public static float SharpInDampAngle(this float current, float target, float speed) {
+        public static float SharpInDampAngle(this float current, float target, float speed = 1) {
             target = current + Mathf.DeltaAngle(current, target);
             return SharpInDamp(current, target, speed, Time.deltaTime);
         }
 
-        public static Vector3 SharpInDamp(this Vector3 current, Vector3 target, float speed, float deltaTime,
-                                          float factor = 1) {
-            float s = speed * deltaTime;
-            float v = Mathf.Pow(2, -10 * s) * Mathf.Sin((s - factor / 4) * (2 * Mathf.PI) / factor) + 1;
-            return Vector3.Lerp(current, target, v);
+        public static Vector3 SharpInDamp(this Vector3 current, Vector3 target, float speed, float deltaTime) {
+            return current + (target - current) * speed * deltaTime * InDampMult;
         }
 
         public static Vector3 SharpInDamp(this Vector3 current, Vector3 target, float speed = 1) {
             return SharpInDamp(current, target, speed, Time.deltaTime);
         }
 
-        public static Vector2 SharpInDamp(this Vector2 current, Vector2 target, float speed, float deltaTime,
-                                          float factor = 1) {
-            float s = speed * deltaTime;
-            float v = Mathf.Pow(2, -10 * s) * Mathf.Sin((s - factor / 4) * (2 * Mathf.PI) / factor) + 1;
-            return Vector2.Lerp(current, target, v);
+        public static Vector2 SharpInDamp(this Vector2 current, Vector2 target, float speed, float deltaTime) {
+            return current + (target - current) * speed * deltaTime * InDampMult;
         }
 
         public static Vector2 SharpInDamp(this Vector2 current, Vector2 target, float speed = 1) {
-            return SharpInDamp(current, target, speed, Time.deltaTime);
-        }
-
-        public static Quaternion SharpInDamp(this Quaternion current, Quaternion target, float speed, float deltaTime,
-                                             float factor = 1) {
-            float s = speed * deltaTime;
-            float v = Mathf.Pow(2, -10 * s) * Mathf.Sin((s - factor / 4) * (2 * Mathf.PI) / factor) + 1;
-            return Quaternion.Slerp(current, target, v);
-        }
-
-        public static Quaternion SharpInDamp(this Quaternion current, Quaternion target, float speed = 1) {
             return SharpInDamp(current, target, speed, Time.deltaTime);
         }
 
@@ -134,6 +118,10 @@ namespace ExtensionMethods {
             v.x = cos * v.x - sin * v.y;
             v.y = sin * v.x + cos * v.y;
             return v;
+        }
+
+        public static Vector2 Projected(this Vector2 v, Vector2 onVector) {
+            return onVector * Vector2.Dot(onVector, v) / onVector.sqrMagnitude;
         }
     }
 
@@ -187,7 +175,7 @@ namespace ExtensionMethods {
             while(weight < 0.99f) {
                 weight = smooth ?
                              (fadeType == FadeType.FadeOut ?
-                                  weight.SharpOutDamp(1, 1 / duration) :
+                                  weight.SharpOutDamp(1, duration) :
                                   weight.SharpInDamp(1, duration)) :
                              (Time.time - startTime) / actualDuration;
 //                Debug.Log(weight);
