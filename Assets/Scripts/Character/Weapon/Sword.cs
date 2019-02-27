@@ -43,7 +43,7 @@ public class Sword : WeaponAbstract {
 
     protected override void UpHold() {
         anim.SetTrigger(HoldUpAnim);
-        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Up, 9, 1.2f));
+        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Up, 9, perpVelCancelSpeed: 2f));
     }
 
     protected override void DownTap() { anim.SetTrigger(movement.grounded ? TapDownAnim : TapHoldDownAirAnim); }
@@ -53,8 +53,19 @@ public class Sword : WeaponAbstract {
             anim.SetTrigger(HoldDownAnim);
         else {
             anim.SetTrigger(TapHoldDownAirAnim);
-            StartCoroutine(_AttackDash(Direction.Down, 15, 1.05f));
+            StartCoroutine(_DownDashEndCheck());
+            StartCoroutine(_AttackDash(Direction.Down, 15, perpVelCancelSpeed: 1.05f));
         }
+    }
+
+    private IEnumerator _DownDashEndCheck() {
+        bool beforeSwing = !swinging;
+        while(beforeSwing || swinging && !movement.grounded) { //TODO Be smarter
+            if(swinging) beforeSwing = false;
+            yield return null;
+        }
+        FadeAttackOut(0.3f);
+        EndSwing();
     }
 
     protected override void BackwardTap() { anim.SetTrigger(TapBackwardAnim); }

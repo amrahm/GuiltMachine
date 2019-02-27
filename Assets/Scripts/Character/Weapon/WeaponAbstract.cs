@@ -42,7 +42,11 @@ public abstract class WeaponAbstract : MonoBehaviour {
         Forward,
         Backward,
         Up,
-        Down
+        Down,
+        UpForward,
+        UpBack,
+        DownForward,
+        DownBack
     }
 
     private IEnumerator Attack() {
@@ -108,7 +112,8 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected abstract void ForwardTap();
     protected abstract void ForwardHold();
 
-    protected IEnumerator _AttackDash(Direction direction, float speed, float perpVelCancelSpeed = 1.1f, float acceleration = 1.1f) {
+    protected IEnumerator _AttackDash(Direction direction, float speed,
+                                      float acceleration = 20f, float perpVelCancelSpeed = 1.1f) {
         Vector2 directionVec;
         Vector2 perpVec;
         switch(direction) {
@@ -141,7 +146,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
             movement.rb.gravityScale = 0;
             Vector2 vel = movement.rb.velocity;
             movement.rb.velocity = vel.SharpInDamp(directionVec * maxVel, 5).Projected(directionVec) +
-                                   vel.Projected(perpVec) / perpVelCancelSpeed;
+                                   vel.Projected(perpVec).SharpInDamp(Vector2.zero, perpVelCancelSpeed);
             maxVel += acceleration * Time.deltaTime;
             yield return null;
         }
@@ -185,10 +190,12 @@ public abstract class WeaponAbstract : MonoBehaviour {
             BeginSwing();
         } else if(e == _animEventObjs.swingEnd) {
             EndSwing();
-        } else if(e == _animEventObjs.swingFadeOut) {
-            if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-            _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, UpperBodyLayerIndex, duration);
-        }
+        } else if(e == _animEventObjs.swingFadeOut) { FadeAttackOut(duration); }
+    }
+
+    protected void FadeAttackOut(float duration) {
+        if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
+        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, UpperBodyLayerIndex, duration);
     }
 
     protected virtual void BeginSwing() { swinging = true; }

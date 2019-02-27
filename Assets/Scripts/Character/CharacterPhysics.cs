@@ -24,7 +24,7 @@ public class CharacterPhysics : MonoBehaviour {
     public float crouchSpeed = 2;
 
     [Tooltip("A list of all objects that are not parts of legs that should bend when crouching, " +
-        "along with an amount from -1 to 1 that they should bend")]
+             "along with an amount from -1 to 1 that they should bend")]
     public GameObject[] nonLegBendParts;
 
     /// <summary> A list of all objects that are not parts of legs that should bend when crouching,
@@ -126,7 +126,7 @@ public class CharacterPhysics : MonoBehaviour {
                                                              _parts.targets[i].transform.rotation);
         }
 
-        _rightFlip = _movement.facingRight ? -1 : 1;
+        _rightFlip = _movement.facingRight ? 1 : -1;
         CrouchRotation();
 
         foreach(var part in bodyParts) {
@@ -144,8 +144,7 @@ public class CharacterPhysics : MonoBehaviour {
 
         // Bend all the bendy parts
         for(int i = 0; i < _nonLegBendParts.Length; i++)
-            _nonLegBendParts[i].transform.Rotate(Vector3.forward, _rightFlip * _crouchAmount * _nonLegBendAmounts[i],
-                                                 Space.Self);
+            _nonLegBendParts[i].transform.Rotate(0, 0,  _crouchAmount * _nonLegBendAmounts[i], Space.Self);
 
         // Over time, reduce the crouch from impact
         _crouchPlus = _crouchPlus.SharpInDamp(0, crouchSpeed / 4, Time.fixedDeltaTime);
@@ -356,7 +355,7 @@ public class CharacterPhysics : MonoBehaviour {
 #endif
 
                     if(delta - _prevFootDelta < -0.1f || fastCheckTime > 1f) fastCheck = false;
-                    float angle = Vector2.SignedAngle(_pp._movement.groundNormal, _root.up) * _pp._rightFlip;
+                    float angle = -Vector2.SignedAngle(_pp._movement.groundNormal, _root.up) * _pp._rightFlip;
                     if((delta - _prevFootDelta > 0.01f || fastCheck || angle > 0 == isLeadingLeg) &&
                        Mathf.Abs(angle) < maxWalkSlope) {
                         fastCheck = true;
@@ -421,10 +420,9 @@ public class CharacterPhysics : MonoBehaviour {
 
             //Bend all the bendy parts
             for(int i = 0; i < bendParts.Length; i++)
-                bendParts[i].transform.Rotate(Vector3.forward, _pp._rightFlip * _stepCrouchAmount * bendAmounts[i],
-                                              Space.Self);
+                bendParts[i].transform.Rotate(0, 0, _stepCrouchAmount * bendAmounts[i], Space.Self);
 
-            foot.transform.Rotate(Vector3.forward, _pp._rightFlip * _footRotateAmount, Space.Self);
+            foot.transform.Rotate(0, 0, _footRotateAmount, Space.Self);
 
             _stepCrouchHeightPlus = _stepCrouchHeightPlus / 1.1f; //Over time, reduce the crouch
             _stepCrouchAnglePlus = _stepCrouchAnglePlus / 1.5f; //Over time, reduce the crouch
@@ -458,6 +456,8 @@ public class CharacterPhysics : MonoBehaviour {
                 }
             }
 
+            // If the limits are outside the range [0, 360], correct the rotation to be outside that range too if needed
+            // since localEulerAngles.z will always be in the range [0, 360] even if not in that range in the inspector
             float rotCorrected = bodyPart.transform.localEulerAngles.z;
             if(lowerLimit < 0 && rotCorrected > upperLimit) rotCorrected -= 360;
             else if(upperLimit > 360 && rotCorrected < lowerLimit) rotCorrected += 360;
@@ -482,11 +482,14 @@ public class CharacterPhysics : MonoBehaviour {
         /// <summary> Adjusts the rotation of this part when rotating into something that it's touching </summary>
         private void HandleTouching(Vector2 collisionNormal) {
             //TODO Is massMult needed here? partStrength?
-            if(Vector3.Dot(collisionNormal, (DirPre - DirPost).normalized) < -0.1f) return;
+            if(Vector2.Dot(collisionNormal, (DirPre - DirPost).normalized) < -0.1f)
+                return; // Skip if the part isn't trying to move into the collision
 
             _torqueAmount += 2 * _pp._rightFlip * Time.fixedDeltaTime * _upDown *
-                             Vector3.Angle(DirPost, DirPre) *
-                             Mathf.Sign(Vector3.Cross(collisionNormal, DirPre).z) *
+                             // Add torque based on how far the part is rotating into the collision
+                             // and make sure that this is in the direction away from the collision
+                             Vector3.SignedAngle(DirPost, DirPre, Vector3.forward) *
+                             // For legs, only do this in the horizontal direction so the character can stand up
                              (isLeg ? Vector2.Dot(collisionNormal, Vector2.right) : 1);
         }
 
@@ -503,7 +506,7 @@ public class CharacterPhysics : MonoBehaviour {
             // Over time, reduce the torque added from the collision
             _torqueAmount -= _torqueAmount * 3 * Time.fixedDeltaTime;
             // and return the body part back to rest
-            _rotAmount = _rotAmount.SharpInDamp(7 * _rotAmount / 8, 8f, Time.fixedDeltaTime);
+            _rotAmount = _rotAmount.SharpInDamp(0, 1f, Time.fixedDeltaTime);
 
             //If the rotation is small enough, stop calling this code
             _shouldHitRot = Mathf.Abs(_rotAmount) * partWeakness >= 0.01f;
