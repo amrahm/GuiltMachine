@@ -38,29 +38,40 @@ public class Sword : WeaponAbstract {
 
     #endregion
 
-
-    protected override void UpTap() { anim.SetTrigger(HoldUpAnim); } //TODO
-
-    protected override void UpHold() {
-        anim.SetTrigger(HoldUpAnim);
-        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Up, 9, perpVelCancelSpeed: 2f));
+    // ReSharper disable ConvertIfStatementToSwitchStatement
+    protected override void AttackTap(int[] initDirection, int[] direction) {
+        if(initDirection[0] == 1) anim.SetTrigger(TapForwardAnim);
+        else if(initDirection[0] == -1) anim.SetTrigger(TapBackwardAnim);
+        else if(initDirection[1] == 1) anim.SetTrigger(HoldUpAnim); //TODO
+        else if(initDirection[1] == -1) anim.SetTrigger(mvmt.grounded ? TapDownAnim : TapHoldDownAirAnim);
     }
 
-    protected override void DownTap() { anim.SetTrigger(movement.grounded ? TapDownAnim : TapHoldDownAirAnim); }
-
-    protected override void DownHold() {
-        if(movement.grounded)
-            anim.SetTrigger(HoldDownAnim);
-        else {
-            anim.SetTrigger(TapHoldDownAirAnim);
-            StartCoroutine(_DownDashEndCheck());
-            StartCoroutine(_AttackDash(Direction.Down, 15, perpVelCancelSpeed: 1.05f));
+    protected override void AttackHold(int[] initDirection, int[] direction) {
+        Vector2 Direction() => mvmt.tf.InverseTransformDirection(direction[0], direction[1], 0);
+        if(initDirection[0] == 1) {
+            anim.SetTrigger(HoldForwardAnim);
+            if(!mvmt.grounded) StartCoroutine(_AttackDash(Direction(), 10));
+        } else if(initDirection[0] == -1) {
+            anim.SetTrigger(HoldBackwardAnim);
+            if(!mvmt.grounded) StartCoroutine(_AttackDash(Direction(), 10));
+        } else if(initDirection[1] == 1) {
+            anim.SetTrigger(HoldUpAnim);
+            if(!mvmt.grounded) StartCoroutine(_AttackDash(Direction(), 9, perpVelCancelSpeed: 2f));
+        } else if(initDirection[1] == -1) {
+            if(mvmt.grounded)
+                anim.SetTrigger(HoldDownAnim);
+            else {
+                anim.SetTrigger(TapHoldDownAirAnim);
+                StartCoroutine(_DownDashEndCheck());
+                StartCoroutine(_AttackDash(-mvmt.tf.up, 15, perpVelCancelSpeed: 1.05f));
+            }
         }
     }
+    // ReSharper restore ConvertIfStatementToSwitchStatement
 
     private IEnumerator _DownDashEndCheck() {
         bool beforeSwing = !swinging;
-        while(beforeSwing || swinging && !movement.grounded) { //TODO Be smarter
+        while(beforeSwing || swinging && !mvmt.grounded) {
             if(swinging) beforeSwing = false;
             yield return null;
         }
@@ -68,19 +79,6 @@ public class Sword : WeaponAbstract {
         EndSwing();
     }
 
-    protected override void BackwardTap() { anim.SetTrigger(TapBackwardAnim); }
-
-    protected override void BackwardHold() {
-        anim.SetTrigger(HoldBackwardAnim);
-        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Backward, 10));
-    }
-
-    protected override void ForwardTap() { anim.SetTrigger(TapForwardAnim); }
-
-    protected override void ForwardHold() {
-        anim.SetTrigger(HoldForwardAnim);
-        if(!movement.grounded) StartCoroutine(_AttackDash(Direction.Forward, 10));
-    }
 
     public override void OnEquip(CharacterMasterAbstract newHolder) {
         base.OnEquip(newHolder);
@@ -106,45 +104,46 @@ public class Sword : WeaponAbstract {
 #if UNITY_EDITOR
                     if(visualizeDebug && rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
                        Linecast(_prevBase, rHit.point,
-                                movement.whatIsGround & ~(1 << rHit.collider.gameObject.layer))) {
+                                mvmt.whatIsGround & ~(1 << rHit.collider.gameObject.layer))) {
                         Debug.DrawLine(_prevBase, rHit.point, Color.red);
                     }
 #endif
                     return rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
                            !Linecast(_prevBase, rHit.point,
-                                     movement.whatIsGround & ~(1 << rHit.collider.gameObject.layer));
+                                     mvmt.whatIsGround & ~(1 << rHit.collider.gameObject.layer));
                 }
 
 //            print("CHECK1");
                 //CHECK1: along blade
                 Vector2 basePos = swordBase.position;
                 Vector2 tipPos = swordTip.position;
-                swingCheck = Linecast(basePos, tipPos, movement.whatIsGround);
+                swingCheck = Linecast(basePos, tipPos, mvmt.whatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(basePos, tipPos);
 #endif
                 if(HitBaddy(swingCheck)) return true;
+                
 
 //            print("CHECK2");
-                //CHECK2: along base movement
-                swingCheck = Linecast(_prevBase, basePos, movement.whatIsGround);
+                //CHECK2: along tip movement
+                swingCheck = Linecast(_prevTip, tipPos, mvmt.whatIsGround);
 #if UNITY_EDITOR
-                if(visualizeDebug) Debug.DrawLine(_prevBase, basePos);
+                if(visualizeDebug) Debug.DrawLine(_prevTip, tipPos);
 #endif
                 if(HitBaddy(swingCheck)) return true;
 
 //            print("CHECK3");
-                //CHECK3: along tip movement
-                swingCheck = Linecast(_prevTip, tipPos, movement.whatIsGround);
+                //CHECK3: along base movement
+                swingCheck = Linecast(_prevBase, basePos, mvmt.whatIsGround);
 #if UNITY_EDITOR
-                if(visualizeDebug) Debug.DrawLine(_prevTip, tipPos);
+                if(visualizeDebug) Debug.DrawLine(_prevBase, basePos);
 #endif
                 if(HitBaddy(swingCheck)) return true;
 
 //            print("CHECK4");
                 //CHECK4: along lower third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f),
-                                      movement.whatIsGround);
+                                      mvmt.whatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f));
@@ -154,7 +153,7 @@ public class Sword : WeaponAbstract {
 //            print("CHECK5");
                 //CHECK5: along upper third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f),
-                                      movement.whatIsGround);
+                                      mvmt.whatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f));
@@ -166,7 +165,7 @@ public class Sword : WeaponAbstract {
                 float swordLength = Vector2.Distance(basePos, tipPos);
                 Vector2 baseMid = Vector2.Lerp(_prevBase, basePos, 0.33f);
                 Vector2 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.33f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, movement.whatIsGround);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.whatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif
@@ -176,7 +175,7 @@ public class Sword : WeaponAbstract {
                 //CHECK7: along second third blade
                 baseMid = Vector2.Lerp(_prevBase, basePos, 0.66f);
                 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.66f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, movement.whatIsGround);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.whatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif
@@ -196,13 +195,13 @@ public class Sword : WeaponAbstract {
             IDamageable damageable = swingHit.collider.GetComponentInParent<IDamageable>();
             Vector2 point = swingHit.point;
 
-            Vector2 force = movement.rb.velocity; //Relative Velocity
+            Vector2 force = mvmt.rb.velocity; //Relative Velocity
             if(swingHit.collider.attachedRigidbody) force -= swingHit.collider.attachedRigidbody.velocity;
             force = mass * force; //Kinetic Energy = mv^2, but that was too much so just doing mv lol
 
             // Add knockback in the direction of the swing
             Vector2 rightUp = transform.right + transform.up / 4;
-            force += rightUp * knockback * (movement.facingRight ? 1 : -1);
+            force += rightUp * knockback * (mvmt.facingRight ? 1 : -1);
 
             // Damage scaled based on relative velocity
             int damageGiven = (int) (damage * force.magnitude / knockback);

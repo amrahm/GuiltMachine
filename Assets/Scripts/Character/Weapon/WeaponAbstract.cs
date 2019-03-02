@@ -13,9 +13,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
     #region Variables
 
     [NonSerialized] public CharacterMasterAbstract holder;
-    [NonSerialized] public CharacterControlAbstract control;
+    [NonSerialized] public CharacterControlAbstract ctrl;
     protected Animator anim;
-    protected MovementAbstract movement;
+    protected MovementAbstract mvmt;
 
     /// <summary> Is an attack started (not necessarily swinging yet) </summary>
     protected bool attacking;
@@ -33,124 +33,60 @@ public abstract class WeaponAbstract : MonoBehaviour {
     }
 
     private void Update() {
-        if((control.attackHPress || control.attackVPress) && !attacking) {
+        if((ctrl.attackHPress || ctrl.attackVPress) && !attacking) {
             StartCoroutine(Attack());
         }
     }
 
-    protected enum Direction {
-        Forward,
-        Backward,
-        Up,
-        Down,
-        UpForward,
-        UpBack,
-        DownForward,
-        DownBack
-    }
-
     private IEnumerator Attack() {
-        attacking = true;
-        Direction attackDir = control.attackHPress ?
-                                  Math.Sign(control.attackHorizontal) == (movement.facingRight ? 1 : -1) ?
-                                      Direction.Forward :
-                                      Direction.Backward :
-                                  Math.Sign(control.attackVertical) == 1 ?
-                                      Direction.Up :
-                                      Direction.Down;
+        int[] GetAttackDir(bool hPressed, bool vPressed) => new[] {
+            Math.Sign(ctrl.attackHorizontal) * (mvmt.facingRight ? 1 : -1) * (hPressed ? 1 : 0),
+            Math.Sign(ctrl.attackVertical * (vPressed ? 1 : 0))
+        };
 
-        float attackHoldTime = 0;
-        while(control.attackHPressed || control.attackVPressed) {
-            attackHoldTime += Time.deltaTime;
-            if(attackHoldTime >= TapThreshold) {
-                switch(attackDir) {
-                    case Direction.Forward:
-                        ForwardHold();
-                        break;
-                    case Direction.Backward:
-                        BackwardHold();
-                        break;
-                    case Direction.Up:
-                        UpHold();
-                        break;
-                    case Direction.Down:
-                        DownHold();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-                break;
+        int[] attackInit = GetAttackDir(ctrl.attackHPressed, ctrl.attackVPressed);
+        if(attackInit[0] == 0 && attackInit[1] == 0) yield break; //rare bug
+
+        attacking = true;
+        float attackInitTime = Time.time;
+        bool hWasPressed = false;
+        bool vWasPressed = false;
+        do {
+            hWasPressed |= ctrl.attackHPressed;
+            vWasPressed |= ctrl.attackVPressed;
+            if(Time.time >= attackInitTime + TapThreshold) {
+                AttackHold(attackInit, GetAttackDir(ctrl.attackHPressed, ctrl.attackVPressed));
+                yield break;
             }
             yield return null;
-        }
+        } while(ctrl.attackHPressed || ctrl.attackVPressed);
 
-        if(attackHoldTime < TapThreshold)
-            switch(attackDir) {
-                case Direction.Forward:
-                    ForwardTap();
-                    break;
-                case Direction.Backward:
-                    BackwardTap();
-                    break;
-                case Direction.Up:
-                    UpTap();
-                    break;
-                case Direction.Down:
-                    DownTap();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+        AttackTap(attackInit, GetAttackDir(hWasPressed, vWasPressed));
     }
 
-    protected abstract void UpTap();
-    protected abstract void UpHold();
-    protected abstract void DownTap();
-    protected abstract void DownHold();
-    protected abstract void BackwardTap();
-    protected abstract void BackwardHold();
-    protected abstract void ForwardTap();
-    protected abstract void ForwardHold();
+    protected abstract void AttackTap(int[] initDirection, int[] direction);
+    protected abstract void AttackHold(int[] initDirection, int[] direction);
 
-    protected IEnumerator _AttackDash(Direction direction, float speed,
+    protected IEnumerator _AttackDash(Vector2 direction, float speed,
                                       float acceleration = 20f, float perpVelCancelSpeed = 1.1f) {
-        Vector2 directionVec;
-        Vector2 perpVec;
-        switch(direction) {
-            case Direction.Forward:
-                directionVec = movement.tf.right * (movement.facingRight ? 1 : -1);
-                perpVec = movement.tf.up;
-                break;
-            case Direction.Backward:
-                directionVec = -movement.tf.right * (movement.facingRight ? 1 : -1);
-                perpVec = movement.tf.up;
-                break;
-            case Direction.Up:
-                directionVec = movement.tf.up;
-                perpVec = movement.tf.right;
-                break;
-            case Direction.Down:
-                perpVec = movement.tf.right;
-                directionVec = -movement.tf.up;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-        float maxVel = Mathf.Max(Mathf.Sqrt(Vector2.Dot(movement.rb.velocity, directionVec)) + speed, speed);
+        direction = direction.normalized;
+        direction.x *= mvmt.facingRight ? 1 : -1;
+        Vector2 perpVec = Vector3.Cross(direction, Vector3.forward);
+        float maxVel = Mathf.Max(Mathf.Sqrt(Vector2.Dot(mvmt.rb.velocity, direction)) + speed, speed);
         bool beforeSwing = !swinging;
         while(beforeSwing) {
             if(swinging) beforeSwing = false;
             yield return null;
         }
         while(swinging) {
-            movement.rb.gravityScale = 0;
-            Vector2 vel = movement.rb.velocity;
-            movement.rb.velocity = vel.SharpInDamp(directionVec * maxVel, 5).Projected(directionVec) +
-                                   vel.Projected(perpVec).SharpInDamp(Vector2.zero, perpVelCancelSpeed);
+            mvmt.rb.gravityScale = 0;
+            Vector2 vel = mvmt.rb.velocity;
+            mvmt.rb.velocity = vel.SharpInDamp(direction * maxVel, 5).Projected(direction) +
+                               vel.Projected(perpVec).SharpInDamp(Vector2.zero, perpVelCancelSpeed);
             maxVel += acceleration * Time.deltaTime;
             yield return null;
         }
-        movement.rb.gravityScale = 1;
+        mvmt.rb.gravityScale = 1;
     }
 
 
@@ -158,10 +94,10 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <param name="newHolder"> The CharacterMasterAbstract of the character that just picked up this weapon </param>
     public virtual void OnEquip(CharacterMasterAbstract newHolder) {
         holder = newHolder;
-        control = holder.control;
+        ctrl = holder.control;
         holder.weapon = this;
         anim = holder.gameObject.GetComponent<Animator>();
-        movement = holder.gameObject.GetComponent<MovementAbstract>();
+        mvmt = holder.gameObject.GetComponent<MovementAbstract>();
     }
 
     /// <summary> Call this when you switch away from this weapon </summary>
@@ -171,9 +107,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
     public void OnDrop(CharacterMasterAbstract newHolder) {
         OnUnequip();
         holder = null;
-        control = null;
+        ctrl = null;
         anim = null;
-        movement = null;
+        mvmt = null;
     }
 
     /// <summary>
@@ -190,7 +126,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
             BeginSwing();
         } else if(e == _animEventObjs.swingEnd) {
             EndSwing();
-        } else if(e == _animEventObjs.swingFadeOut) { FadeAttackOut(duration); }
+        } else if(e == _animEventObjs.swingFadeOut) {
+            FadeAttackOut(duration);
+        }
     }
 
     protected void FadeAttackOut(float duration) {
@@ -199,9 +137,5 @@ public abstract class WeaponAbstract : MonoBehaviour {
     }
 
     protected virtual void BeginSwing() { swinging = true; }
-
-    protected void EndSwing() {
-        attacking = false;
-        swinging = false;
-    }
+    protected void EndSwing() { attacking = swinging = false; }
 }
