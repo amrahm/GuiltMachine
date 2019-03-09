@@ -10,6 +10,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <summary> How long until an attack is considered held down </summary>
     private const float TapThreshold = 0.1f;
 
+    /// <summary> How long attack buffer lasts </summary>
+    private const float BufferTime = 0.5f;
+
     #region Variables
 
     [NonSerialized] public CharacterMasterAbstract holder;
@@ -17,11 +20,29 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected Animator anim;
     protected MovementAbstract mvmt;
 
-    /// <summary> Is an attack started (not necessarily swinging yet) </summary>
-    protected bool attacking;
-
     /// <summary> Is the weapon swinging </summary>
     protected bool swinging;
+
+    /// <summary> Is an attack started (not necessarily swinging yet) </summary>
+    private bool _attacking;
+
+    /// <summary> was attacking true last frame </summary>
+    private bool _wasAttacking;
+
+    /// <summary> what was horizontal attack last frame </summary>
+    private int _oldHoriz;
+
+    /// <summary> what was vertical attack last frame </summary>
+    private int _oldVert;
+
+    /// <summary> when did the current attack start </summary>
+    private float _attackStart;
+
+    /// <summary> when did the attempted buffer attack start? </summary>
+    private float _bufferAttackStart;
+
+    /// <summary> what direction was the buffer input attack </summary>
+    private int[] _bufferInit;
 
     private WeaponAnimationEventObjects _animEventObjs;
     private Coroutine _fadeCoroutine;
@@ -33,35 +54,41 @@ public abstract class WeaponAbstract : MonoBehaviour {
     }
 
     private void Update() {
-        if((ctrl.attackHPress || ctrl.attackVPress) && !attacking) {
-            StartCoroutine(Attack());
+        if(ctrl.attackHorizontal != 0 && ctrl.attackHorizontal != _oldHoriz ||
+           ctrl.attackVertical != 0 && ctrl.attackVertical != _oldVert) {
+            if(_attacking && (_oldVert == 0 && _oldHoriz == 0 || Time.time - _attackStart > TapThreshold * 2)) {
+                _bufferAttackStart = Time.time;
+                _bufferInit = GetAttackDir();
+            } else if(!_attacking) {
+                StartCoroutine(_InitAttack(GetAttackDir()));
+                _attackStart = Time.time;
+            }
         }
+        if(!_attacking && _wasAttacking && Time.time - _bufferAttackStart < BufferTime) {
+            StartCoroutine(_InitAttack(_bufferInit));
+            _bufferAttackStart = 0;
+        }
+        _wasAttacking = _attacking;
+        _oldHoriz = ctrl.attackHorizontal;
+        _oldVert = ctrl.attackVertical;
     }
 
-    private IEnumerator Attack() {
-        int[] GetAttackDir(bool hPressed, bool vPressed) => new[] {
-            Math.Sign(ctrl.attackHorizontal) * (mvmt.facingRight ? 1 : -1) * (hPressed ? 1 : 0),
-            Math.Sign(ctrl.attackVertical * (vPressed ? 1 : 0))
-        };
+    /// <summary> Returns the current directions of attack input relative to the direction faced </summary>
+    private int[] GetAttackDir() => new[] {ctrl.attackHorizontal * (mvmt.facingRight ? 1 : -1), ctrl.attackVertical};
 
-        int[] attackInit = GetAttackDir(ctrl.attackHPressed, ctrl.attackVPressed);
-        if(attackInit[0] == 0 && attackInit[1] == 0) yield break; //rare bug
-
-        attacking = true;
+    /// <summary> Inititates the attack as either a tap or a hold </summary>
+    private IEnumerator _InitAttack(int[] attackInit) {
+        _attacking = true;
         float attackInitTime = Time.time;
-        bool hWasPressed = false;
-        bool vWasPressed = false;
         do {
-            hWasPressed |= ctrl.attackHPressed;
-            vWasPressed |= ctrl.attackVPressed;
             if(Time.time >= attackInitTime + TapThreshold) {
-                AttackHold(attackInit, GetAttackDir(ctrl.attackHPressed, ctrl.attackVPressed));
+                AttackHold(attackInit, GetAttackDir());
                 yield break;
             }
             yield return null;
-        } while(ctrl.attackHPressed || ctrl.attackVPressed);
+        } while(ctrl.attackHorizontal != 0 || ctrl.attackVertical != 0);
 
-        AttackTap(attackInit, GetAttackDir(hWasPressed, vWasPressed));
+        AttackTap(attackInit, GetAttackDir());
     }
 
     protected abstract void AttackTap(int[] initDirection, int[] direction);
@@ -134,8 +161,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected void FadeAttackOut(float duration) {
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
         _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, UpperBodyLayerIndex, duration);
+        _attacking = false;
     }
 
     protected virtual void BeginSwing() { swinging = true; }
-    protected void EndSwing() { attacking = swinging = false; }
+    protected void EndSwing() { swinging = false; }
 }

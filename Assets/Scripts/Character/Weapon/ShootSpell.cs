@@ -40,13 +40,7 @@ public class ShootSpell : WeaponAbstract {
 
     #endregion
 
-    protected override void AttackTap(int[] direction, int[] initDirection) {
-        throw new System.NotImplementedException();
-    }
-
-    protected override void AttackHold(int[] direction, int[] initDirection) {
-        throw new System.NotImplementedException();
-    }
-
+    protected override void AttackTap(int[] initDirection, int[] direction) { throw new System.NotImplementedException(); }
+    protected override void AttackHold(int[] initDirection, int[] direction) { throw new System.NotImplementedException(); }
     public override void OnUnequip() { throw new System.NotImplementedException(); }
 }

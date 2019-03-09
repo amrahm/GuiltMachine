@@ -215,7 +215,7 @@ public class HumanoidMovement : MovementAbstract {
 
     private void FixedUpdate() {
         UpdateGrounded();
-        if(!_rolling) Move(control.moveHorizontal, control.hPressed, control.sprint);
+        if(!_rolling) Move(control.moveHorizontal, control.sprint);
         Jump(control.jumpPressed);
         Crouch(control.crouchPressed);
 
@@ -556,9 +556,8 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> Handles character walking and running </summary>
     /// <param name="moveIn">Walking input</param>
-    /// <param name="movePressed">Whether walking input is pressed</param>
     /// <param name="sprint"> Whether sprint input is pressed </param>
-    private void Move(float moveIn, bool movePressed, bool sprint) {
+    private void Move(float moveIn, bool sprint) {
         //Calculate the tangent to the ground so that the player can walk smoothly up and down slopes
         Vector2 tangent = grounded ? Vector3.Cross(groundNormal, Vector3.forward) : tf.right;
         float velForward = Vector2.Dot(rb.velocity, tf.right); // Use this so that running down slopes is faster
@@ -592,7 +591,7 @@ public class HumanoidMovement : MovementAbstract {
             anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
 
             //Check that the character wants to walk, but isn't walking too fast
-            if(movePressed && (Mathf.Abs(velForward) < maxSpeed * sprintAmt || moveDirIsNotVelDir)) {
+            if(Mathf.Abs(moveIn) > 0.1f && (Mathf.Abs(velForward) < maxSpeed * sprintAmt || moveDirIsNotVelDir)) {
                 rb.AddForce(moveVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
                     // zero out friction so that movement is smooth
@@ -619,12 +618,12 @@ public class HumanoidMovement : MovementAbstract {
                 // If they aren't let them control their movement some
                 moveVec *= airControl;
                 AddKick(kickAir);
-                if(movePressed && (moveIn > 0 && velForward < maxSpeed || moveIn < 0 && velForward > -maxSpeed)) {
+                if(Mathf.Abs(moveIn - velTangent/maxSpeed) > 0 && (moveIn > 0 && velForward < maxSpeed || moveIn < 0 && velForward > -maxSpeed)) {
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
             }
             // If they aren't holding move in the direction of motion, slow them down a little
-            if(!movePressed || moveDirIsNotVelDir)
+            if(Mathf.Abs(moveIn) < 0.1f || moveDirIsNotVelDir)
                 rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * airSlowdownMultiplier;
             anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(0)); //TODO not used while in midair yet
         }
@@ -790,7 +789,7 @@ public class HumanoidMovement : MovementAbstract {
         } else if(_rolling) {
             // Continue the roll and check if it should end, or if the character should RollJump
             _rollingTime += Time.fixedDeltaTime;
-            Move(_rollDir, true, false);
+            Move(_rollDir, false);
             if(!grounded) RollJump();
             if(!anim.IsPlaying(RollStateTag) && _rollingTime > 0.5f) RollEnd();
         }
