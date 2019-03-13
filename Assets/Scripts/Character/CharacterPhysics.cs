@@ -126,7 +126,7 @@ public class CharacterPhysics : MonoBehaviour {
                                                              _parts.targets[i].transform.rotation);
         }
 
-        _rightFlip = _movement.facingRight ? 1 : -1;
+        _rightFlip = _movement.flipInt;
         CrouchRotation();
 
         foreach(var part in bodyParts) {
@@ -317,7 +317,7 @@ public class CharacterPhysics : MonoBehaviour {
                 lowerLimit += upperLimit - old;
             }
             if(isLeg) {
-                _pp.StartCoroutine(_CheckStep());
+//                _pp.StartCoroutine(_CheckStep()); //TODO FIXME Checkstep is dumb and bad and needs to be made less bad
 
                 List<GameObject> partsTemp = _pp._nonLegBendParts.ToList();
                 List<float> amountsTemp = _pp._nonLegBendAmounts.ToList();

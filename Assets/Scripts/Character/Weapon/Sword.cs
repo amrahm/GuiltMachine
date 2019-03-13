@@ -40,20 +40,26 @@ public class Sword : WeaponAbstract {
 
     // ReSharper disable ConvertIfStatementToSwitchStatement
     protected override void AttackTap(int[] initDirection, int[] direction) {
-        if(initDirection[0] == 1) anim.SetTrigger(TapForwardAnim);
-        else if(initDirection[0] == -1) anim.SetTrigger(TapBackwardAnim);
-        else if(initDirection[1] == 1) anim.SetTrigger(HoldUpAnim); //TODO
+        if(initDirection[0] != 0) {
+            anim.SetTrigger(TapForwardAnim);
+            if(mvmt.flipInt != initDirection[0]) mvmt.Flip();
+        } else if(initDirection[1] == 1) anim.SetTrigger(HoldUpAnim); //TODO
         else if(initDirection[1] == -1) anim.SetTrigger(mvmt.grounded ? TapDownAnim : TapHoldDownAirAnim);
+
+        mvmt.canFlip = false;
     }
 
     protected override void AttackHold(int[] initDirection, int[] direction) {
-        Vector2 Direction() => mvmt.tf.InverseTransformDirection(direction[0], direction[1], 0);
-        if(initDirection[0] == 1) {
-            anim.SetTrigger(HoldForwardAnim);
-            if(!mvmt.grounded) StartCoroutine(_AttackDash(Direction(), 10));
-        } else if(initDirection[0] == -1) {
-            anim.SetTrigger(HoldBackwardAnim);
-            if(!mvmt.grounded) StartCoroutine(_AttackDash(Direction(), 10));
+        Vector2 Direction() => mvmt.tf.InverseTransformDirection(direction[0] * mvmt.flipInt, direction[1], 0);
+        if(initDirection[0] != 0) {
+            bool attackIsBackwards = mvmt.flipInt != initDirection[0];
+            if(mvmt.grounded) {
+                anim.SetTrigger(HoldForwardAnim);
+                if(attackIsBackwards) mvmt.Flip();
+            } else {
+                anim.SetTrigger(attackIsBackwards ? HoldBackwardAnim : HoldForwardAnim);
+                StartCoroutine(_AttackDash(Direction(), 10));
+            }
         } else if(initDirection[1] == 1) {
             anim.SetTrigger(HoldUpAnim);
             if(!mvmt.grounded) StartCoroutine(_AttackDash(Direction(), 9, perpVelCancelSpeed: 2f));
@@ -66,6 +72,8 @@ public class Sword : WeaponAbstract {
                 StartCoroutine(_AttackDash(-mvmt.tf.up, 15, perpVelCancelSpeed: 1.05f));
             }
         }
+
+        mvmt.canFlip = false;
     }
     // ReSharper restore ConvertIfStatementToSwitchStatement
 
@@ -122,7 +130,7 @@ public class Sword : WeaponAbstract {
                 if(visualizeDebug) Debug.DrawLine(basePos, tipPos);
 #endif
                 if(HitBaddy(swingCheck)) return true;
-                
+
 
 //            print("CHECK2");
                 //CHECK2: along tip movement
@@ -201,7 +209,7 @@ public class Sword : WeaponAbstract {
 
             // Add knockback in the direction of the swing
             Vector2 rightUp = transform.right + transform.up / 4;
-            force += rightUp * knockback * (mvmt.facingRight ? 1 : -1);
+            force += rightUp * knockback * mvmt.flipInt;
 
             // Damage scaled based on relative velocity
             int damageGiven = (int) (damage * force.magnitude / knockback);

@@ -73,8 +73,8 @@ public abstract class WeaponAbstract : MonoBehaviour {
         _oldVert = ctrl.attackVertical;
     }
 
-    /// <summary> Returns the current directions of attack input relative to the direction faced </summary>
-    private int[] GetAttackDir() => new[] {ctrl.attackHorizontal * (mvmt.facingRight ? 1 : -1), ctrl.attackVertical};
+    /// <summary> Returns the current directions of attack input </summary>
+    private int[] GetAttackDir() => new[] {ctrl.attackHorizontal, ctrl.attackVertical};
 
     /// <summary> Inititates the attack as either a tap or a hold </summary>
     private IEnumerator _InitAttack(int[] attackInit) {
@@ -97,7 +97,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected IEnumerator _AttackDash(Vector2 direction, float speed,
                                       float acceleration = 20f, float perpVelCancelSpeed = 1.1f) {
         direction = direction.normalized;
-        direction.x *= mvmt.facingRight ? 1 : -1;
+        direction.x *= mvmt.flipInt;
         Vector2 perpVec = Vector3.Cross(direction, Vector3.forward);
         float maxVel = Mathf.Max(Mathf.Sqrt(Vector2.Dot(mvmt.rb.velocity, direction)) + speed, speed);
         bool beforeSwing = !swinging;
@@ -162,8 +162,10 @@ public abstract class WeaponAbstract : MonoBehaviour {
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
         _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, UpperBodyLayerIndex, duration);
         _attacking = false;
+        mvmt.canFlip = true;
     }
 
     protected virtual void BeginSwing() { swinging = true; }
+
     protected void EndSwing() { swinging = false; }
 }

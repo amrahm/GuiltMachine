@@ -230,7 +230,7 @@ public class HumanoidMovement : MovementAbstract {
 #if UNITY_EDITOR
         if(visualizeDebug) { //Visualize grab raycasts
             Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)),
-                          (facingRight ? tf.right : -tf.right) * grabDistance, new Color(0.52f, 1f, 0.52f));
+                          tf.right * flipInt * grabDistance, new Color(0.52f, 1f, 0.52f));
             Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
                           -tf.up * (grabTopOffset - grabBottomOffset), new Color(0.38f, 0.72f, 0.38f));
             if(_climbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
@@ -246,7 +246,7 @@ public class HumanoidMovement : MovementAbstract {
         Vector3 handRStart = _parts.armRIK.Target().position;
         Vector3 handLStart = _parts.armLIK.Target().position;
         while(_climbing) {
-            Vector3 right = facingRight ? tf.right : -tf.right;
+            Vector3 right = tf.right * flipInt;
             float dT = Time.fixedDeltaTime;
 
             // Move the head to a little above halfway between the two points
@@ -288,7 +288,7 @@ public class HumanoidMovement : MovementAbstract {
                 Vector2 keepAgainstWall = right * Mathf.Pow(wallDist * 4, 2) * dT;
 
                 // And a force to move them up or down based on input
-                float horizontalInput = control.moveHorizontal * (facingRight ? 1 : -1);
+                float horizontalInput = control.moveHorizontal * flipInt;
                 float climbInput = Mathf.Min(horizontalInput + control.moveVertical, 1f);
                 Vector2 climbControl = (Vector2) tf.up * 3 * climbInput * dT;
                 anim.SetFloat(ClimbAnimSpeed, climbInput);
@@ -319,7 +319,7 @@ public class HumanoidMovement : MovementAbstract {
         if(_climbing || grounded && !_jumpStarted ||
            Vector2.Dot(control.moveHorizontal * hitNormal, tf.right) > -0.1f) return;
 
-        Vector2 right = facingRight ? tf.right : -tf.right;
+        Vector2 right = tf.right * flipInt;
         Vector2 midPoint = tf.TransformPoint(new Vector2(0, tf.InverseTransformPoint(hitPoint).y + GrabAdd));
         RaycastHit2D grabMid = Raycast(midPoint, right, grabDistance, whatIsGround);
 #if UNITY_EDITOR
@@ -392,7 +392,7 @@ public class HumanoidMovement : MovementAbstract {
     private IEnumerator _ClimbPullUp() {
         _parts.footR.GetComponent<Collider2D>().isTrigger = true;
         _parts.footL.GetComponent<Collider2D>().isTrigger = true;
-        Vector3 right = facingRight ? tf.right : -tf.right;
+        Vector3 right = tf.right * flipInt;
         rb.gravityScale = .5f;
         float hDist = 1;
         const float maxDistance = .7f;
@@ -581,16 +581,7 @@ public class HumanoidMovement : MovementAbstract {
             float sprintAmt = sprint ? sprintSpeed : 1;
             moveVec *= sprintAmt; // We do this here because we don't want them to be able to start sprinting in midair
 
-            // Set animation params
-            _walkSprint = Mathf.Abs(velTangent) <= maxSpeed + 1f ?
-                              Mathf.Abs(velTangent) / maxSpeed / 2 :
-                              Mathf.Abs(velTangent) / (maxSpeed * sprintSpeed);
-            // avg it with player intention
-            _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * sprintSpeed * slopeReducer)) / 2;
-            // avg it for smoothing
-            anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
-
-            //Check that the character wants to walk, but isn't walking too fast
+            // Check that the character wants to walk, but isn't walking too fast
             if(Mathf.Abs(moveIn) > 0.1f && (Mathf.Abs(velForward) < maxSpeed * sprintAmt || moveDirIsNotVelDir)) {
                 rb.AddForce(moveVec, ForceMode2D.Impulse);
                 if(!_frictionZero) {
@@ -607,10 +598,21 @@ public class HumanoidMovement : MovementAbstract {
                 // and slow the character down so that movement isn't all slidey
                 rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * groundSlowdownMultiplier;
             }
-
             AddKick(kick);
 
-            if((moveIn > 0 && !facingRight || moveIn < 0 && facingRight) && !_climbing) Flip();
+            // Flip the player if necessary
+            bool shouldFlip = (moveIn > 0 && !facingRight || moveIn < 0 && facingRight) && !_climbing;
+            if(shouldFlip) Flip();
+
+            // Set animation params
+            _walkSprint = Mathf.Abs(velTangent) <= maxSpeed + 1f ?
+                              Mathf.Abs(velTangent) / maxSpeed / 2 :
+                              Mathf.Abs(velTangent) / (maxSpeed * sprintSpeed);
+            // avg it with player intention
+            _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * sprintSpeed * slopeReducer)) / 2;
+            if(!canFlip && shouldFlip) _walkSprint *= -1;
+            // avg it for smoothing
+            anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
         } else { // Not grounded
             // Here we switch to air contol mode.
             // First, make sure the character isn't trying to move into a wall or something, since otherwise they'll stick to it
@@ -618,7 +620,8 @@ public class HumanoidMovement : MovementAbstract {
                 // If they aren't let them control their movement some
                 moveVec *= airControl;
                 AddKick(kickAir);
-                if(Mathf.Abs(moveIn - velTangent/maxSpeed) > 0 && (moveIn > 0 && velForward < maxSpeed || moveIn < 0 && velForward > -maxSpeed)) {
+                if(Mathf.Abs(moveIn - velTangent / maxSpeed) > 0 &&
+                   (moveIn > 0 && velForward < maxSpeed || moveIn < 0 && velForward > -maxSpeed)) {
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
                 }
             }
@@ -731,7 +734,7 @@ public class HumanoidMovement : MovementAbstract {
                 Vector2 epsilon = new Vector2(0.1f, 0.0001f); // This prevents any instant flips
                 // We use a separate vector (_airDashVector) instead of damping the value of the transform directly
                 // because the actual transform gets reset every frame by the animation.
-                _airDashVec = _airDashVec.SharpInDamp(rb.velocity.normalized * (facingRight ? 1 : -1) + epsilon, 2f);
+                _airDashVec = _airDashVec.SharpInDamp(rb.velocity.normalized * flipInt + epsilon, 2f);
                 _parts.hipsTarget.transform.right = _airDashVec;
 
                 // WaitForEndOfFrame to make sure all the normal animation stuff has already happened
