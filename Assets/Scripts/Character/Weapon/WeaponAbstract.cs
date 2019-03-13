@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using ExtensionMethods;
 using static ExtensionMethods.HelperMethods;
 using UnityEngine;
 
 public abstract class WeaponAbstract : MonoBehaviour {
-    protected const int UpperBodyLayerIndex = 1;
+    private const int UpperBodyLayerIndex = 1;
 
     /// <summary> How long until an attack is considered held down </summary>
     private const float TapThreshold = 0.1f;
 
     /// <summary> How long attack buffer lasts </summary>
-    private const float BufferTime = 0.5f;
+    private const float BufferTime = 0.3f;
 
     #region Variables
 
-    [NonSerialized] public CharacterMasterAbstract holder;
-    [NonSerialized] public CharacterControlAbstract ctrl;
+    private CharacterMasterAbstract _holder;
+    private CharacterControlAbstract _ctrl;
     protected Animator anim;
     protected MovementAbstract mvmt;
 
@@ -25,9 +24,6 @@ public abstract class WeaponAbstract : MonoBehaviour {
 
     /// <summary> Is an attack started (not necessarily swinging yet) </summary>
     private bool _attacking;
-
-    /// <summary> was attacking true last frame </summary>
-    private bool _wasAttacking;
 
     /// <summary> what was horizontal attack last frame </summary>
     private int _oldHoriz;
@@ -41,11 +37,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <summary> when did the attempted buffer attack start? </summary>
     private float _bufferAttackStart;
 
-    /// <summary> what direction was the buffer input attack </summary>
-    private int[] _bufferInit;
-
     private WeaponAnimationEventObjects _animEventObjs;
     private Coroutine _fadeCoroutine;
+    private Coroutine _bufferAttackCoroutine;
 
     #endregion
 
@@ -54,40 +48,52 @@ public abstract class WeaponAbstract : MonoBehaviour {
     }
 
     private void Update() {
-        if(ctrl.attackHorizontal != 0 && ctrl.attackHorizontal != _oldHoriz ||
-           ctrl.attackVertical != 0 && ctrl.attackVertical != _oldVert) {
-            if(_attacking && (_oldVert == 0 && _oldHoriz == 0 || Time.time - _attackStart > TapThreshold * 2)) {
-                _bufferAttackStart = Time.time;
-                _bufferInit = GetAttackDir();
-            } else if(!_attacking) {
+        if(_ctrl.attackHorizontal != 0 && _ctrl.attackHorizontal != _oldHoriz || // If we have new horizontal input
+           _ctrl.attackVertical != 0 && _ctrl.attackVertical != _oldVert) { // or new vertical input
+            // Then initiate an attack
+            if(!_attacking) {
                 StartCoroutine(_InitAttack(GetAttackDir()));
                 _attackStart = Time.time;
+            } else if(_attacking && (_oldVert == 0 && _oldHoriz == 0 || Time.time - _attackStart > TapThreshold * 2)) {
+                // but if we were already attacking, and this is an entirely new attack input, or enough time has passed
+                // that we know this isn't just them trying to do a diagonal, then start a buffer attack
+                if(_bufferAttackCoroutine != null) StopCoroutine(_bufferAttackCoroutine);
+                _bufferAttackCoroutine = StartCoroutine(_InitAttack(GetAttackDir(), true));
+                _bufferAttackStart = Time.time;
             }
         }
-        if(!_attacking && _wasAttacking && Time.time - _bufferAttackStart < BufferTime) {
-            StartCoroutine(_InitAttack(_bufferInit));
-            _bufferAttackStart = 0;
-        }
-        _wasAttacking = _attacking;
-        _oldHoriz = ctrl.attackHorizontal;
-        _oldVert = ctrl.attackVertical;
+        _oldHoriz = _ctrl.attackHorizontal;
+        _oldVert = _ctrl.attackVertical;
     }
 
     /// <summary> Returns the current directions of attack input </summary>
-    private int[] GetAttackDir() => new[] {ctrl.attackHorizontal, ctrl.attackVertical};
+    private int[] GetAttackDir() => new[] {_ctrl.attackHorizontal, _ctrl.attackVertical};
 
     /// <summary> Inititates the attack as either a tap or a hold </summary>
-    private IEnumerator _InitAttack(int[] attackInit) {
-        _attacking = true;
+    private IEnumerator _InitAttack(int[] attackInit, bool isBufferAttack = false) {
+        IEnumerator WaitTillNotAttacking() {
+            yield return new WaitWhile(() => _attacking);
+            if(Time.time - _bufferAttackStart < BufferTime) {
+                _bufferAttackStart = 0;
+                isBufferAttack = false;
+            }
+        }
+
         float attackInitTime = Time.time;
         do {
             if(Time.time >= attackInitTime + TapThreshold) {
+                if(isBufferAttack) yield return StartCoroutine(WaitTillNotAttacking());
+                if(isBufferAttack) yield break; // too long since buffer started
+                _attacking = true;
                 AttackHold(attackInit, GetAttackDir());
                 yield break;
             }
             yield return null;
-        } while(ctrl.attackHorizontal != 0 || ctrl.attackVertical != 0);
+        } while(_ctrl.attackHorizontal != 0 || _ctrl.attackVertical != 0);
 
+        if(isBufferAttack) yield return StartCoroutine(WaitTillNotAttacking());
+        if(isBufferAttack) yield break; // too long since buffer started
+        _attacking = true;
         AttackTap(attackInit, GetAttackDir());
     }
 
@@ -120,11 +126,11 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <summary> Call this when you pickup or switch to this weapon </summary>
     /// <param name="newHolder"> The CharacterMasterAbstract of the character that just picked up this weapon </param>
     public virtual void OnEquip(CharacterMasterAbstract newHolder) {
-        holder = newHolder;
-        ctrl = holder.control;
-        holder.weapon = this;
-        anim = holder.gameObject.GetComponent<Animator>();
-        mvmt = holder.gameObject.GetComponent<MovementAbstract>();
+        _holder = newHolder;
+        _ctrl = _holder.control;
+        _holder.weapon = this;
+        anim = _holder.gameObject.GetComponent<Animator>();
+        mvmt = _holder.gameObject.GetComponent<MovementAbstract>();
     }
 
     /// <summary> Call this when you switch away from this weapon </summary>
@@ -133,8 +139,8 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <summary> Call this when you drop this weapon </summary>
     public void OnDrop(CharacterMasterAbstract newHolder) {
         OnUnequip();
-        holder = null;
-        ctrl = null;
+        _holder = null;
+        _ctrl = null;
         anim = null;
         mvmt = null;
     }
