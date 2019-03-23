@@ -126,7 +126,7 @@ public class CharacterPhysics : MonoBehaviour {
                                                              _parts.targets[i].transform.rotation);
         }
 
-        _rightFlip = _movement.flipInt;
+        _rightFlip = _movement.FlipInt;
         CrouchRotation();
 
         foreach(var part in bodyParts) {
@@ -341,7 +341,7 @@ public class CharacterPhysics : MonoBehaviour {
                     var up = _root.up;
                     float delta = Vector2.Dot(partPos - foot.transform.position, right);
 
-                    Vector2 flip = _pp._movement.facingRight ? Vector2.one : FlipXVec;
+                    Vector2 flip = _pp._movement.FacingRight ? Vector2.one : FlipXVec;
                     Vector2 heightStart = partPos + up * footStepHeight.x;
                     Vector2 heightDir = right * flip * footStepHeight.y * _pp._movement.moveVec.magnitude;
                     Vector2 maxHeightStart = partPos + up * maxStepHeight.x;
@@ -366,15 +366,15 @@ public class CharacterPhysics : MonoBehaviour {
 
                     if(delta - _prevFootDelta > steppingThreshold) {
                         RaycastHit2D heightHit =
-                            Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
+                            Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.WhatIsGround);
                         RaycastHit2D maxHeightHit = Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude,
-                                                            _pp._movement.whatIsGround);
+                                                            _pp._movement.WhatIsGround);
                         if(heightHit && !maxHeightHit) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
                             RaycastHit2D topHit =
-                                Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
+                                Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.WhatIsGround);
 
                             if(topHit)
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;

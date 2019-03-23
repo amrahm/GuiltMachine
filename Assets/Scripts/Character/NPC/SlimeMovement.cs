@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 
 public class SlimeMovement : MovementAbstract {
     // The AI's speed per second (not framerate dependent)
@@ -15,17 +14,10 @@ public class SlimeMovement : MovementAbstract {
     [Tooltip("Offset for the ground check raycast")]
     public Vector2 groundCheckOffset;
 
-    protected override void Awake() {
-        //Setting up references.
-        base.Awake();
-
-        whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
-    }
-
     private void FixedUpdate() {
         UpdateGrounded();
 
-        if(facingRight != control.moveHorizontal > 0) {
+        if(FacingRight != control.moveHorizontal > 0) {
             Flip();
         }
 
@@ -45,7 +37,7 @@ public class SlimeMovement : MovementAbstract {
     private void UpdateGrounded() {
         RaycastHit2D bodyHit =
             Physics2D.Raycast(gameObject.GetComponent<CircleCollider2D>().transform.TransformPoint(groundCheckOffset),
-                              Vector2.down, groundCheckDistance, whatIsGround);
+                              Vector2.down, groundCheckDistance, WhatIsGround);
 
         grounded = !(bodyHit.collider is null);
 

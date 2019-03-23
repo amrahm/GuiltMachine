@@ -135,17 +135,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 445964c83d494458086f20292c621ac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showCurrentInput: 0
+  showCurrentInput: 0
   moveHorizontal: 0
   moveVertical: 0
-  hPressed: 0
   sprint: 0
-  upPressed: 0
-  downPressed: 0
-  attackHorizontal: 0
+  jumpPressed: 0
+  crouchPressed: 0
   attackVertical: 0
-  attackHPressed: 0
-  attackVPressed: 0
+  attackHorizontal: 0
+  blockPressed: 0
   target: {fileID: 0}
   searchTarget: Player
   pathUpdateRate: 2
@@ -168,7 +166,7 @@ MonoBehaviour:
   speed: 500
   fMode: 0
   jumpSpeed: 5
-  groundCheckDistance: 0.5
+  groundCheckDistance: 0.8
   groundCheckOffset: {x: 0, y: 0}
 --- !u!114 &114739540699033162
 MonoBehaviour:
@@ -214,6 +212,7 @@ MonoBehaviour:
   characterStats: {fileID: 11400000, guid: a61ff7c0023ceee408cb98860f4eaafc, type: 2}
   weapon: {fileID: 0}
   statusIndicator: {fileID: 0}
+  bloodEffect: {fileID: 0}
   deathExplosionPrefab: {fileID: 4942380698903568, guid: cfd0c754c185d884a82687957b493af6,
     type: 3}
 --- !u!82 &6586308149137862681

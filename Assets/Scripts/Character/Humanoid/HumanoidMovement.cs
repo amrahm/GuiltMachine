@@ -11,6 +11,7 @@ public class HumanoidMovement : MovementAbstract {
     private const float CoyoteTime = 0.08f;
 
     private const string RollStateTag = "Roll";
+    private const int RollLayer = 11;
     private const float GrabAdd = 0.1f;
     private const float TimeToGrab = .15f;
 
@@ -141,6 +142,9 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Which direction the character rolled </summary>
     private float _rollDir;
 
+    /// <summary> This characters layer, used to reset to after a roll/dodge </summary>
+    private int _initLayer;
+
     /// <summary> Position of the foot last frame when crouching </summary>
     private float _lastHipsDelta;
 
@@ -202,8 +206,6 @@ public class HumanoidMovement : MovementAbstract {
         base.Awake();
         _parts = GetComponent<HumanoidParts>();
 
-        whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); // remove current layer
-
         // Instance the foot physics material so that we can adjust it without affecting other users of the same material
         var footMat = _parts.footR.GetComponent<Collider2D>().sharedMaterial;
         _footFrictionMat = new PhysicsMaterial2D(footMat.name + " (Instance)") {friction = footMat.friction};
@@ -211,6 +213,7 @@ public class HumanoidMovement : MovementAbstract {
         _parts.footL.GetComponent<Collider2D>().sharedMaterial = _footFrictionMat;
 
         _grabDownDist = grabDistance * grabDownDistMult;
+        _initLayer = gameObject.layer;
     }
 
     private void FixedUpdate() {
@@ -230,7 +233,7 @@ public class HumanoidMovement : MovementAbstract {
 #if UNITY_EDITOR
         if(visualizeDebug) { //Visualize grab raycasts
             Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)),
-                          tf.right * flipInt * grabDistance, new Color(0.52f, 1f, 0.52f));
+                          tf.right * FlipInt * grabDistance, new Color(0.52f, 1f, 0.52f));
             Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
                           -tf.up * (grabTopOffset - grabBottomOffset), new Color(0.38f, 0.72f, 0.38f));
             if(_climbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
@@ -246,7 +249,7 @@ public class HumanoidMovement : MovementAbstract {
         Vector3 handRStart = _parts.armRIK.Target().position;
         Vector3 handLStart = _parts.armLIK.Target().position;
         while(_climbing) {
-            Vector3 right = tf.right * flipInt;
+            Vector3 right = tf.right * FlipInt;
             float dT = Time.fixedDeltaTime;
 
             // Move the head to a little above halfway between the two points
@@ -272,7 +275,7 @@ public class HumanoidMovement : MovementAbstract {
 
                 // Raycast check from either foot (whichever hits) to the wall
                 Vector3 shift = -tf.up * GrabAdd;
-                var sideCheck = Raycast(_parts.footR.transform.position + shift, right, grabDistance, whatIsGround);
+                var sideCheck = Raycast(_parts.footR.transform.position + shift, right, grabDistance, WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug && sideCheck)
                     Debug.DrawRay(_parts.footR.transform.position, right * grabDistance, Color.cyan);
@@ -288,7 +291,7 @@ public class HumanoidMovement : MovementAbstract {
                 Vector2 keepAgainstWall = right * Mathf.Pow(wallDist * 4, 2) * dT;
 
                 // And a force to move them up or down based on input
-                float horizontalInput = control.moveHorizontal * flipInt;
+                float horizontalInput = control.moveHorizontal * FlipInt;
                 float climbInput = Mathf.Min(horizontalInput + control.moveVertical, 1f);
                 Vector2 climbControl = (Vector2) tf.up * 3 * climbInput * dT;
                 anim.SetFloat(ClimbAnimSpeed, climbInput);
@@ -319,28 +322,28 @@ public class HumanoidMovement : MovementAbstract {
         if(_climbing || grounded && !_jumpStarted ||
            Vector2.Dot(control.moveHorizontal * hitNormal, tf.right) > -0.1f) return;
 
-        Vector2 right = tf.right * flipInt;
+        Vector2 right = tf.right * FlipInt;
         Vector2 midPoint = tf.TransformPoint(new Vector2(0, tf.InverseTransformPoint(hitPoint).y + GrabAdd));
-        RaycastHit2D grabMid = Raycast(midPoint, right, grabDistance, whatIsGround);
+        RaycastHit2D grabMid = Raycast(midPoint, right, grabDistance, WhatIsGround);
 #if UNITY_EDITOR
         if(visualizeDebug) Debug.DrawRay(midPoint, right * grabDistance, Color.magenta);
 #endif
 
         // First check for mid, first at the point of contact, and if that's null, then the normal mid check
         if(grabMid || (grabMid = Raycast(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)), right,
-                                         grabDistance, whatIsGround))) {
+                                         grabDistance, WhatIsGround))) {
             Vector2 downOrigin = tf.TransformPoint(new Vector2(grabMid.distance + GrabAdd, grabTopOffset));
-            RaycastHit2D down = Raycast(downOrigin, -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
+            RaycastHit2D down = Raycast(downOrigin, -tf.up, grabTopOffset - grabBottomOffset, WhatIsGround);
             if(down && ClimbCheckIfClear(down.point, right)) ClimbBegin(down.point);
             return;
         }
 
         // If mid fails, check for down.
         RaycastHit2D grabDown = Raycast(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
-                                        -tf.up, grabTopOffset - grabBottomOffset, whatIsGround);
+                                        -tf.up, grabTopOffset - grabBottomOffset, WhatIsGround);
         if(grabDown) {
             Vector2 grabMidOrigin = tf.TransformPoint(new Vector2(0, grabTopOffset - grabDown.distance - GrabAdd));
-            grabMid = Raycast(grabMidOrigin, right, grabDistance, whatIsGround);
+            grabMid = Raycast(grabMidOrigin, right, grabDistance, WhatIsGround);
             bool pointNotInGround = Vector2.Distance(grabMid.point, grabMidOrigin) > 0.1f;
             if(pointNotInGround && grabMid && ClimbCheckIfClear(midPoint, right))
                 ClimbBegin(grabMid.point + right * GrabAdd + (Vector2) tf.up * GrabAdd);
@@ -392,7 +395,7 @@ public class HumanoidMovement : MovementAbstract {
     private IEnumerator _ClimbPullUp() {
         _parts.footR.GetComponent<Collider2D>().isTrigger = true;
         _parts.footL.GetComponent<Collider2D>().isTrigger = true;
-        Vector3 right = tf.right * flipInt;
+        Vector3 right = tf.right * FlipInt;
         rb.gravityScale = .5f;
         float hDist = 1;
         const float maxDistance = .7f;
@@ -435,19 +438,19 @@ public class HumanoidMovement : MovementAbstract {
         // Check up with a circle cast that starts at the character's mid-height, offset from the wall horizontally
         Vector2 upCheckStart = tf.TransformPoint(new Vector2(grabPointLocal.x - GrabAdd * 2 - grabCheckRadiusV, 0));
         float upCheckDist = grabPointLocal.y + grabCheckDistanceV;
-        RaycastHit2D upCheck = CircleCast(upCheckStart, grabCheckRadiusV, tf.up, upCheckDist, whatIsGround);
+        RaycastHit2D upCheck = CircleCast(upCheckStart, grabCheckRadiusV, tf.up, upCheckDist, WhatIsGround);
 
         // Check sideways starting from the character's x position, offset above the top of the ledge
         Vector2 sideCheckStart = tf.TransformPoint(new Vector2(0, grabPointLocal.y + GrabAdd + grabCheckRadiusH));
         float sideCheckDist = grabPointLocal.x + grabCheckDistanceH;
-        RaycastHit2D sideCheck = Raycast(sideCheckStart, right, sideCheckDist, whatIsGround);
+        RaycastHit2D sideCheck = Raycast(sideCheckStart, right, sideCheckDist, WhatIsGround);
         // And do two more sideways checks so that the three raycasts span grabCheckRadiusH distance
         // Which should ensure that at least that distance is clear above the ledge
         Vector2 upRadH = (Vector2) tf.up * grabCheckRadiusH;
         if(!sideCheck)
-            sideCheck = Raycast(sideCheckStart + upRadH, right, sideCheckDist, whatIsGround);
+            sideCheck = Raycast(sideCheckStart + upRadH, right, sideCheckDist, WhatIsGround);
         if(!sideCheck)
-            sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist, whatIsGround);
+            sideCheck = Raycast(sideCheckStart - upRadH, right, sideCheckDist, WhatIsGround);
 
 #if UNITY_EDITOR
         if(visualizeDebug) {
@@ -471,11 +474,11 @@ public class HumanoidMovement : MovementAbstract {
         if(_rolling) {
             // If the character is rolling, their feet will leave the ground, but we still want to consider them as touching
             // the ground, so we instead do a raycast out from the center, and set grounded and walkSlope using this.
-            groundCheckHit = Raycast(tf.position, -up, rollingGroundCheckDistance, whatIsGround);
+            groundCheckHit = Raycast(tf.position, -up, rollingGroundCheckDistance, WhatIsGround);
         } else if(_airDashing) {
             // Same as rolling, but they go head first when air dashing
             groundCheckHit = Raycast(_parts.head.transform.position, -up, rollingGroundCheckDistance / 2,
-                                     whatIsGround);
+                                     WhatIsGround);
         } else {
             /* This checks both feet to see if they are touching the ground, and if they are, it checks the angle of the ground they are on.
              * For each foot, a raycast checks the back of the foot, and if that hits nothing, then the front of the foot is checked.
@@ -483,15 +486,15 @@ public class HumanoidMovement : MovementAbstract {
              * still less than the maxWalkSlope. This is so that uneven surfaces will still be walked up quickly.
              * walkSlope is set to the chosen angle, and is used in the Move(...) method. */
             RaycastHit2D rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR), -up,
-                                            groundCheckDistance, whatIsGround);
+                                            groundCheckDistance, WhatIsGround);
             if(!rightHit)
                 rightHit = Raycast(_parts.footR.transform.TransformPoint(groundCheckOffsetR2), -up,
-                                   groundCheckDistance, whatIsGround);
+                                   groundCheckDistance, WhatIsGround);
             RaycastHit2D leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL), -up,
-                                           groundCheckDistance, whatIsGround);
+                                           groundCheckDistance, WhatIsGround);
             if(!leftHit)
                 leftHit = Raycast(_parts.footL.transform.TransformPoint(groundCheckOffsetL2), -up,
-                                  groundCheckDistance, whatIsGround);
+                                  groundCheckDistance, WhatIsGround);
             float rightAngle = Vector2.Angle(rightHit.normal, up);
             float leftAngle = Vector2.Angle(leftHit.normal, up);
 
@@ -601,7 +604,7 @@ public class HumanoidMovement : MovementAbstract {
             AddKick(kick);
 
             // Flip the player if necessary
-            bool shouldFlip = (moveIn > 0 && !facingRight || moveIn < 0 && facingRight) && !_climbing;
+            bool shouldFlip = (moveIn > 0 && !FacingRight || moveIn < 0 && FacingRight) && !_climbing;
             if(shouldFlip) Flip();
 
             // Set animation params
@@ -610,7 +613,7 @@ public class HumanoidMovement : MovementAbstract {
                               Mathf.Abs(velTangent) / (maxSpeed * sprintSpeed);
             // avg it with player intention
             _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * sprintSpeed * slopeReducer)) / 2;
-            if(!canFlip && shouldFlip) _walkSprint *= -1;
+            if(cantFlip > 0 && shouldFlip) _walkSprint *= -1;
             // avg it for smoothing
             anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
         } else { // Not grounded
@@ -723,8 +726,9 @@ public class HumanoidMovement : MovementAbstract {
 
             rb.velocity = dashVelocity;
 
-            // Start gravity at 0 so movement starts purely in dash direction. This also helps up dashes be as strong
-            // as down dashes. Gravity is restored to normal in the while loop below
+
+            // Start a dive with gravity at 0 so movement starts purely in dash direction.
+            // This also helps up dashes be as strong as down dashes.
             rb.gravityScale = 0;
             const float squareVelocityThreshold = 9;
             while(_airDashing && (!_airDashingGrounded || rb.velocity.sqrMagnitude > squareVelocityThreshold)) {
@@ -734,7 +738,7 @@ public class HumanoidMovement : MovementAbstract {
                 Vector2 epsilon = new Vector2(0.1f, 0.0001f); // This prevents any instant flips
                 // We use a separate vector (_airDashVector) instead of damping the value of the transform directly
                 // because the actual transform gets reset every frame by the animation.
-                _airDashVec = _airDashVec.SharpInDamp(rb.velocity.normalized * flipInt + epsilon, 2f);
+                _airDashVec = _airDashVec.SharpInDamp(rb.velocity.normalized * FlipInt + epsilon, 2f);
                 _parts.hipsTarget.transform.right = _airDashVec;
 
                 // WaitForEndOfFrame to make sure all the normal animation stuff has already happened
@@ -752,13 +756,13 @@ public class HumanoidMovement : MovementAbstract {
         // At this point, the air dash is over, so we stop the animation
         // And rotate the character back to where they would otherwise be
         anim.SetBool(AirDashAnim, false);
-        bool wasFacingRight = facingRight; //This is used in case the character flips, so we can flip _airDashVector too
+        bool wasFacingRight = FacingRight; //This is used in case the character flips, so we can flip _airDashVector too
         while(Vector3.Angle(_airDashVec, _parts.hipsTarget.transform.right) > 5f) {
-            if(wasFacingRight != facingRight)
+            if(wasFacingRight != FacingRight)
                 _airDashVec = Vector3.Reflect(_airDashVec, _parts.hipsTarget.transform.right);
             _airDashVec = _airDashVec.SharpInDamp(_parts.hipsTarget.transform.right, 1f);
             _parts.hipsTarget.transform.right = _airDashVec;
-            wasFacingRight = facingRight;
+            wasFacingRight = FacingRight;
             yield return Yields.WaitForEndOfFrame;
         }
         _airDashing = false;
@@ -772,24 +776,30 @@ public class HumanoidMovement : MovementAbstract {
 
         // If the character initiates a roll beyond a certain speed, make them roll instead
         if(!_rolling && wasStanding && _crouching && _walkSprint > .1f)
-            Roll(true);
+            RollStart();
         else {
             // otherwise, set the animator
             anim.SetBool(CrouchingAnim, _crouching);
             // and deal with rolling if that's still happening
-            Roll(false);
+            Roll();
         }
+//        if(!_crouching && !_rolling && crouch && !grounded)
+            //TODO Dive
+    }
+
+    /// <summary> Start the roll and set the direction </summary>
+    private void RollStart() {
+        _rolling = true;
+        anim.SetBool(RollAnim, true);
+        _rollDir = Mathf.Sign(control.moveHorizontal);
+        foreach(var part in _parts.parts) part.layer = RollLayer;
+        cantFlip++;
+        print("ROLL INC " + cantFlip);
     }
 
     /// <summary> Handles character rolling </summary>
-    /// <param name="rollStart"> Should we start rolling? </param>
-    private void Roll(bool rollStart) {
-        if(rollStart) {
-            // Start the roll and set the direction
-            _rolling = true;
-            anim.SetBool(RollAnim, true);
-            _rollDir = Mathf.Sign(control.moveHorizontal);
-        } else if(_rolling) {
+    private void Roll() {
+        if(_rolling) {
             // Continue the roll and check if it should end, or if the character should RollJump
             _rollingTime += Time.fixedDeltaTime;
             Move(_rollDir, false);
@@ -800,9 +810,13 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> Used to end roll </summary>
     private void RollEnd() {
+        if(!_rolling) return;
         _rolling = false;
         anim.SetBool(RollAnim, false);
         _rollingTime = 0;
+        foreach(var part in _parts.parts) part.layer = _initLayer;
+        cantFlip--;
+        print("ROLL DEC " + cantFlip);
     }
 
     /// <summary> Used to jump once good point has been reached in a roll </summary>

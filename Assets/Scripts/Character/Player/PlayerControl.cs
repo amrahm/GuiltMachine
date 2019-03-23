@@ -17,18 +17,18 @@ public class PlayerControl : CharacterControlAbstract {
             attackVertical = 1;
         if(CrossPlatformInputManager.GetButtonDown("AttackDown"))
             attackVertical = -1;
-        if(CrossPlatformInputManager.GetButtonUp("AttackUp") && attackVertical == 1)
-            attackVertical = 0;
-        if(CrossPlatformInputManager.GetButtonUp("AttackDown") && attackVertical == -1)
+        if(CrossPlatformInputManager.GetButtonUp("AttackUp") && attackVertical == 1 ||
+           CrossPlatformInputManager.GetButtonUp("AttackDown") && attackVertical == -1)
             attackVertical = 0;
         // Same for horizontal
         if(CrossPlatformInputManager.GetButtonDown("AttackRight"))
             attackHorizontal = 1;
         if(CrossPlatformInputManager.GetButtonDown("AttackLeft"))
             attackHorizontal = -1;
-        if(CrossPlatformInputManager.GetButtonUp("AttackRight") && attackHorizontal == 1)
+        if(CrossPlatformInputManager.GetButtonUp("AttackRight") && attackHorizontal == 1 ||
+           CrossPlatformInputManager.GetButtonUp("AttackLeft") && attackHorizontal == -1)
             attackHorizontal = 0;
-        if(CrossPlatformInputManager.GetButtonUp("AttackLeft") && attackHorizontal == -1)
-            attackHorizontal = 0;
+
+        blockPressed = CrossPlatformInputManager.GetButton("Block");
     }
 }

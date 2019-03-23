@@ -11,4 +11,5 @@ public abstract class CharacterControlAbstract : MonoBehaviour {
     
     [ConditionalHide(nameof(showCurrentInput), true, true)] public int attackVertical;
     [ConditionalHide(nameof(showCurrentInput), true, true)] public int attackHorizontal;
+    [ConditionalHide(nameof(showCurrentInput), true, true)] public bool blockPressed;
 }

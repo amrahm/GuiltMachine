@@ -13,16 +13,16 @@ public abstract class MovementAbstract : MonoBehaviour {
 
 
     /// <summary> A mask determining what is ground to the character </summary>
-    protected internal LayerMask whatIsGround;
+    protected internal LayerMask WhatIsGround { get; private set; }
 
     /// <summary> Which way the character is currently facing </summary>
-    protected internal bool facingRight = true;
+    protected internal bool FacingRight { get; private set; } = true;
 
     /// <summary> 1 if character is facing right, else -1 </summary>
-    protected internal int flipInt = 1;
+    protected internal int FlipInt { get; private set; } = 1;
 
-    /// <summary> Is the character character allowed to turn around? </summary>
-    protected internal bool canFlip = true;
+    /// <summary> Is the character character allowed to turn around? No if greater than 0 </summary>
+    protected internal int cantFlip = 0;
 
     /// <summary> Is the character currently on the ground? </summary>
     protected internal bool grounded;
@@ -65,20 +65,31 @@ public abstract class MovementAbstract : MonoBehaviour {
         tf = transform;
 
         if(whatIsGroundMaster != null)
-            whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
+            WhatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
     }
 
 
     ///<summary> Flip the character around the y axis </summary>
     protected internal void Flip() {
-        if(!canFlip) return;
-        facingRight = !facingRight; // Switch the way the character is labelled as facing.
-        flipInt *= -1;
+        if(cantFlip > 0) return;
+#if UNITY_EDITOR || DEBUG
+        if(cantFlip < 0) {
+            Debug.LogError($"{nameof(cantFlip)} < 0, and it should never be");
+            cantFlip = 0;
+        }
+#endif
+        FacingRight = !FacingRight; // Switch the way the character is labelled as facing.
+        FlipInt *= -1;
         //Multiply the character's x local scale by -1.
-        tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
+        var localScale = tf.localScale;
+        localScale.x *= -1;
+        tf.localScale = localScale;
         // Fix the status indicator to always face the proper direction regardless of phoenix orientation
         Transform statusTf = master.statusIndicator?.gameObject.transform;
-        if(statusTf != null)
-            statusTf.localScale = new Vector3(-statusTf.localScale.x, statusTf.localScale.y, statusTf.localScale.z);
+        if(statusTf != null) {
+            var scale = statusTf.localScale;
+            scale.x *= -1;
+            statusTf.localScale = scale;
+        }
     }
 }

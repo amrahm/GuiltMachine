@@ -2,6 +2,8 @@
 using ExtensionMethods;
 using static ExtensionMethods.HelperMethods;
 using UnityEngine;
+using static AnimationParameters.Weapon;
+
 
 public abstract class WeaponAbstract : MonoBehaviour {
     private const int UpperBodyLayerIndex = 1;
@@ -14,7 +16,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
 
     #region Variables
 
-    private CharacterMasterAbstract _holder;
+    protected CharacterMasterAbstract holder;
     private CharacterControlAbstract _ctrl;
     protected Animator anim;
     protected MovementAbstract mvmt;
@@ -24,6 +26,8 @@ public abstract class WeaponAbstract : MonoBehaviour {
 
     /// <summary> Is an attack started (not necessarily swinging yet) </summary>
     private bool _attacking;
+
+    public bool Blocking { get; private set; }
 
     /// <summary> what was horizontal attack last frame </summary>
     private int _oldHoriz;
@@ -52,13 +56,13 @@ public abstract class WeaponAbstract : MonoBehaviour {
            _ctrl.attackVertical != 0 && _ctrl.attackVertical != _oldVert) { // or new vertical input
             // Then initiate an attack
             if(!_attacking) {
-                StartCoroutine(_InitAttack(GetAttackDir()));
+                StartCoroutine(_InitAttack());
                 _attackStart = Time.time;
             } else if(_attacking && (_oldVert == 0 && _oldHoriz == 0 || Time.time - _attackStart > TapThreshold * 2)) {
-                // but if we were already attacking, and this is an entirely new attack input, or enough time has passed
+                // but if we were already attacking and this is an entirely new attack input, or enough time has passed
                 // that we know this isn't just them trying to do a diagonal, then start a buffer attack
                 if(_bufferAttackCoroutine != null) StopCoroutine(_bufferAttackCoroutine);
-                _bufferAttackCoroutine = StartCoroutine(_InitAttack(GetAttackDir(), true));
+                _bufferAttackCoroutine = StartCoroutine(_InitAttack(true));
                 _bufferAttackStart = Time.time;
             }
         }
@@ -70,7 +74,8 @@ public abstract class WeaponAbstract : MonoBehaviour {
     private int[] GetAttackDir() => new[] {_ctrl.attackHorizontal, _ctrl.attackVertical};
 
     /// <summary> Inititates the attack as either a tap or a hold </summary>
-    private IEnumerator _InitAttack(int[] attackInit, bool isBufferAttack = false) {
+    private IEnumerator _InitAttack(bool isBufferAttack = false) {
+        //TODO canFlip still being incremented too many times, likely has to do with buffer attack
         IEnumerator WaitTillNotAttacking() {
             yield return new WaitWhile(() => _attacking);
             if(Time.time - _bufferAttackStart < BufferTime) {
@@ -79,13 +84,20 @@ public abstract class WeaponAbstract : MonoBehaviour {
             }
         }
 
+        _attacking = true;
+        int[] attackInit = GetAttackDir();
         float attackInitTime = Time.time;
         do {
             if(Time.time >= attackInitTime + TapThreshold) {
                 if(isBufferAttack) yield return StartCoroutine(WaitTillNotAttacking());
                 if(isBufferAttack) yield break; // too long since buffer started
-                _attacking = true;
-                AttackHold(attackInit, GetAttackDir());
+                _attacking = true; // have to do this again in case this was a buffer attack
+                if(_ctrl.blockPressed) StartCoroutine(_HoldBlock(attackInit));
+                else {
+                    AttackHold(attackInit, GetAttackDir());
+                    mvmt.cantFlip++;
+                    print("ATTACK HOLD INC " + mvmt.cantFlip);
+                }
                 yield break;
             }
             yield return null;
@@ -93,8 +105,36 @@ public abstract class WeaponAbstract : MonoBehaviour {
 
         if(isBufferAttack) yield return StartCoroutine(WaitTillNotAttacking());
         if(isBufferAttack) yield break; // too long since buffer started
-        _attacking = true;
-        AttackTap(attackInit, GetAttackDir());
+        _attacking = true; // have to do this again in case this was a buffer attack
+        if(_ctrl.blockPressed) TapBlock(attackInit);
+        else {
+            AttackTap(attackInit, GetAttackDir());
+            mvmt.cantFlip++;
+            print("ATTACK TAP INC " + mvmt.cantFlip);
+        }
+    }
+
+    private void TapBlock(int[] initDir) {
+        if(mvmt.FlipInt != initDir[0]) mvmt.Flip();
+        anim.SetBool(MeleeBlockingAnim, true);
+        anim.SetTrigger(TapBlockForwardAnim);
+        mvmt.cantFlip++;
+        print("BLOCK TAP INC " + mvmt.cantFlip);
+        Blocking = true;
+    }
+
+    private IEnumerator _HoldBlock(int[] initDir) {
+        if(mvmt.FlipInt != initDir[0]) mvmt.Flip();
+        FadeAttackIn(0.15f);
+        anim.SetBool(HoldBlockForwardAnim, true);
+        anim.SetBool(MeleeBlockingAnim, true);
+        mvmt.cantFlip++;
+        print("BLOCK HOLD INC " + mvmt.cantFlip);
+        Blocking = true;
+        yield return new WaitWhile(() => _ctrl.attackHorizontal == initDir[0] && _ctrl.attackVertical == initDir[1]);
+        anim.SetBool(HoldBlockForwardAnim, false);
+        anim.SetBool(MeleeBlockingAnim, false);
+        FadeAttackOut(0.15f);
     }
 
     protected abstract void AttackTap(int[] initDirection, int[] direction);
@@ -103,7 +143,6 @@ public abstract class WeaponAbstract : MonoBehaviour {
     protected IEnumerator _AttackDash(Vector2 direction, float speed,
                                       float acceleration = 20f, float perpVelCancelSpeed = 1.1f) {
         direction = direction.normalized;
-        direction.x *= mvmt.flipInt;
         Vector2 perpVec = Vector3.Cross(direction, Vector3.forward);
         float maxVel = Mathf.Max(Mathf.Sqrt(Vector2.Dot(mvmt.rb.velocity, direction)) + speed, speed);
         bool beforeSwing = !swinging;
@@ -114,23 +153,23 @@ public abstract class WeaponAbstract : MonoBehaviour {
         while(swinging) {
             mvmt.rb.gravityScale = 0;
             Vector2 vel = mvmt.rb.velocity;
-            mvmt.rb.velocity = vel.SharpInDamp(direction * maxVel, 5).Projected(direction) +
-                               vel.Projected(perpVec).SharpInDamp(Vector2.zero, perpVelCancelSpeed);
-            maxVel += acceleration * Time.deltaTime;
-            yield return null;
+            Vector2 newVel = vel.SharpInDamp(direction * maxVel, 5).Projected(direction) +
+                             vel.Projected(perpVec).SharpInDamp(Vector2.zero, perpVelCancelSpeed);
+            if(!float.IsNaN(newVel.x)) mvmt.rb.velocity = newVel;
+            maxVel += acceleration * Time.fixedDeltaTime;
+            yield return Yields.WaitForFixedUpdate;
         }
         mvmt.rb.gravityScale = 1;
     }
 
-
     /// <summary> Call this when you pickup or switch to this weapon </summary>
     /// <param name="newHolder"> The CharacterMasterAbstract of the character that just picked up this weapon </param>
     public virtual void OnEquip(CharacterMasterAbstract newHolder) {
-        _holder = newHolder;
-        _ctrl = _holder.control;
-        _holder.weapon = this;
-        anim = _holder.gameObject.GetComponent<Animator>();
-        mvmt = _holder.gameObject.GetComponent<MovementAbstract>();
+        holder = newHolder;
+        _ctrl = holder.control;
+        holder.weapon = this;
+        anim = holder.gameObject.GetComponent<Animator>();
+        mvmt = holder.gameObject.GetComponent<MovementAbstract>();
     }
 
     /// <summary> Call this when you switch away from this weapon </summary>
@@ -139,7 +178,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <summary> Call this when you drop this weapon </summary>
     public void OnDrop(CharacterMasterAbstract newHolder) {
         OnUnequip();
-        _holder = null;
+        holder = null;
         _ctrl = null;
         anim = null;
         mvmt = null;
@@ -153,8 +192,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
     /// <param name="duration"> An optional duration that some events need </param>
     public void ReceiveAnimationEvent(AnimationEventObject e, float duration) {
         if(e == _animEventObjs.swingFadeIn) {
-            if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-            _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, UpperBodyLayerIndex, duration);
+            FadeAttackIn(duration);
         } else if(e == _animEventObjs.swingStart) {
             BeginSwing();
         } else if(e == _animEventObjs.swingEnd) {
@@ -164,11 +202,20 @@ public abstract class WeaponAbstract : MonoBehaviour {
         }
     }
 
+    private void FadeAttackIn(float duration) {
+        if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
+        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, UpperBodyLayerIndex, duration);
+    }
+
     protected void FadeAttackOut(float duration) {
+        if(!_attacking) return; //FIXME if another attack starts before animation event
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
         _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, UpperBodyLayerIndex, duration);
+        mvmt.cantFlip--;
+        print("FADE OUT DEC " + mvmt.cantFlip + "   " + duration);
+        anim.SetBool(MeleeBlockingAnim, false);
         _attacking = false;
-        mvmt.canFlip = true;
+        Blocking = false;
     }
 
     protected virtual void BeginSwing() { swinging = true; }

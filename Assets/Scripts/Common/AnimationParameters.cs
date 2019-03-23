@@ -50,7 +50,16 @@ namespace AnimationParameters {
         public static readonly int UnequipWeapon = Animator.StringToHash("UnequipWeapon");
 
         /// <summary> Bool: A sword is equipped </summary>
-        public static readonly int SwordEquipped = Animator.StringToHash("SwordEquipped");
+        public static readonly int SwordEquippedAnim = Animator.StringToHash("SwordEquipped");
+
+        /// <summary> Bool: Blocking with melee weapon </summary>
+        public static readonly int MeleeBlockingAnim = Animator.StringToHash("MeleeBlocking");
+
+        /// <summary> Trigger: Tap forward block </summary>
+        public static readonly int TapBlockForwardAnim = Animator.StringToHash("TapBlockForward");
+
+        /// <summary> Bool: Holding forward block </summary>
+        public static readonly int HoldBlockForwardAnim = Animator.StringToHash("HoldBlockForward");
 
         /// <summary> Trigger: Tap forward attack </summary>
         public static readonly int TapForwardAnim = Animator.StringToHash("TapForward");

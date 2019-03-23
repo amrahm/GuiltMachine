@@ -22,11 +22,19 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [CanBeNull] protected Rigidbody2D rb;
 
     /// <summary> Reference to this gameObject's CharacterPhysics, if it exists </summary>
-    [CanBeNull] protected CharacterPhysics characterPhysics;
+    [CanBeNull] protected internal CharacterPhysics characterPhysics;
 
     /// <summary> Reference to this gameObject's Control script </summary>
     [NonSerialized] public CharacterControlAbstract control;
 
+
+    public bool CheckProtected(Vector2 point, Collider2D hitCollider) {
+        if(weapon != null && weapon.Blocking) {
+            //TODO more complicated checking to account for blocking direction.
+            return true;
+        }
+        return false;
+    }
 
     public virtual void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {
         if(hitCollider.isTrigger) return;

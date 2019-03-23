@@ -30,39 +30,48 @@ public class Sword : WeaponAbstract {
     private float mass = 5;
 
 
-    /// <summary> previous position of the base </summary>
+    /// <summary> Previous position of the base </summary>
     private Vector2 _prevBase;
 
-    /// <summary> previous position of the tip </summary>
+    /// <summary> Previous position of the tip </summary>
     private Vector2 _prevTip;
+
+    /// <summary> Direction of the attack </summary>
+    private Vector2 _attackDir;
 
     #endregion
 
+    private Vector2 Direction(int[] dir) => mvmt.tf.InverseTransformDirection(dir[0], dir[1], 0);
+
     // ReSharper disable ConvertIfStatementToSwitchStatement
     protected override void AttackTap(int[] initDirection, int[] direction) {
+        _attackDir = Direction(initDirection);
         if(initDirection[0] != 0) {
-            anim.SetTrigger(TapForwardAnim);
-            if(mvmt.flipInt != initDirection[0]) mvmt.Flip();
+            bool attackIsBackwards = mvmt.FlipInt != initDirection[0];
+            if(mvmt.grounded) {
+                anim.SetTrigger(TapForwardAnim);
+                if(attackIsBackwards) mvmt.Flip();
+            } else {
+                anim.SetTrigger(attackIsBackwards ? TapBackwardAnim : TapForwardAnim);
+            }
         } else if(initDirection[1] == 1) anim.SetTrigger(HoldUpAnim); //TODO
         else if(initDirection[1] == -1) anim.SetTrigger(mvmt.grounded ? TapDownAnim : TapHoldDownAirAnim);
-
-        mvmt.canFlip = false;
     }
 
     protected override void AttackHold(int[] initDirection, int[] direction) {
-        Vector2 Direction() => mvmt.tf.InverseTransformDirection(direction[0] * mvmt.flipInt, direction[1], 0);
+        _attackDir = Direction(direction);
         if(initDirection[0] != 0) {
-            bool attackIsBackwards = mvmt.flipInt != initDirection[0];
+            bool attackIsBackwards = mvmt.FlipInt != initDirection[0];
             if(mvmt.grounded) {
                 anim.SetTrigger(HoldForwardAnim);
                 if(attackIsBackwards) mvmt.Flip();
             } else {
                 anim.SetTrigger(attackIsBackwards ? HoldBackwardAnim : HoldForwardAnim);
-                StartCoroutine(_AttackDash(Direction(), 10));
+                StartCoroutine(_AttackDash(_attackDir, 10));
             }
         } else if(initDirection[1] == 1) {
             anim.SetTrigger(HoldUpAnim);
-            if(!mvmt.grounded) StartCoroutine(_AttackDash(Direction(), 9, perpVelCancelSpeed: 2f));
+            if(!mvmt.grounded) StartCoroutine(_AttackDash(_attackDir, 9, perpVelCancelSpeed: 2f));
         } else if(initDirection[1] == -1) {
             if(mvmt.grounded)
                 anim.SetTrigger(HoldDownAnim);
@@ -72,8 +81,6 @@ public class Sword : WeaponAbstract {
                 StartCoroutine(_AttackDash(-mvmt.tf.up, 15, perpVelCancelSpeed: 1.05f));
             }
         }
-
-        mvmt.canFlip = false;
     }
     // ReSharper restore ConvertIfStatementToSwitchStatement
 
@@ -83,19 +90,19 @@ public class Sword : WeaponAbstract {
             if(swinging) beforeSwing = false;
             yield return null;
         }
-        FadeAttackOut(0.3f);
+        FadeAttackOut(0.30123f);
         EndSwing();
     }
 
 
     public override void OnEquip(CharacterMasterAbstract newHolder) {
         base.OnEquip(newHolder);
-        anim.SetBool(SwordEquipped, true);
+        anim.SetBool(SwordEquippedAnim, true);
     }
 
     public override void OnUnequip() {
         //TODO have to make weapon move to holster or something
-        anim.SetBool(SwordEquipped, false);
+        anim.SetBool(SwordEquippedAnim, false);
     }
 
     protected override void BeginSwing() {
@@ -111,79 +118,78 @@ public class Sword : WeaponAbstract {
                 bool HitBaddy(RaycastHit2D rHit) {
 #if UNITY_EDITOR
                     if(visualizeDebug && rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
-                       Linecast(_prevBase, rHit.point,
-                                mvmt.whatIsGround & ~(1 << rHit.collider.gameObject.layer))) {
+                       Linecast(_prevBase, rHit.point, mvmt.WhatIsGround & ~(1 << rHit.collider.gameObject.layer))) {
                         Debug.DrawLine(_prevBase, rHit.point, Color.red);
                     }
 #endif
                     return rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
-                           !Linecast(_prevBase, rHit.point,
-                                     mvmt.whatIsGround & ~(1 << rHit.collider.gameObject.layer));
+                           // Make sure nothing of a different layer is between where the sword was and where it hit
+                           !Linecast(_prevBase, rHit.point, mvmt.WhatIsGround & ~(1 << rHit.collider.gameObject.layer));
                 }
 
-//            print("CHECK1");
+//               print("CHECK1");
                 //CHECK1: along blade
                 Vector2 basePos = swordBase.position;
                 Vector2 tipPos = swordTip.position;
-                swingCheck = Linecast(basePos, tipPos, mvmt.whatIsGround);
+                swingCheck = Linecast(basePos, tipPos, mvmt.WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(basePos, tipPos);
 #endif
                 if(HitBaddy(swingCheck)) return true;
 
 
-//            print("CHECK2");
+//               print("CHECK2");
                 //CHECK2: along tip movement
-                swingCheck = Linecast(_prevTip, tipPos, mvmt.whatIsGround);
+                swingCheck = Linecast(_prevTip, tipPos, mvmt.WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(_prevTip, tipPos);
 #endif
                 if(HitBaddy(swingCheck)) return true;
 
-//            print("CHECK3");
+//                print("CHECK3");
                 //CHECK3: along base movement
-                swingCheck = Linecast(_prevBase, basePos, mvmt.whatIsGround);
+                swingCheck = Linecast(_prevBase, basePos, mvmt.WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(_prevBase, basePos);
 #endif
                 if(HitBaddy(swingCheck)) return true;
 
-//            print("CHECK4");
+//               print("CHECK4");
                 //CHECK4: along lower third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f),
-                                      mvmt.whatIsGround);
+                                      mvmt.WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f));
 #endif
                 if(HitBaddy(swingCheck))  return true;
 
-//            print("CHECK5");
+//               print("CHECK5");
                 //CHECK5: along upper third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f),
-                                      mvmt.whatIsGround);
+                                      mvmt.WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f));
 #endif
                 if(HitBaddy(swingCheck))  return true;
 
-//            print("CHECK6");
+//               print("CHECK6");
                 //CHECK6: along first third blade
                 float swordLength = Vector2.Distance(basePos, tipPos);
                 Vector2 baseMid = Vector2.Lerp(_prevBase, basePos, 0.33f);
                 Vector2 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.33f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.whatIsGround);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif
                 if(HitBaddy(swingCheck))  return true;
 
-//            print("CHECK7");
+//               print("CHECK7");
                 //CHECK7: along second third blade
                 baseMid = Vector2.Lerp(_prevBase, basePos, 0.66f);
                 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.66f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.whatIsGround);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.WhatIsGround);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif
@@ -202,15 +208,21 @@ public class Sword : WeaponAbstract {
 
             IDamageable damageable = swingHit.collider.GetComponentInParent<IDamageable>();
             Vector2 point = swingHit.point;
-
             Vector2 force = mvmt.rb.velocity; //Relative Velocity
             if(swingHit.collider.attachedRigidbody) force -= swingHit.collider.attachedRigidbody.velocity;
             force = mass * force; //Kinetic Energy = mv^2, but that was too much so just doing mv lol
+            force += _attackDir * knockback; // Add knockback in the direction of the swing
 
-            // Add knockback in the direction of the swing
-            Vector2 rightUp = transform.right + transform.up / 4;
-            force += rightUp * knockback * mvmt.flipInt;
 
+            if(damageable.CheckProtected(point, swingHit.collider)) {
+                //TODO recoil and sparks or something shit idk
+                var hTf = holder.transform;
+                Vector2 recoil = (hTf.position - swingHit.transform.position + hTf.up / 6) * knockback;
+                holder.characterPhysics?.AddForceAt(point, recoil, GetComponentInParent<Collider2D>());
+                FadeAttackOut(0.30121f);
+                EndSwing();
+                yield break;
+            }
             // Damage scaled based on relative velocity
             int damageGiven = (int) (damage * force.magnitude / knockback);
             damageable.DamageMe(point, force, damageGiven, swingHit.collider);
