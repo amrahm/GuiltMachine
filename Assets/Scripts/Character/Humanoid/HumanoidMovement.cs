@@ -794,7 +794,7 @@ public class HumanoidMovement : MovementAbstract {
         _rollDir = Mathf.Sign(control.moveHorizontal);
         foreach(var part in _parts.parts) part.layer = RollLayer;
         cantFlip++;
-        print("ROLL INC " + cantFlip);
+//        print("ROLL INC " + cantFlip);
     }
 
     /// <summary> Handles character rolling </summary>
@@ -816,7 +816,7 @@ public class HumanoidMovement : MovementAbstract {
         _rollingTime = 0;
         foreach(var part in _parts.parts) part.layer = _initLayer;
         cantFlip--;
-        print("ROLL DEC " + cantFlip);
+//        print("ROLL DEC " + cantFlip);
     }
 
     /// <summary> Used to jump once good point has been reached in a roll </summary>

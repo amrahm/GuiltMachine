@@ -4,7 +4,7 @@ using UnityEngine;
 using static AnimationParameters.Weapon;
 using static UnityEngine.Physics2D;
 
-public class Sword : WeaponAbstract {
+public class Sword : WeaponScript {
     #region Variables
 
 #if UNITY_EDITOR
@@ -42,26 +42,30 @@ public class Sword : WeaponAbstract {
     #endregion
 
     private Vector2 Direction(int[] dir) => mvmt.tf.InverseTransformDirection(dir[0], dir[1], 0);
+    
+    protected override AttackType RequestAttackType(int[] attackDirection) {
+        return attackDirection[1] == 1 ? AttackType.Immediate : AttackType.TapHold;
+    }
 
     // ReSharper disable ConvertIfStatementToSwitchStatement
-    protected override void AttackTap(int[] initDirection, int[] direction) {
-        _attackDir = Direction(initDirection);
-        if(initDirection[0] != 0) {
-            bool attackIsBackwards = mvmt.FlipInt != initDirection[0];
+    protected override void AttackTap(int[] direction) {
+        _attackDir = Direction(direction);
+        if(direction[1] == 0) {
+            bool attackIsBackwards = mvmt.FlipInt != direction[0];
             if(mvmt.grounded) {
                 anim.SetTrigger(TapForwardAnim);
                 if(attackIsBackwards) mvmt.Flip();
             } else {
                 anim.SetTrigger(attackIsBackwards ? TapBackwardAnim : TapForwardAnim);
             }
-        } else if(initDirection[1] == 1) anim.SetTrigger(HoldUpAnim); //TODO
-        else if(initDirection[1] == -1) anim.SetTrigger(mvmt.grounded ? TapDownAnim : TapHoldDownAirAnim);
+        } else if(direction[1] == 1) anim.SetTrigger(HoldUpAnim); //TODO
+        else if(direction[1] == -1) anim.SetTrigger(mvmt.grounded ? TapDownAnim : TapHoldDownAirAnim);
     }
 
-    protected override void AttackHold(int[] initDirection, int[] direction) {
+    protected override void AttackHold(int[] direction) {
         _attackDir = Direction(direction);
-        if(initDirection[0] != 0) {
-            bool attackIsBackwards = mvmt.FlipInt != initDirection[0];
+        if(direction[1] == 0) { // must be horizontal
+            bool attackIsBackwards = mvmt.FlipInt != direction[0];
             if(mvmt.grounded) {
                 anim.SetTrigger(HoldForwardAnim);
                 if(attackIsBackwards) mvmt.Flip();
@@ -69,10 +73,10 @@ public class Sword : WeaponAbstract {
                 anim.SetTrigger(attackIsBackwards ? HoldBackwardAnim : HoldForwardAnim);
                 StartCoroutine(_AttackDash(_attackDir, 10));
             }
-        } else if(initDirection[1] == 1) {
+        } else if(direction[1] == 1) {
             anim.SetTrigger(HoldUpAnim);
             if(!mvmt.grounded) StartCoroutine(_AttackDash(_attackDir, 9, perpVelCancelSpeed: 2f));
-        } else if(initDirection[1] == -1) {
+        } else if(direction[1] == -1) {
             if(mvmt.grounded)
                 anim.SetTrigger(HoldDownAnim);
             else {

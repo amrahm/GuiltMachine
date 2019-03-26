@@ -10,7 +10,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     protected CharacterStats characterStats;
 
     [Tooltip("The weapon currently being held. Doesn't have to be assigned."), CanBeNull]
-    public WeaponAbstract weapon;
+    public WeaponScript weapon;
 
     [Tooltip("Status indicator for this character. Doesn't have to be assigned."), SerializeField, CanBeNull]
     protected internal StatusIndicator statusIndicator;

@@ -1,15 +1,19 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using ExtensionMethods;
 using static ExtensionMethods.HelperMethods;
 using UnityEngine;
 using static AnimationParameters.Weapon;
 
 
-public abstract class WeaponAbstract : MonoBehaviour {
-    private const int UpperBodyLayerIndex = 1;
+public class WeaponScript : MonoBehaviour {
+    private const int AttackOverrideLayerIndex = 1;
+
+    /// <summary> How long to wait to give them a chance to diagonal input </summary>
+    private const float TimeToWaitForDiagonal = 0.01f;
 
     /// <summary> How long until an attack is considered held down </summary>
-    private const float TapThreshold = 0.1f;
+    private const float TapThreshold = 0.13f;
 
     /// <summary> How long attack buffer lasts </summary>
     private const float BufferTime = 0.3f;
@@ -45,37 +49,86 @@ public abstract class WeaponAbstract : MonoBehaviour {
     private Coroutine _fadeCoroutine;
     private Coroutine _bufferAttackCoroutine;
 
+    protected enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, FadingOut }
+
+    protected enum AttackType {
+        /// <summary> Immediately carries out the attack </summary>
+        Immediate,
+
+        /// <summary> Different action depending on whether they tap or hold </summary>
+        TapHold
+    }
+
+    protected class AttackStateObject {
+        public AttackState state = AttackState.DeterminingType;
+        private readonly WeaponScript _wA;
+        private int[] _attackDirection;
+
+        public AttackStateObject(WeaponScript weaponScript) {
+            _wA = weaponScript;
+            _wA.StartCoroutine(_GetInitAttackDirection());
+        }
+
+        private IEnumerator _GetInitAttackDirection() {
+            int inH = _wA._ctrl.attackHorizontal;
+            int inV = _wA._ctrl.attackVertical;
+            float attackInitTime = Time.time;
+            while(Time.time - attackInitTime < TimeToWaitForDiagonal) {
+                if(inH == 0 && _wA._ctrl.attackHorizontal != 0) inH = _wA._ctrl.attackHorizontal;
+                if(inV == 0 && _wA._ctrl.attackVertical != 0) inV = _wA._ctrl.attackVertical;
+                yield return null;
+            }
+            if(inH == 0 && _wA._ctrl.attackHorizontal != 0) inH = _wA._ctrl.attackHorizontal;
+            if(inV == 0 && _wA._ctrl.attackVertical != 0) inV = _wA._ctrl.attackVertical;
+            _attackDirection = new[] {inH, inV};
+        }
+
+
+    }
+
+    private AttackStateObject _primaryAttack;
+    private AttackStateObject _bufferAttack;
+
     #endregion
 
-    private void Awake() {
-        _animEventObjs = WeaponAnimationEventObjects.Instance;
+    [Serializable]
+    private class AttackObject {
+        [Tooltip("How much the weapon hurts"), SerializeField]
+        private int damage = 17;
+
+        [Tooltip("Knockback force applied by weapon"), SerializeField]
+        private float knockback = 50;
+
     }
+
+    private void Awake() { _animEventObjs = WeaponAnimationEventObjects.Instance; }
 
     private void Update() {
         if(_ctrl.attackHorizontal != 0 && _ctrl.attackHorizontal != _oldHoriz || // If we have new horizontal input
            _ctrl.attackVertical != 0 && _ctrl.attackVertical != _oldVert) { // or new vertical input
-            // Then initiate an attack
-            if(!_attacking) {
-                StartCoroutine(_InitAttack());
-                _attackStart = Time.time;
-            } else if(_attacking && (_oldVert == 0 && _oldHoriz == 0 || Time.time - _attackStart > TapThreshold * 2)) {
-                // but if we were already attacking and this is an entirely new attack input, or enough time has passed
-                // that we know this isn't just them trying to do a diagonal, then start a buffer attack
-                if(_bufferAttackCoroutine != null) StopCoroutine(_bufferAttackCoroutine);
-                _bufferAttackCoroutine = StartCoroutine(_InitAttack(true));
-                _bufferAttackStart = Time.time;
+            if(_primaryAttack == null) {
+                _primaryAttack = new AttackStateObject(this);
             }
+
+
+//            // Then initiate an attack
+//            if(!_attacking) {
+//                StartCoroutine(_InitAttack());
+//                _attackStart = Time.time;
+//            } else if(_attacking && (_oldVert == 0 && _oldHoriz == 0 || Time.time - _attackStart > TapThreshold * 2)) {
+//                // but if we were already attacking and this is an entirely new attack input, or enough time has passed
+//                // that we know this isn't just them trying to do a diagonal, then start a buffer attack
+//                if(_bufferAttackCoroutine != null) StopCoroutine(_bufferAttackCoroutine);
+//                _bufferAttackCoroutine = StartCoroutine(_InitAttack(true));
+//                _bufferAttackStart = Time.time;
+//            }
         }
         _oldHoriz = _ctrl.attackHorizontal;
         _oldVert = _ctrl.attackVertical;
     }
 
-    /// <summary> Returns the current directions of attack input </summary>
-    private int[] GetAttackDir() => new[] {_ctrl.attackHorizontal, _ctrl.attackVertical};
-
     /// <summary> Inititates the attack as either a tap or a hold </summary>
     private IEnumerator _InitAttack(bool isBufferAttack = false) {
-        //TODO canFlip still being incremented too many times, likely has to do with buffer attack
         IEnumerator WaitTillNotAttacking() {
             yield return new WaitWhile(() => _attacking);
             if(Time.time - _bufferAttackStart < BufferTime) {
@@ -85,7 +138,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
         }
 
         _attacking = true;
-        int[] attackInit = GetAttackDir();
+        int[] attackInit = {_ctrl.attackHorizontal, _ctrl.attackVertical};
         float attackInitTime = Time.time;
         do {
             if(Time.time >= attackInitTime + TapThreshold) {
@@ -94,9 +147,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
                 _attacking = true; // have to do this again in case this was a buffer attack
                 if(_ctrl.blockPressed) StartCoroutine(_HoldBlock(attackInit));
                 else {
-                    AttackHold(attackInit, GetAttackDir());
+//                    AttackHold(attackInit);
                     mvmt.cantFlip++;
-                    print("ATTACK HOLD INC " + mvmt.cantFlip);
+//                    print("ATTACK HOLD INC " + mvmt.cantFlip);
                 }
                 yield break;
             }
@@ -108,9 +161,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
         _attacking = true; // have to do this again in case this was a buffer attack
         if(_ctrl.blockPressed) TapBlock(attackInit);
         else {
-            AttackTap(attackInit, GetAttackDir());
+//            AttackTap(attackInit);
             mvmt.cantFlip++;
-            print("ATTACK TAP INC " + mvmt.cantFlip);
+//            print("ATTACK TAP INC " + mvmt.cantFlip);
         }
     }
 
@@ -119,7 +172,7 @@ public abstract class WeaponAbstract : MonoBehaviour {
         anim.SetBool(MeleeBlockingAnim, true);
         anim.SetTrigger(TapBlockForwardAnim);
         mvmt.cantFlip++;
-        print("BLOCK TAP INC " + mvmt.cantFlip);
+//        print("BLOCK TAP INC " + mvmt.cantFlip);
         Blocking = true;
     }
 
@@ -129,16 +182,13 @@ public abstract class WeaponAbstract : MonoBehaviour {
         anim.SetBool(HoldBlockForwardAnim, true);
         anim.SetBool(MeleeBlockingAnim, true);
         mvmt.cantFlip++;
-        print("BLOCK HOLD INC " + mvmt.cantFlip);
+//        print("BLOCK HOLD INC " + mvmt.cantFlip);
         Blocking = true;
         yield return new WaitWhile(() => _ctrl.attackHorizontal == initDir[0] && _ctrl.attackVertical == initDir[1]);
         anim.SetBool(HoldBlockForwardAnim, false);
         anim.SetBool(MeleeBlockingAnim, false);
         FadeAttackOut(0.15f);
     }
-
-    protected abstract void AttackTap(int[] initDirection, int[] direction);
-    protected abstract void AttackHold(int[] initDirection, int[] direction);
 
     protected IEnumerator _AttackDash(Vector2 direction, float speed,
                                       float acceleration = 20f, float perpVelCancelSpeed = 1.1f) {
@@ -173,7 +223,9 @@ public abstract class WeaponAbstract : MonoBehaviour {
     }
 
     /// <summary> Call this when you switch away from this weapon </summary>
-    public abstract void OnUnequip();
+    public void OnUnequip() {
+
+    }
 
     /// <summary> Call this when you drop this weapon </summary>
     public void OnDrop(CharacterMasterAbstract newHolder) {
@@ -204,15 +256,15 @@ public abstract class WeaponAbstract : MonoBehaviour {
 
     private void FadeAttackIn(float duration) {
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, UpperBodyLayerIndex, duration);
+        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, AttackOverrideLayerIndex, duration);
     }
 
     protected void FadeAttackOut(float duration) {
         if(!_attacking) return; //FIXME if another attack starts before animation event
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, UpperBodyLayerIndex, duration);
+        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, AttackOverrideLayerIndex, duration);
         mvmt.cantFlip--;
-        print("FADE OUT DEC " + mvmt.cantFlip + "   " + duration);
+//        print("FADE OUT DEC " + mvmt.cantFlip + "   " + duration);
         anim.SetBool(MeleeBlockingAnim, false);
         _attacking = false;
         Blocking = false;

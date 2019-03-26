@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class ShootSpell : WeaponAbstract {
+public class ShootSpell : WeaponScript {
     #region Variables
 
     [Tooltip("How much the weapon hurts"), SerializeField]
@@ -40,7 +40,8 @@ public class ShootSpell : WeaponAbstract {
 
     #endregion
 
-    protected override void AttackTap(int[] initDirection, int[] direction) { throw new System.NotImplementedException(); }
-    protected override void AttackHold(int[] initDirection, int[] direction) { throw new System.NotImplementedException(); }
+    protected override AttackType RequestAttackType(int[] attackDirection) { throw new System.NotImplementedException(); }
+    protected override void AttackTap(int[] direction) { throw new System.NotImplementedException(); }
+    protected override void AttackHold(int[] direction) { throw new System.NotImplementedException(); }
     public override void OnUnequip() { throw new System.NotImplementedException(); }
 }
