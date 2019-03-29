@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4692446292442176}
   - component: {fileID: 212522248447657562}
-  - component: {fileID: 114782131370789682}
+  - component: {fileID: 8078840869268502559}
   m_Layer: 13
   m_Name: SwordTemp
   m_TagString: Untagged
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &114782131370789682
+--- !u!114 &8078840869268502559
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -91,13 +91,89 @@ MonoBehaviour:
   m_GameObject: {fileID: 1735059564621952}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02c676bb8bfc8124693d980acd43be3b, type: 3}
+  m_Script: {fileID: 11500000, guid: ffae4815affd61d45b5a2fbd50a3f2f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  swordBase: {fileID: 635317820988699814}
-  swordTip: {fileID: 8500004457861914004}
-  damage: 17
-  knockback: 350
+  visualizeDebug: 0
+  weaponTip: {fileID: 8500004457861914004}
+  weaponBase: {fileID: 635317820988699814}
+  attacks:
+  - attackInputType: 1
+    attackTapActions:
+    - {fileID: 11400000, guid: ed47138307d2beb40a66113834c89f93, type: 2}
+    attackHoldActions:
+    - {fileID: 11400000, guid: dcb952b11c678fa4db043e8c04733a5a, type: 2}
+    conditions:
+    - directionTriggerFlags: 1
+      groundedState: 1
+      movementStateFlags: 31
+    flipIfFacingAway: 1
+    preventFlipWhileAttacking: 1
+    tapDamage: 20
+    tapKnockback: 50
+    holdDamage: 35
+    holdKnockback: 150
+  - attackInputType: 0
+    attackTapActions:
+    - {fileID: 11400000, guid: dcb952b11c678fa4db043e8c04733a5a, type: 2}
+    - {fileID: 11400000, guid: 91ccd415b6812c74b976cc9b6d806293, type: 2}
+    attackHoldActions: []
+    conditions:
+    - directionTriggerFlags: 1
+      groundedState: 2
+      movementStateFlags: 31
+    flipIfFacingAway: 0
+    preventFlipWhileAttacking: 1
+    tapDamage: 20
+    tapKnockback: 50
+    holdDamage: 20
+    holdKnockback: 50
+  - attackInputType: 0
+    attackTapActions:
+    - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
+    attackHoldActions: []
+    conditions:
+    - directionTriggerFlags: 10
+      groundedState: 1
+      movementStateFlags: 31
+    flipIfFacingAway: 1
+    preventFlipWhileAttacking: 1
+    tapDamage: 20
+    tapKnockback: 50
+    holdDamage: 20
+    holdKnockback: 50
+  - attackInputType: 1
+    attackTapActions:
+    - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
+    attackHoldActions:
+    - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
+    - {fileID: 11400000, guid: 88ec75f983aa3a94e809b040876192d5, type: 2}
+    conditions:
+    - directionTriggerFlags: 74
+      groundedState: 2
+      movementStateFlags: 31
+    flipIfFacingAway: 0
+    preventFlipWhileAttacking: 1
+    tapDamage: 20
+    tapKnockback: 50
+    holdDamage: 20
+    holdKnockback: 50
+  - attackInputType: 1
+    attackTapActions:
+    - {fileID: 11400000, guid: 2fa4c50c06d0a6b4987b052748e38b5b, type: 2}
+    attackHoldActions:
+    - {fileID: 11400000, guid: 2fa4c50c06d0a6b4987b052748e38b5b, type: 2}
+    - {fileID: 11400000, guid: 895fdca2fd018064fba0545f979f60cf, type: 2}
+    conditions:
+    - directionTriggerFlags: 148
+      groundedState: 2
+      movementStateFlags: 23
+    flipIfFacingAway: 0
+    preventFlipWhileAttacking: 0
+    tapDamage: 20
+    tapKnockback: 50
+    holdDamage: 20
+    holdKnockback: 50
   mass: 5
 --- !u!1 &2289720762138855564
 GameObject:

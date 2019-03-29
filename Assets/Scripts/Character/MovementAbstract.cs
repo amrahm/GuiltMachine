@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public abstract class MovementAbstract : MonoBehaviour {
     #region Variables
@@ -30,6 +31,9 @@ public abstract class MovementAbstract : MonoBehaviour {
     /// <summary> Did the character just leave the ground, but can still jump to account for reaction time? </summary>
     protected internal bool coyoteGrounded;
 
+    /// <summary> Possible weird states that the character can be in, or default </summary>
+    protected internal MovementState movementState;
+
     /// <summary> The direction that the character wants to move </summary>
     protected internal Vector2 moveVec;
 
@@ -53,6 +57,10 @@ public abstract class MovementAbstract : MonoBehaviour {
 
     /// <summary> Reference to the character's animator component </summary>
     protected Animator anim;
+
+    
+    [Flags]
+    public enum MovementState { Default, Crouching, Rolling, Diving, Sliding, Climbing }
 
     #endregion
 

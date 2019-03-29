@@ -17,8 +17,8 @@ public class NpcGroundHumanoidControl : CharacterControlAbstract {
 //        crouchPressed = moveVertical < -0.8f;
 
         //Attack
-//        attackHorizontal = Random.Range(0, 2);
-        attackHorizontal = 1;
-        blockPressed = true;
+        attackHorizontal = Random.Range(0, 2);
+//        attackHorizontal = 1;
+//        blockPressed = true;
     }
 }

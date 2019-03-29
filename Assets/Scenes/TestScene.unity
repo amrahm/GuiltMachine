@@ -403,7 +403,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 1109963722}
+      objectReference: {fileID: 449245443}
     - target: {fileID: 212092225780763862, guid: 1b82f01fb7a3f874ca4bfa06b42c2680,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -459,7 +459,7 @@ MonoBehaviour:
     file_cachedStartup: {fileID: 0}
     data_cachedStartup: 
     cacheStartup: 0
-  showNavGraphs: 1
+  showNavGraphs: 0
   showUnwalkableNodes: 1
   debugMode: 0
   debugFloor: 0
@@ -467,7 +467,7 @@ MonoBehaviour:
   manualDebugFloorRoof: 0
   showSearchTree: 0
   unwalkableNodeDebugSize: 0.3
-  logPathResults: 1
+  logPathResults: 4
   maxNearestNodeDistance: 100
   scanOnStartup: 1
   fullGetNearestSearch: 0
@@ -517,7 +517,7 @@ MonoBehaviour:
   heuristic: 2
   heuristicScale: 1
   threadCount: 1
-  maxFrameTime: 1
+  maxFrameTime: 10
   batchGraphUpdates: 0
   graphUpdateBatchingInterval: 0.2
   euclideanEmbedding:
@@ -2489,6 +2489,38 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!84 &449245443
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Distort Volumes Texture
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_Width: 1200
+  m_Height: 596
+  m_AntiAliasing: 1
+  m_DepthFormat: 0
+  m_ColorFormat: 11
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &450859955
 GameObject:
   m_ObjectHideFlags: 0
@@ -3791,6 +3823,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Odysseus_NPC (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5524104822266110696, guid: dcc6070c5b8eaba4991c6a27c4a08bf0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5524104822266412744, guid: dcc6070c5b8eaba4991c6a27c4a08bf0,
         type: 3}
@@ -6848,6 +6885,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Odysseus_NPC
       objectReference: {fileID: 0}
+    - target: {fileID: 5524104822266110696, guid: dcc6070c5b8eaba4991c6a27c4a08bf0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5524104822266412744, guid: dcc6070c5b8eaba4991c6a27c4a08bf0,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -8167,38 +8209,6 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!84 &1109963722
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Distort Volumes Texture
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_Width: 1255
-  m_Height: 596
-  m_AntiAliasing: 1
-  m_DepthFormat: 0
-  m_ColorFormat: 11
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1 &1113140306
 GameObject:
   m_ObjectHideFlags: 0
@@ -14329,7 +14339,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 785740075697226904}
-  - component: {fileID: 828434601280115608}
   - component: {fileID: 828315524045958796}
   - component: {fileID: 786151826865410865}
   m_Layer: 0
@@ -14348,7 +14357,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 790876081347517192}
-  - component: {fileID: 827892550415578700}
   - component: {fileID: 793033963434534478}
   - component: {fileID: 828434228067000988}
   m_Layer: 0
@@ -14580,7 +14588,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 790887390877565394}
-  - component: {fileID: 828230397201229702}
   - component: {fileID: 796986507928270790}
   - component: {fileID: 824347443608247642}
   m_Layer: 0
@@ -15432,18 +15439,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &827892550415578700
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 786779257990302650}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ec17ceaa560940e9bf0dbeafc3a1971, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &828002973546128194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15528,18 +15523,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   healthBarRect: {fileID: 717977568599615338}
   healthText: {fileID: 828594477001582506}
---- !u!114 &828230397201229702
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 787368258066483238}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ec17ceaa560940e9bf0dbeafc3a1971, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &828267673776150544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15672,18 +15655,6 @@ MonoBehaviour:
   lightObstacleScale: 1
   material: {fileID: 2100000, guid: 0a8c132f813f5514b9f5b48ff3956482, type: 2}
   multiplicativeColor: {r: 0, g: 0, b: 0, a: 0.25490198}
---- !u!114 &828434601280115608
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 786726246967845460}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ec17ceaa560940e9bf0dbeafc3a1971, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &828454797658407790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15871,7 +15842,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6206285679440284350}
-  - component: {fileID: 3734126900513175792}
   - component: {fileID: 721104999382935378}
   - component: {fileID: 786151827187844047}
   m_Layer: 0
@@ -15881,18 +15851,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &3734126900513175792
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3522806391931499716}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ec17ceaa560940e9bf0dbeafc3a1971, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &6206285679440284350
 Transform:
   m_ObjectHideFlags: 0
@@ -16232,8 +16190,73 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
         type: 3}
+      propertyPath: attacks.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: attacks.Array.data[0].directionsToActivate.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: sadas.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: attacks.Array.data[1].directionsToActivate.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: attacks.Array.data[0].conditions.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: attacks.Array.data[0].conditions.Array.data[0].directionsToActivate.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: attacks.Array.data[2].conditions.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
       propertyPath: visualizeDebug
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: sadas.Array.data[0]
+      value: -3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: test
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: testss
+      value: 26
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: attacks.Array.data[0].stateFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024894547444615904, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: attacks.Array.data[1].stateFlags
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1849242831887509630, guid: 9144f59f4d24b0340b26324fe9274b61,
+        type: 3}
+      propertyPath: showCurrentInput
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9144f59f4d24b0340b26324fe9274b61, type: 3}
