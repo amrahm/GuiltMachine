@@ -67,7 +67,7 @@ public class WeaponScript : MonoBehaviour {
              "and how much should their velocity increase the weapon's force"), SerializeField]
     private float mass = 5;
 
-    private WeaponAnimationEventObjects _animEventObjs;
+    private CommonObjectsSingleton _animEventObjs;
     private Coroutine _fadeCoroutine;
     private Coroutine _bufferAttackCoroutine;
 
@@ -75,6 +75,7 @@ public class WeaponScript : MonoBehaviour {
     private AttackAction _bufferAttack;
 
     private AttackCondition[] _attackConditions;
+    private LayerMask _whatIsHittable;
 
     public enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, FadingOut }
 
@@ -134,6 +135,9 @@ public class WeaponScript : MonoBehaviour {
 
     [Serializable]
     internal class AttackDefinition {
+        // ReSharper disable once NotAccessedField.Global (Used in Unity inspector automatically)
+        public string name = "I THIRST FOR A NAME";
+
         [Tooltip("Does this attack only have a single action or should it do something different if the player taps " +
                  "or the player holds the input keys"), SerializeField]
         internal AttackInputType attackInputType;
@@ -205,7 +209,7 @@ public class WeaponScript : MonoBehaviour {
         public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
 
         public override void OnAttackWindup(AttackAction attackAction) {
-            if(_weaponScript.mvmt.FlipInt != attackAction.inH)
+            if(attackAction.inH != 0 && _weaponScript.mvmt.FlipInt != attackAction.inH)
                 _weaponScript.mvmt.Flip();
         }
 
@@ -270,7 +274,7 @@ public class WeaponScript : MonoBehaviour {
 
             // Figure out which attack, if any, matches the current conditions
             attackDefinition = (from condition in _wA._attackConditions
-                                where condition.directionTriggers.Contains(_wA.GetCurrentAttackDirection()) &&
+                                where condition.directionTriggers.Contains(_wA.GetAttackDirection(inH, inV)) &&
                                       (!_wA.mvmt.grounded || condition.groundedState != GroundedState.NotGrounded) &&
                                       (_wA.mvmt.grounded || condition.groundedState != GroundedState.Grounded) &&
                                       condition.movementStates.Contains(_wA.mvmt.movementState)
@@ -343,30 +347,30 @@ public class WeaponScript : MonoBehaviour {
         }
     }
 
-    private AttackDirection GetCurrentAttackDirection() {
-        switch(ctrl.attackHorizontal * mvmt.FlipInt) {
+    private AttackDirection GetAttackDirection(int inH, int inV) {
+        switch(inH * mvmt.FlipInt) {
             case -1:
-                switch(ctrl.attackVertical) {
+                switch(inV) {
                     case -1: return AttackDirection.BackwardDown;
                     case 0:  return AttackDirection.Backward;
                     case 1:  return AttackDirection.BackwardUp;
-                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(ctrl.attackVertical)}");
+                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inV)}");
                 }
             case 0:
-                switch(ctrl.attackVertical) {
+                switch(inV) {
                     case -1: return AttackDirection.Down;
-                    case 0:  return AttackDirection.Forward; //FIXME what do here?
+                    case 0:  throw new ArgumentOutOfRangeException($"No input direction??");
                     case 1:  return AttackDirection.Up;
-                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(ctrl.attackVertical)}");
+                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inV)}");
                 }
             case 1:
-                switch(ctrl.attackVertical) {
+                switch(inV) {
                     case -1: return AttackDirection.ForwardDown;
                     case 0:  return AttackDirection.Forward;
                     case 1:  return AttackDirection.ForwardUp;
-                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(ctrl.attackVertical)}");
+                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inV)}");
                 }
-            default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(ctrl.attackHorizontal)}");
+            default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inH)}");
         }
     }
 
@@ -386,7 +390,8 @@ public class WeaponScript : MonoBehaviour {
     }
 
     private void Awake() {
-        _animEventObjs = WeaponAnimationEventObjects.Instance;
+        _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster.layerMask & ~(1 << gameObject.layer);
+        _animEventObjs = CommonObjectsSingleton.Instance;
         List<AttackCondition> attackConditionsTemp = new List<AttackCondition>();
         foreach(AttackDefinition attack in attacks) {
             attack.Initialize(this);
@@ -441,13 +446,13 @@ public class WeaponScript : MonoBehaviour {
     /// <param name="duration"> An optional duration that some events need </param>
     public void ReceiveAnimationEvent(AnimationEventObject e, float duration) {
         if(_primaryAttack == null) return;
-        if(e == _animEventObjs.swingFadeIn && _primaryAttack.state == AttackState.WindingUp) {
+        if(e == _animEventObjs.attackFadeIn && _primaryAttack.state == AttackState.WindingUp) {
             FadeAttackIn(duration);
-        } else if(e == _animEventObjs.swingStart && _primaryAttack.state == AttackState.WindingUp) {
+        } else if(e == _animEventObjs.attackAttackingStart && _primaryAttack.state == AttackState.WindingUp) {
             _primaryAttack.BeginAttacking();
-        } else if(e == _animEventObjs.swingEnd && _primaryAttack.state == AttackState.Attacking) {
+        } else if(e == _animEventObjs.attackAttackingEnd && _primaryAttack.state == AttackState.Attacking) {
             _primaryAttack.BeginRecovering();
-        } else if(e == _animEventObjs.swingFadeOut && _primaryAttack.state == AttackState.Recovering) {
+        } else if(e == _animEventObjs.attackFadeOut && _primaryAttack.state == AttackState.Recovering) {
             _primaryAttack.EndAttack(duration);
         }
     }
@@ -471,20 +476,20 @@ public class WeaponScript : MonoBehaviour {
                 bool HitBaddy(RaycastHit2D rHit) {
 #if UNITY_EDITOR
                     if(visualizeDebug && rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
-                       Linecast(_prevBase, rHit.point, mvmt.WhatIsGround & ~(1 << rHit.collider.gameObject.layer))) {
+                       Linecast(_prevBase, rHit.point, _whatIsHittable & ~(1 << rHit.collider.gameObject.layer))) {
                         Debug.DrawLine(_prevBase, rHit.point, Color.red);
                     }
 #endif
                     return rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
                            // Make sure nothing of a different layer is between where the sword was and where it hit
-                           !Linecast(_prevBase, rHit.point, mvmt.WhatIsGround & ~(1 << rHit.collider.gameObject.layer));
+                           !Linecast(_prevBase, rHit.point, _whatIsHittable & ~(1 << rHit.collider.gameObject.layer));
                 }
 
 //               print("CHECK1");
                 //CHECK1: along blade
                 Vector2 basePos = weaponBase.position;
                 Vector2 tipPos = weaponTip.position;
-                swingCheck = Linecast(basePos, tipPos, mvmt.WhatIsGround);
+                swingCheck = Linecast(basePos, tipPos, _whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(basePos, tipPos);
 #endif
@@ -493,7 +498,7 @@ public class WeaponScript : MonoBehaviour {
 
 //               print("CHECK2");
                 //CHECK2: along tip movement
-                swingCheck = Linecast(_prevTip, tipPos, mvmt.WhatIsGround);
+                swingCheck = Linecast(_prevTip, tipPos, _whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(_prevTip, tipPos);
 #endif
@@ -501,7 +506,7 @@ public class WeaponScript : MonoBehaviour {
 
 //                print("CHECK3");
                 //CHECK3: along base movement
-                swingCheck = Linecast(_prevBase, basePos, mvmt.WhatIsGround);
+                swingCheck = Linecast(_prevBase, basePos, _whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(_prevBase, basePos);
 #endif
@@ -510,7 +515,7 @@ public class WeaponScript : MonoBehaviour {
 //               print("CHECK4");
                 //CHECK4: along lower third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f),
-                                      mvmt.WhatIsGround);
+                                      _whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f));
@@ -520,7 +525,7 @@ public class WeaponScript : MonoBehaviour {
 //               print("CHECK5");
                 //CHECK5: along upper third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f),
-                                      mvmt.WhatIsGround);
+                                      _whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f));
@@ -532,7 +537,7 @@ public class WeaponScript : MonoBehaviour {
                 float swordLength = Vector2.Distance(basePos, tipPos);
                 Vector2 baseMid = Vector2.Lerp(_prevBase, basePos, 0.33f);
                 Vector2 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.33f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.WhatIsGround);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, _whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif
@@ -542,7 +547,7 @@ public class WeaponScript : MonoBehaviour {
                 //CHECK7: along second third blade
                 baseMid = Vector2.Lerp(_prevBase, basePos, 0.66f);
                 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.66f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, mvmt.WhatIsGround);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, _whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif
@@ -572,14 +577,17 @@ public class WeaponScript : MonoBehaviour {
             force += attackAction.attackDir * knockback; // Add knockback in the direction of the swing
 
 
-            if(damageable.CheckProtected(point, swingHit.collider)) {
-                //TODO recoil and sparks or something shit idk
-                var hTf = holder.transform;
-                Vector2 recoil = (hTf.position - swingHit.transform.position + hTf.up / 6) * knockback;
-                holder.characterPhysics?.AddForceAt(point, recoil, GetComponentInParent<Collider2D>());
-                FadeAttackOut(0.30121f);
-                attackAction.BeginRecovering();
-                yield break;
+            switch(damageable.CheckProtected(point, swingHit.collider)) {
+                case ProtectedType.Dodging: yield break;
+                case ProtectedType.Blocking: {
+                    //TODO recoil and sparks or something shit idk
+                    var hTf = holder.transform;
+                    Vector2 recoil = (hTf.position - swingHit.transform.position + hTf.up / 6) * knockback;
+                    holder.characterPhysics?.AddForceAt(point, recoil, GetComponentInParent<Collider2D>());
+                    FadeAttackOut(0.30121f);
+                    attackAction.BeginRecovering();
+                    yield break;
+                }
             }
             // Damage scaled based on relative velocity
             int damageGiven = (int) Math.Max(damage, damage * mvmt.rb.velocity.magnitude);

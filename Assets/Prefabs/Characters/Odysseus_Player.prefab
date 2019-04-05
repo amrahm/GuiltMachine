@@ -1431,7 +1431,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 984cc4b28b28d2547bb4bcce0a85a586, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whatIsGroundMaster: {fileID: 11400000, guid: 903c86250aa98c04aa5fe7eb38424058, type: 2}
   maxWalkSlope: 50
   visualizeDebug: 0
   allowJumpingInMidair: 0
@@ -1446,6 +1445,8 @@ MonoBehaviour:
   airControl: 0.7
   airSlowdownMultiplier: 1
   kickAir: 0.3
+  rollVelocity: 0.5
+  rollCooldown: 0.5
   groundCheckOffsetR: {x: 0, y: 0}
   groundCheckOffsetR2: {x: 0.15, y: 0}
   groundCheckOffsetL: {x: 0, y: 0}
@@ -1707,6 +1708,7 @@ MonoBehaviour:
   - {fileID: 8540650498355592947}
   - {fileID: 8540650499274306927}
   - {fileID: 9026288984508607320}
+  spritesHolder: {fileID: 8540650499226524308}
   hips: {fileID: 1849242831887509619}
   torso: {fileID: 1849242831887509601}
   head: {fileID: 1849242831887509533}

@@ -98,7 +98,8 @@ MonoBehaviour:
   weaponTip: {fileID: 8500004457861914004}
   weaponBase: {fileID: 635317820988699814}
   attacks:
-  - attackInputType: 1
+  - name: Stab/Swing Forward (Ground)
+    attackInputType: 1
     attackTapActions:
     - {fileID: 11400000, guid: ed47138307d2beb40a66113834c89f93, type: 2}
     attackHoldActions:
@@ -113,7 +114,8 @@ MonoBehaviour:
     tapKnockback: 50
     holdDamage: 35
     holdKnockback: 150
-  - attackInputType: 0
+  - name: SwingDash Forward (Air)
+    attackInputType: 0
     attackTapActions:
     - {fileID: 11400000, guid: dcb952b11c678fa4db043e8c04733a5a, type: 2}
     - {fileID: 11400000, guid: 91ccd415b6812c74b976cc9b6d806293, type: 2}
@@ -128,7 +130,8 @@ MonoBehaviour:
     tapKnockback: 50
     holdDamage: 20
     holdKnockback: 50
-  - attackInputType: 0
+  - name: Swing Up (Ground)
+    attackInputType: 0
     attackTapActions:
     - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
     attackHoldActions: []
@@ -142,7 +145,8 @@ MonoBehaviour:
     tapKnockback: 50
     holdDamage: 20
     holdKnockback: 50
-  - attackInputType: 1
+  - name: SwingDash Up (Air)
+    attackInputType: 1
     attackTapActions:
     - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
     attackHoldActions:
@@ -158,7 +162,8 @@ MonoBehaviour:
     tapKnockback: 50
     holdDamage: 20
     holdKnockback: 50
-  - attackInputType: 1
+  - name: Stab/StabDash Down (Air)
+    attackInputType: 1
     attackTapActions:
     - {fileID: 11400000, guid: 2fa4c50c06d0a6b4987b052748e38b5b, type: 2}
     attackHoldActions:

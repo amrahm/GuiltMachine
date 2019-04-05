@@ -12,7 +12,6 @@ public class HumanoidMovement : MovementAbstract {
     private const float CoyoteTime = 0.08f;
 
     private const string RollStateTag = "Roll";
-    private const int RollLayer = 11;
     private const float GrabAdd = 0.1f;
     private const float TimeToGrab = .15f;
 
@@ -59,6 +58,12 @@ public class HumanoidMovement : MovementAbstract {
 
     [Tooltip("A kick to make the character start moving faster while in midair"), SerializeField]
     private float kickAir;
+
+    [Tooltip("How fast the character moved when rolling"), SerializeField]
+    private float rollVelocity = 0.5f;
+
+    [Tooltip("How many seconds till character can roll again"), SerializeField]
+    private float rollCooldown = 0.5f;
 
     [Tooltip("Offset for the back of the right foot ground check raycast"), SerializeField]
     private Vector2 groundCheckOffsetR;
@@ -163,6 +168,9 @@ public class HumanoidMovement : MovementAbstract {
 
     /// <summary> True if the character pressed jump while rolling </summary>
     private bool _wantsToRollJump;
+
+    /// <summary> Time at which character last finished rolling </summary>
+    private float _lastRollTime = float.NegativeInfinity;
 
     /// <summary> Time of first jump press, useful in detecting double taps </summary>
     private float _jumpMidAirFirstPressTime = -10f;
@@ -793,7 +801,7 @@ public class HumanoidMovement : MovementAbstract {
             movementState = Default;
 
         // If the character initiates a roll beyond a certain speed, make them roll instead
-        if(movementState == Crouching && wasStanding && _walkSprint > .1f)
+        if(movementState == Crouching && wasStanding && _walkSprint > .1f && Time.time > _lastRollTime + rollCooldown)
             RollStart();
         else {
             // otherwise, set the animator
@@ -809,18 +817,23 @@ public class HumanoidMovement : MovementAbstract {
     private void RollStart() {
         movementState = Rolling;
         anim.SetBool(RollAnim, true);
-        _rollDir = Mathf.Sign(control.moveHorizontal);
         foreach(var part in _parts.parts) part.layer = RollLayer;
+        foreach(Transform child in _parts.spritesHolder.transform)
+            child.GetComponent<SpriteRenderer>().color = Color.blue;
+        _rollDir = Mathf.Sign(control.moveHorizontal);
         cantFlip++;
 //        print("ROLL INC " + cantFlip);
     }
+
+    private void DodgeStart() { master.dodging = true; }
+    private void DodgeEnd() { master.dodging = false; }
 
     /// <summary> Handles character rolling </summary>
     private void Roll() {
         if(movementState == Rolling) {
             // Continue the roll and check if it should end, or if the character should RollJump
             _rollingTime += Time.fixedDeltaTime;
-            Move(_rollDir, false);
+            Move(_rollDir * rollVelocity, false);
             if(!grounded) RollJump();
             if(!anim.IsPlaying(RollStateTag) && _rollingTime > 0.5f) RollEnd();
         }
@@ -831,9 +844,12 @@ public class HumanoidMovement : MovementAbstract {
         if(movementState != Rolling) return;
         movementState = Default;
         anim.SetBool(RollAnim, false);
-        _rollingTime = 0;
         foreach(var part in _parts.parts) part.layer = _initLayer;
+        foreach(Transform child in _parts.spritesHolder.transform)
+            child.GetComponent<SpriteRenderer>().color = Color.white;
+        _rollingTime = 0;
         cantFlip--;
+        _lastRollTime = Time.time;
 //        print("ROLL DEC " + cantFlip);
     }
 

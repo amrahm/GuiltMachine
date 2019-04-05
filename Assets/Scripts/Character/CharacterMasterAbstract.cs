@@ -27,13 +27,14 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     /// <summary> Reference to this gameObject's Control script </summary>
     [NonSerialized] public CharacterControlAbstract control;
 
+    /// <summary> Is the character currently unhittable </summary>
+    protected internal bool dodging;
 
-    public bool CheckProtected(Vector2 point, Collider2D hitCollider) {
-        if(weapon != null && weapon.Blocking) {
-            //TODO more complicated checking to account for blocking direction.
-            return true;
-        }
-        return false;
+
+    public ProtectedType CheckProtected(Vector2 point, Collider2D hitCollider) {
+        if(dodging) return ProtectedType.Dodging;
+        if(weapon != null && weapon.Blocking) return ProtectedType.Blocking;
+        return ProtectedType.Not;
     }
 
     public virtual void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {

@@ -5,12 +5,10 @@ public abstract class MovementAbstract : MonoBehaviour {
     #region Variables
 
     [Header("Movement Setup")]
-    [Tooltip("The shared WhatIsGround asset specifying what characters should consider to be ground." +
-             " Ignore for enemies that only fly.")]
-    public WhatIsGround whatIsGroundMaster;
-
     [Tooltip("The greatest slope that the character can walk up. Ignore for enemies that only fly.")]
     public float maxWalkSlope = 50;
+
+    public const int RollLayer = 11;
 
 
     /// <summary> A mask determining what is ground to the character </summary>
@@ -58,7 +56,7 @@ public abstract class MovementAbstract : MonoBehaviour {
     /// <summary> Reference to the character's animator component </summary>
     protected Animator anim;
 
-    
+
     [Flags]
     public enum MovementState { Default, Crouching, Rolling, Diving, Sliding, Climbing }
 
@@ -72,8 +70,8 @@ public abstract class MovementAbstract : MonoBehaviour {
         master = GetComponent<CharacterMasterAbstract>();
         tf = transform;
 
-        if(whatIsGroundMaster != null)
-            WhatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
+        // Common WhatIsGround, but remove current layer
+        WhatIsGround = CommonObjectsSingleton.Instance.whatIsGroundMaster.layerMask & ~(1 << gameObject.layer);
     }
 
 
