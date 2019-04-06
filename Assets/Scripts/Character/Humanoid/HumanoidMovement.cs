@@ -844,6 +844,7 @@ public class HumanoidMovement : MovementAbstract {
         if(movementState != Rolling) return;
         movementState = Default;
         anim.SetBool(RollAnim, false);
+        DodgeEnd(); // Needed in case of roll jump
         foreach(var part in _parts.parts) part.layer = _initLayer;
         foreach(Transform child in _parts.spritesHolder.transform)
             child.GetComponent<SpriteRenderer>().color = Color.white;

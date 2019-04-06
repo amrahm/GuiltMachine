@@ -10,6 +10,7 @@ public class CinemachineDampingControl : MonoBehaviour {
 
     private void Awake() {
         if(!cam) cam = Camera.main;
+        cam.transform.parent = null;
         _frame = GetComponent<CinemachineVirtualCamera>().GetCinemachineComponent<CinemachineFramingTransposer>();
         _xDamp = _frame.m_XDamping;
         _yDamp = _frame.m_YDamping;
