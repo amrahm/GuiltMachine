@@ -544,46 +544,46 @@ public class CharacterPhysics : MonoBehaviour {
 
     #region SetAnimationMode
 
-#if UNITY_EDITOR
-    private void Update() {
-        if(EditorApplication.isPlaying) {
-            if(animationMode) Debug.LogError($"Animation mode is still on for gameObject {gameObject.name}");
-            return;
-        }
-        _parts = GetComponent<PartsAbstract>();
-        _parts.AddPartsToLists();
-        if(!_wasAnimationMode && animationMode) SwapPartsWithTargets(_parts.parts, _parts.targets);
-        if(_wasAnimationMode && !animationMode) SwapPartsWithTargets(_parts.targets, _parts.parts);
-        _wasAnimationMode = animationMode;
+//#if UNITY_EDITOR
+//    private void Update() {
+//        if(EditorApplication.isPlaying) {
+//            if(animationMode) Debug.LogError($"Animation mode is still on for gameObject {gameObject.name}");
+//            return;
+//        }
+//        _parts = GetComponent<PartsAbstract>();
+//        _parts.AddPartsToLists();
+//        if(!_wasAnimationMode && animationMode) SwapPartsWithTargets(_parts.parts, _parts.targets);
+//        if(_wasAnimationMode && !animationMode) SwapPartsWithTargets(_parts.targets, _parts.parts);
+//        _wasAnimationMode = animationMode;
 
-        for(int i = 0; i < _parts.parts.Length; i++) {
-            //Rotate actual part to animated target in edit mode too
-            _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
-                                                             _parts.targets[i].transform.rotation);
-        }
-    }
+//        for(int i = 0; i < _parts.parts.Length; i++) {
+//            //Rotate actual part to animated target in edit mode too
+//            _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
+//                                                             _parts.targets[i].transform.rotation);
+//        }
+//    }
 
-    private void SwapPartsWithTargets(GameObject[] currents, GameObject[] news) {
-        foreach(Transform sprite in transform.Find("Sprites")) {
-//            Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git
-            SpriteSkin spriteSkin = sprite.GetComponent<SpriteSkin>();
-            Transform[] bones = spriteSkin.m_BoneTransforms;
-            Transform root = spriteSkin.m_RootBone;
-            for(int i = 0; i < bones.Length; i++) {
-                int index = Array.IndexOf(currents, bones[i].gameObject);
-                if(index != -1) {
-                    Transform bone2D = news[index].transform;
-                    bones[i] = bone2D;
-                    if(bone2D.name == root.name) root = bone2D;
-                } else {
-                    Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
-                }
-            }
-            spriteSkin.m_BoneTransforms = bones;
-            spriteSkin.m_RootBone = root;
-        }
-    }
-#endif
+//    private void SwapPartsWithTargets(GameObject[] currents, GameObject[] news) {
+//        foreach(Transform sprite in transform.Find("Sprites")) {
+////            Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git
+//            SpriteSkin spriteSkin = sprite.GetComponent<SpriteSkin>();
+//            Transform[] bones = spriteSkin.m_BoneTransforms;
+//            Transform root = spriteSkin.m_RootBone;
+//            for(int i = 0; i < bones.Length; i++) {
+//                int index = Array.IndexOf(currents, bones[i].gameObject);
+//                if(index != -1) {
+//                    Transform bone2D = news[index].transform;
+//                    bones[i] = bone2D;
+//                    if(bone2D.name == root.name) root = bone2D;
+//                } else {
+//                    Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
+//                }
+//            }
+//            spriteSkin.m_BoneTransforms = bones;
+//            spriteSkin.m_RootBone = root;
+//        }
+//    }
+//#endif
 
     #endregion
 }

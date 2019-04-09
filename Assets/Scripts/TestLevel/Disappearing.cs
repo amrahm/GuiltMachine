@@ -1,0 +1,56 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Disappearing : MonoBehaviour
+{
+    public float speed = .01f;
+    public float offset = 0f;
+    private bool appearing = false;
+    private float transparency
+    {
+        get
+        {
+           return this.gameObject.GetComponent<SpriteRenderer>().color.a;        }
+        set
+        {
+            Color newColor = this.gameObject.GetComponent<SpriteRenderer>().color;
+            newColor.a = value;
+            this.gameObject.GetComponent<SpriteRenderer>().color = newColor;
+        }
+    }
+    // Start is called before the first frame update
+    void Start()
+    {
+    }
+
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        if (Time.time > offset) {
+            if (appearing)
+            {
+                if (transparency >= .5f) {
+                    this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
+                }
+                if (transparency >= 1f)
+                {
+                    appearing = false;
+                }
+                transparency += speed;
+            }
+            else
+            {
+                if (transparency <= .5f)
+                {
+                    this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
+                }
+                if (transparency <= 0f)
+                {
+                    appearing = true;
+                }
+                transparency -= speed;
+            }
+        }
+    }
+}

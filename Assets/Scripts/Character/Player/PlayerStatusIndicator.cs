@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Serialization;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class PlayerStatusIndicator : StatusIndicator
