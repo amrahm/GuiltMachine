@@ -34,7 +34,7 @@ public class AnimationManager : MonoBehaviour {
         }
     }
 
-    //test change
+    //test change is now fixed
 
 
     //test change 2
