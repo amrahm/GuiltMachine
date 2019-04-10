@@ -29,13 +29,8 @@ public class AnimationManager : MonoBehaviour {
                 _characterMaster.weapon?.ReceiveAnimationEvent(eObject, duration);
                 break;
             default:
-                Debug.LogError($"{nameof(AnimationManager)} doesn't know what to do with event type ${eObject.eventType}");
+                Debug.LogError($"{nameof(AnimationManager)} doesn't know event type ${eObject.eventType}");
                 break;
         }
     }
-
-    //test change is now fixed
-
-
-    //test change 2
 }
