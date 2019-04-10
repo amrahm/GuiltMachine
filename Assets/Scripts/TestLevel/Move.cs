@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Move : MonoBehaviour
 {
@@ -11,31 +9,19 @@ public class Move : MonoBehaviour
 
     private bool positive = true;
     private float startingPos;
-    private Vector3 pos
-    {
-        get
-        {
-            return this.transform.localPosition;
-        }
-        set
-        {
-            this.transform.localPosition = value;
-        }
-    }
-    // Start is called before the first frame update
-    void Start()
-    {
-        if (vertical)
-        {
-            startingPos = pos.y;
-        }
-        else
-        {
-            startingPos = pos.x;
+    private Rigidbody2D _rb;
+
+    private Vector3 pos {
+        get => transform.position;
+        set {
+            _rb = GetComponent<Rigidbody2D>();
+            if(_rb != null) _rb.MovePosition(value);
+            else transform.position = value;
         }
     }
 
-    // Update is called once per frame
+    void Start() { startingPos = vertical ? pos.y : pos.x; }
+
     void FixedUpdate()
     {
         if (vertical)
