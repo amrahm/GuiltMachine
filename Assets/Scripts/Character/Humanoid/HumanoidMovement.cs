@@ -471,10 +471,6 @@ public class HumanoidMovement : MovementAbstract {
             case Rolling:
                 RollEnd();
                 break;
-            case Diving:
-                break;
-            case Sliding:
-                break;
             case Climbing:
                 ClimbRelease(false);
                 break;
@@ -615,6 +611,8 @@ public class HumanoidMovement : MovementAbstract {
                 }
             } else {
                 if(_frictionZero) {
+                    //TODO is this getting called even while walking if moving too fast? Could that cause
+                    //TODO weird interactions with rigidbodies below feet
                     // reset friction to normal
                     _footFrictionMat.friction = 1;
                     _frictionZero = false;

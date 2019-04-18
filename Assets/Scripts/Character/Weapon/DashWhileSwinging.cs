@@ -42,6 +42,7 @@ public class DashWhileSwinging : WeaponAttackAbstract {
     public override void OnFadingOut(AttackAction attackAction) { }
 
     private IEnumerator _AttackDash(AttackAction attackAction) {
+        //FIXME Not framerate independent? Seems to go crazy sometimes at low/unstable framerates
         Vector2 direction = hasFixedRelativeDirection ?
                                 (Vector2) weapon.mvmt.tf.TransformDirection(fixedRelativeDirection) :
                                 attackAction.attackDir.normalized;
