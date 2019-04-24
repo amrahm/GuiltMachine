@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FinalBlock : MonoBehaviour
+public class FinalRoom : MonoBehaviour
 {
-    Block block;
+    Room room;
     Vector2 position;
 
-    public FinalBlock(Block block, Vector2 position)
+    public FinalRoom(Room room, Vector2 position)
     {
-        this.block = block;
+        this.room = room;
         this.position = position;
     }
 
-    public Block getBlock()
+    public Room getRoom()
     {
-        return block;
+        return room;
     }
 
     public Vector2 getPosition()

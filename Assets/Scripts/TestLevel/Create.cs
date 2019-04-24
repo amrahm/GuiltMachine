@@ -5,13 +5,14 @@ using UnityEngine;
 public class Create : MonoBehaviour
 {
     static List<Block> area = new List<Block>();
-    static List<FinalBlock> finalArea = new List<FinalBlock>();
+    static List<FinalRoom> finalArea = new List<FinalRoom>();
     static GameObject container;
     static float maxJump = 2f;
     static float blockWidth = 2.5f;
     static float blockHeight = 1f;
 
     // for instantatite
+    public GameObject GO,GO1,GO2;
     public GameObject b1, b2, b3, b4, b5, b6, b7, b8;
     public GameObject g1, g2, g3, g4, g5, g6,g7;
     private Block group1, group2, group3, group4, group5, group6, group7;
@@ -156,137 +157,143 @@ public class Create : MonoBehaviour
         }
     }
 
-    public void NewInstantiate(List<FinalBlock> level)
+    public void NewInstantiate(List<FinalRoom> level)
     {
 
-        foreach (FinalBlock b in level)
+        foreach (FinalRoom b in level)
         {
-            GameObject temp = Instantiate(b.getBlock().getGO());
+            GameObject temp = Instantiate(b.getRoom().getGO());
             temp.transform.localPosition = new Vector3(b.getPosition().x, b.getPosition().y);
             temp.transform.SetParent(container.transform);
         }
     }
 
-    private static bool newConflicts(FinalBlock add)
+    private static bool newConflicts(FinalRoom add, Vector2 lb, Vector2 rt)
     {
         Vector2 addPosition = add.getPosition();
-        foreach (FinalBlock b in finalArea)
+        Vector2 addDimensions = add.getRoom().getDimensions();
+        if (addPosition.x > rt.x || addPosition.x < lb.x || addPosition.y > rt.y || addPosition.y < lb.y)
         {
-            Vector2 position = b.getPosition();
-            // need a continue and a true
-            if(addPosition.y > position.y && addPosition.y < position.y + b.getBlock().getHeight())
+            return true;
+        }
+
+        foreach (FinalRoom b in finalArea)
+        {
+            Vector2 bPosition = b.getPosition();
+            Vector2 bDimensions = b.getRoom().getDimensions();
+            if (addPosition.y + addDimensions.y/2 > bPosition.y- bDimensions.y/2 &&
+             addPosition.y - addDimensions.y / 2 < bPosition.y + bDimensions.y / 2)
             {
-                if (addPosition.x > position.x && addPosition.x < position.x + b.getBlock().getWidth())
-                {
-                    return true;
-                }
-            } else if (position.y > addPosition.y && position.y < addPosition.y + b.getBlock().getHeight())
-            {
-                if (position.x > addPosition.x && position.x < addPosition.x + b.getBlock().getWidth())
-                {
-                    return true;
-                }
+                if (addPosition.x + addDimensions.x / 2 > bPosition.x - bDimensions.x / 2 && 
+                addPosition.x - addDimensions.x / 2 < bPosition.x + bDimensions.x / 2) 
+                    { return true; }
+
             }
+            //if (addPosition.x + addDimensions.x / 2 > bPosition.x - bDimensions.x / 2 ||
+            //addPosition.x - addDimensions.x / 2 < bPosition.x + bDimensions.x / 2)
+            //{
+            //    if (addPosition.y + addDimensions.y / 2 > bPosition.y - bDimensions.y / 2 &&
+            // addPosition.y - addDimensions.y / 2 < bPosition.y + bDimensions.y / 2)
+            //         { return true; }
+            //}
         }
         return false;
     }
 
-    public static List<FinalBlock> newCreateArea(FinalBlock parent, Vector2 lb, Vector2 rt, List<Block> centralPieces = null, int size = 2)
+    public static List<FinalRoom> newCreateArea(FinalRoom parent, Vector2 lb, Vector2 rt, List<FinalRoom> centralPieces = null, int size = 2)
     {
         finalArea.Add(parent);
-        print(finalArea.Count);
         if (finalArea.Count > size)
         {
             return finalArea;
         }
         if (centralPieces != null)
         {
-            foreach (Block b in centralPieces)
+            foreach (FinalRoom b in centralPieces)
             {
-                area.Add(b);
+                finalArea.Add(b);
             }
         }
-        Block tempBlock = parent.getBlock();
-        print(tempBlock.getGO());
-        Dictionary<string, List<Block>> tempDict = tempBlock.getPossible();
-        foreach (string key in tempDict.Keys)
-        {
-            Vector2 position = parent.getPosition();
-            Block randomBlock = tempDict[key][Random.Range(0, tempDict[key].Count)];
-            foreach (Block b in tempDict[key])
-            {
-                print(b.getGO());
-            }
-            FinalBlock temp;
-            print(key);
-            if (key == "top")
-            {
-                 temp = new FinalBlock(randomBlock, new Vector2(position.x, position.y + tempBlock.getHeight()/2 + randomBlock.getHeight()/2));
-            } else if (key == "right-top")
-            {
-                 temp = new FinalBlock(randomBlock, new Vector2(position.x + tempBlock.getWidth() / 2 + randomBlock.getWidth() / 2, position.y + tempBlock.getHeight() / 2 + randomBlock.getHeight() / 2));
 
-            } else if (key == "right")
+        Vector2 parentPosition = parent.getPosition();
+        Vector2 parentDimensions = parent.getRoom().getDimensions();
+        List<Room> rightPossibleRooms = parent.getRoom().getRooms(Room.Direction.RIGHT);
+        int randomIndex;
+        if (rightPossibleRooms.Count > 0)
+        {
+            randomIndex = Random.Range(0, rightPossibleRooms.Count);
+            print(randomIndex);
+            Room rightChild = rightPossibleRooms[randomIndex];
+            Vector2 childDimensions = rightChild.getDimensions();
+            print(parentPosition);
+            print(parentDimensions);
+            print(childDimensions);
+            print(parentPosition.x + parentDimensions.x / 2 + childDimensions.x / 2);
+            FinalRoom rightRoom = new FinalRoom(rightChild, 
+                new Vector2(parentPosition.x + parentDimensions.x/2 + childDimensions.x/2, 
+                parentPosition.y-parentDimensions.y/2+childDimensions.y/2));
+            if (!newConflicts(rightRoom, lb, rt))
             {
-                 temp = new FinalBlock(randomBlock, new Vector2(position.x + tempBlock.getWidth() / 2 + randomBlock.getWidth() / 2, position.y));
-            } else if (key == "left")
-            {
-                 temp = new FinalBlock(randomBlock, new Vector2(position.x - tempBlock.getWidth() / 2 - randomBlock.getHeight() / 2, position.y));
-            } else // key == "left-top"
-            {
-                 temp = new FinalBlock(randomBlock, new Vector2(position.x - tempBlock.getWidth() / 2 - randomBlock.getHeight() / 2, position.y + tempBlock.getHeight() / 2 + randomBlock.getHeight() / 2));
+                newCreateArea(rightRoom, lb, rt);
             }
-            if (!newConflicts(temp)) { newCreateArea(temp, lb, rt); }
+
+        }
+
+        List<Room> upPossibleRooms = parent.getRoom().getRooms(Room.Direction.UP);
+        if (upPossibleRooms.Count > 0) { 
+            randomIndex = Random.Range(0, upPossibleRooms.Count);
+            print(randomIndex);
+            Room upChild = upPossibleRooms[randomIndex];
+            Vector2 childDimensions = upChild.getDimensions();
+            print(parentPosition);
+            print(parentDimensions);
+            print(childDimensions);
+            print(parentPosition.y + parentDimensions.y / 2 + childDimensions.y / 2);
+            FinalRoom upRoom = new FinalRoom(upChild, 
+                new Vector2(parentPosition.x - parentDimensions.x / 2 + childDimensions.x / 2,
+                parentPosition.y + parentDimensions.y / 2 + childDimensions.y / 2));
+            if (!newConflicts(upRoom, lb, rt))
+            {
+                newCreateArea(upRoom, lb, rt);
+            }
         }
 
         return finalArea;
-
     }
 
     private void Start()
     {
-        // stairs right short
-        group1 = new Block(g1, new Vector2(6, 5));
+        // 10x5
+        Dictionary<Room.Direction, List<Room>> test = new Dictionary<Room.Direction, List<Room>>();
+        Room group = new Room(new Vector2(10, 5), test, GO);
+        test.Add(Room.Direction.UP, new List<Room>());
+        test.Add(Room.Direction.RIGHT, new List<Room>());
 
-        //stairs right
-        group2 = new Block(g2, new Vector2(11, 5));
+        // 5x10
+        Dictionary<Room.Direction, List<Room>> test1 = new Dictionary<Room.Direction, List<Room>>();
+        Room group11 = new Room(new Vector2(5, 10), test, GO1);
+        test1.Add(Room.Direction.UP, new List<Room>());
+        test1.Add(Room.Direction.RIGHT, new List<Room>());
 
+        // 5x5
+        Dictionary<Room.Direction, List<Room>> test2 = new Dictionary<Room.Direction, List<Room>>();
+        Room group22 = new Room(new Vector2(5, 5), test, GO2);
+        test2.Add(Room.Direction.UP, new List<Room>());
+        test2.Add(Room.Direction.RIGHT, new List<Room>());
+        // possible rooms declaration
+        test[Room.Direction.UP].Add(group);
+        test[Room.Direction.UP].Add(group22);
+        test[Room.Direction.RIGHT].Add(group);
+        test[Room.Direction.RIGHT].Add(group11);
+        test[Room.Direction.UP].Add(group);
 
-        //stairs left short
-        group3 = new Block(g3, new Vector2(6, 3));
+        test1[Room.Direction.UP].Add(group11);
+        test1[Room.Direction.UP].Add(group);
+        test1[Room.Direction.RIGHT].Add(group22);
 
-        //stairs left
-        group4 = new Block(g4, new Vector2(11, 5));
-
-
-
-        //square
-        group5 = new Block(g5, new Vector2(12, 6.5f));
-
-        // moving
-        group6 = new Block(g6, new Vector2(15, 7.5f));
-
-        // platform
-        group7 = new Block(g7, new Vector2(14, 5));
-
-        group1.addDict(new Dictionary<string, List<Block>>(){ { "top", new List<Block>{group3 } },
-         { "right-top" , new List<Block>{group1} } , { "right", new List<Block>{group5}}});
-        group2.addDict(new Dictionary<string, List<Block>>(){ { "top", new List<Block>{group3 } },
-         { "right-top" , new List<Block>{group1} }, { "right", new List<Block>{group5}} });
-        group3.addDict(new Dictionary<string, List<Block>>(){ { "top", new List<Block>{group1 } },
-         { "left-top" , new List<Block>{group3} } , { "left", new List<Block>{group5}}});
-        group4.addDict(new Dictionary<string, List<Block>>(){ { "top", new List<Block>{group1 } },
-         { "left-top" , new List<Block>{group3} } , { "left", new List<Block>{group5}} });
-        group5.addDict(new Dictionary<string, List<Block>>() { { "right", new List<Block> { group7, group6, group2 } },
-            { "top" ,new List<Block> { group3 } }  });
-        group6.addDict(new Dictionary<string, List<Block>>() { { "right-top", new List<Block> { group5, group2 } },
-            { "top" ,new List<Block> { group3 } } });
-        group7.addDict(new Dictionary<string, List<Block>>() { { "right", new List<Block> { group2, group6 } } });
-        print(group3.getGO().name);
-        print(group1.getPossible()["top"][0].getGO().name);
         container = GameObject.Find("Container");
-        FinalBlock startingBlock = new FinalBlock(group2, new Vector2(100, 2));
-        List<FinalBlock> x = Create.newCreateArea(startingBlock, new Vector2(100, 2), new Vector2(150, 20));
+        FinalRoom startingBlock = new FinalRoom(group,new Vector2(100,2));
+        List<FinalRoom> x = Create.newCreateArea(startingBlock, new Vector2(100, 2), new Vector2(150, 20));
         NewInstantiate(x);
 
         //List<Block> x = Create.createArea(new Block(new Vector2(-270,-270),1), new Vector2(-270, 1), new Vector2(-240, 30));
