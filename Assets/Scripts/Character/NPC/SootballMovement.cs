@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class SlimeMovement : MovementAbstract {
+public class SootballMovement : MovementAbstract {
     // The AI's speed per second (not framerate dependent)
     public float speed = 500f;
     public ForceMode2D fMode = ForceMode2D.Force;

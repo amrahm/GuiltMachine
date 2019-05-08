@@ -101,7 +101,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0.51
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -144,11 +144,7 @@ MonoBehaviour:
   attackVertical: 0
   attackHorizontal: 0
   blockPressed: 0
-  target: {fileID: 0}
-  searchTarget: Player
-  pathUpdateRate: 2
-  pathIsEnded: 0
-  nextWaypointDistance: 3
+  visionDistance: 0
 --- !u!114 &114873434407751150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -161,7 +157,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaedebb96382641b18f4a9fa6472626d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whatIsGroundMaster: {fileID: 11400000, guid: 903c86250aa98c04aa5fe7eb38424058, type: 2}
   maxWalkSlope: 50
   speed: 500
   fMode: 0
@@ -210,6 +205,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   godMode: 0
   characterStats: {fileID: 11400000, guid: a61ff7c0023ceee408cb98860f4eaafc, type: 2}
+  characterFaction: Phoenix
   weapon: {fileID: 0}
   statusIndicator: {fileID: 0}
   bloodEffect: {fileID: 0}

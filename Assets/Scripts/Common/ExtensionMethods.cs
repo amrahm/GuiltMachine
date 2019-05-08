@@ -243,5 +243,8 @@ namespace ExtensionMethods {
 
         /// <summary> Cache to avoid generating garbage </summary>
         public static readonly WaitForSeconds WaitForTenthSecond = new WaitForSeconds(0.1f);
+
+        /// <summary> Cache to avoid generating garbage </summary>
+        public static readonly WaitForSeconds WaitForASecond = new WaitForSeconds(1f);
     }
 }

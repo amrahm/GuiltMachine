@@ -179,6 +179,23 @@ MonoBehaviour:
     tapKnockback: 50
     holdDamage: 20
     holdKnockback: 50
+  - name: Back/BackDash (Air)
+    attackInputType: 1
+    attackTapActions:
+    - {fileID: 11400000, guid: 7a8ffdd6c84e575498674ca174370e96, type: 2}
+    attackHoldActions:
+    - {fileID: 11400000, guid: 5ca938d0ec08e0941b2ed0ad6adcd8b8, type: 2}
+    - {fileID: 11400000, guid: 91ccd415b6812c74b976cc9b6d806293, type: 2}
+    conditions:
+    - directionTriggerFlags: 32
+      groundedState: 2
+      movementStateFlags: 31
+    flipIfFacingAway: 0
+    preventFlipWhileAttacking: 0
+    tapDamage: 20
+    tapKnockback: 50
+    holdDamage: 20
+    holdKnockback: 50
   mass: 5
 --- !u!1 &2289720762138855564
 GameObject:

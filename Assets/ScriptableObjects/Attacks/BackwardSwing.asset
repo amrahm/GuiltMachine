@@ -9,13 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 33177364caf53654491646a8728a4132, type: 3}
-  m_Name: ForwardSwingDash
+  m_Script: {fileID: 11500000, guid: 941bcb3838699c84ca01c1ee7c4e40c8, type: 3}
+  m_Name: BackwardSwing
   m_EditorClassIdentifier: 
-  endWhenGrounded: 0
-  alsoEndRestOfAttackWhenGrounded: 0
-  hasFixedRelativeDirection: 0
-  fixedRelativeDirection: {x: 0, y: 0}
-  speed: 10
-  acceleration: 20
-  perpVelCancelSpeed: 1.1
+  animationTrigger: BackwardSwing

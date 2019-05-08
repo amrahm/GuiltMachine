@@ -9,6 +9,9 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [Tooltip("Character Stats Asset (Shared)"), SerializeField]
     protected CharacterStats characterStats;
 
+    [SerializeField] private string characterFaction = "I THIRST FOR A FACTION";
+    [NonSerialized] public int faction;
+
     [Tooltip("The weapon currently being held. Doesn't have to be assigned."), CanBeNull]
     public WeaponScript weapon;
 
@@ -65,6 +68,8 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
 
         statusIndicator?.SubscribeToChangeEvents(characterStats);
         characterStats.Initialize();
+
+        faction = characterFaction.GetHashCode();
 
         if(weapon != null) weapon.OnEquip(this);
     }
