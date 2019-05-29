@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 
+/* Attach this to a block to make it a vertical/horizontal moving block
+ */
 public class Move : MonoBehaviour
 {
     // for different types of movements set these
     public bool vertical = false;
     public float speed = .01f;
+    // furthest left&right or up&down the block will go
     public float offset = 4f;
 
     private bool positive = true;
@@ -22,6 +25,7 @@ public class Move : MonoBehaviour
 
     void Start() { startingPos = vertical ? pos.y : pos.x; }
 
+    // Update is called once per frame
     void FixedUpdate()
     {
         if (vertical)

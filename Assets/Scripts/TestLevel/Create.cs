@@ -17,21 +17,7 @@ public class Create : MonoBehaviour
     public GameObject g1, g2, g3, g4, g5, g6,g7;
     private Block group1, group2, group3, group4, group5, group6, group7;
 
-    private static float offsetFloat()
-    {
-        float determineOffset = Random.Range(0f, 1f);
-        float offset;
-        if (determineOffset < .5f)
-        {
-            offset = Random.Range(-blockWidth * 2, -blockWidth);
-        }
-        else
-        {
-            offset = Random.Range(blockWidth, blockWidth * 2);
-        }
-        return offset;
-    }
-
+    // checks if the block add conflicts with any of the current blocks on the map, true if conflicts
     private static bool conflicts(Block add)
     {
         foreach (Block b in area)
@@ -66,8 +52,7 @@ public class Create : MonoBehaviour
     }
 
     /*
-     * populates the area given by lb and rt, for exploration and creature fighting (EXP?)
-     * BFS? has to start off with parent = new Block()
+     * populates the area given by lb and rt, for exploration and creature fighting
      */
     public static List<Block> createArea(Block parent, Vector2 lb, Vector2 rt, List<Block> centralPieces = null,int size = 40)
     {
@@ -128,7 +113,7 @@ public class Create : MonoBehaviour
 
 
     /*
-     * Given our list of blocks, level, instantiate it in our playing field, depicted by lb and rt
+     * Given our list of blocks, level, instantiate it in our playing field
      */
     public void Instantiate(List<Block> level)
     {
@@ -157,6 +142,7 @@ public class Create : MonoBehaviour
         }
     }
 
+    // instantiate the level given the list of rooms
     public void NewInstantiate(List<FinalRoom> level)
     {
 
@@ -168,6 +154,7 @@ public class Create : MonoBehaviour
         }
     }
 
+    // checks to see that the room added does not conflict with other rooms
     private static bool newConflicts(FinalRoom add, Vector2 lb, Vector2 rt)
     {
         Vector2 addPosition = add.getPosition();
@@ -189,17 +176,13 @@ public class Create : MonoBehaviour
                     { return true; }
 
             }
-            //if (addPosition.x + addDimensions.x / 2 > bPosition.x - bDimensions.x / 2 ||
-            //addPosition.x - addDimensions.x / 2 < bPosition.x + bDimensions.x / 2)
-            //{
-            //    if (addPosition.y + addDimensions.y / 2 > bPosition.y - bDimensions.y / 2 &&
-            // addPosition.y - addDimensions.y / 2 < bPosition.y + bDimensions.y / 2)
-            //         { return true; }
-            //}
         }
         return false;
     }
 
+    /*
+     * populates the area given by lb and rt, for room exploration
+     */
     public static List<FinalRoom> newCreateArea(FinalRoom parent, Vector2 lb, Vector2 rt, List<FinalRoom> centralPieces = null, int size = 2)
     {
         finalArea.Add(parent);
@@ -263,24 +246,25 @@ public class Create : MonoBehaviour
 
     private void Start()
     {
-        // 10x5
+        // 10x5 "room"
         Dictionary<Room.Direction, List<Room>> test = new Dictionary<Room.Direction, List<Room>>();
         Room group = new Room(new Vector2(10, 5), test, GO);
         test.Add(Room.Direction.UP, new List<Room>());
         test.Add(Room.Direction.RIGHT, new List<Room>());
 
-        // 5x10
+        // 5x10 "room"
         Dictionary<Room.Direction, List<Room>> test1 = new Dictionary<Room.Direction, List<Room>>();
         Room group11 = new Room(new Vector2(5, 10), test, GO1);
         test1.Add(Room.Direction.UP, new List<Room>());
         test1.Add(Room.Direction.RIGHT, new List<Room>());
 
-        // 5x5
+        // 5x5 "room"
         Dictionary<Room.Direction, List<Room>> test2 = new Dictionary<Room.Direction, List<Room>>();
         Room group22 = new Room(new Vector2(5, 5), test, GO2);
         test2.Add(Room.Direction.UP, new List<Room>());
         test2.Add(Room.Direction.RIGHT, new List<Room>());
-        // possible rooms declaration
+
+        // possible room connections declaration
         test[Room.Direction.UP].Add(group);
         test[Room.Direction.UP].Add(group22);
         test[Room.Direction.RIGHT].Add(group);
@@ -296,14 +280,9 @@ public class Create : MonoBehaviour
         List<FinalRoom> x = Create.newCreateArea(startingBlock, new Vector2(100, 2), new Vector2(150, 20));
         NewInstantiate(x);
 
+        // OLD CODE; this completely and randomly generates an area of platforms to climb through, not proceduraly generated
         //List<Block> x = Create.createArea(new Block(new Vector2(-270,-270),1), new Vector2(-270, 1), new Vector2(-240, 30));
-
-        //List<Block> y = Create.createPath(new Vector2(50, .5f), new Vector2(75, 30));
-
-        //List<Block> z = Create.createPath(new Vector2(110, .5f), new Vector2(100, 28));
-
         //Instantiate(x);
-
     }
 }
 

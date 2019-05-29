@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/* Attach this to a block to make it a disappearing/repearring block
+ */
 public class Disappearing : MonoBehaviour
 {
-    public float speed = .01f;
-    public float offset = 0f;
+    public float speed = .01f; // of disappearing block
+    public float offset = 0f; // offset of when the block first starts disappearing/appearing
     private bool appearing = false;
     private float transparency
     {
@@ -19,10 +21,6 @@ public class Disappearing : MonoBehaviour
             this.gameObject.GetComponent<SpriteRenderer>().color = newColor;
         }
     }
-    // Start is called before the first frame update
-    void Start()
-    {
-    }
 
     // Update is called once per frame
     void FixedUpdate()
@@ -30,7 +28,7 @@ public class Disappearing : MonoBehaviour
         if (Time.time > offset) {
             if (appearing)
             {
-                if (transparency >= .5f) {
+                if (transparency >= .5f) { // can only stand on block if transparency is above .5
                     this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
                 }
                 if (transparency >= 1f)

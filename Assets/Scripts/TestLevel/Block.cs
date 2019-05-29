@@ -8,9 +8,6 @@ Dictionary<string, List<Block>> possibleRightBlocks = new Dictionary<string, Lis
     Vector2 left_right;
     float height;
     float width;
-    bool isMoving = false; // work on later second
-    bool isReappearing = false; // work on later third
-    //float moveOffset;
     GameObject go;
 
     public Block()
@@ -31,12 +28,6 @@ Dictionary<string, List<Block>> possibleRightBlocks = new Dictionary<string, Lis
         width = lr.y - lr.x;
     }
 
-    //public void setMoveOffset(float move)
-    //{
-    //    if (isMoving) {
-    //        moveOffset = move;
-    //        }
-    //}
     public void addDict(Dictionary<string, List<Block>> possible)
     {
         this.possibleRightBlocks = possible;
@@ -64,14 +55,5 @@ Dictionary<string, List<Block>> possibleRightBlocks = new Dictionary<string, Lis
     public float getWidth()
     {
         return this.width;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (isMoving)
-        {
-
-        }
     }
 }
