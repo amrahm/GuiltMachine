@@ -1,17 +1,33 @@
 fileFormatVersion: 2
 guid: 2702b067a2561864bb336a27444fbacc
 TextureImporter:
-  fileIDToRecycleName:
-    21300000: Bat_0
-    21300002: Bat_1
-    21300004: Bat_2
-    21300006: Bat_3
-    21300008: BatAnimationFrames_0
-    21300010: BatAnimationFrames_1
-    21300012: BatAnimationFrames_2
-    21300014: BatAnimationFrames_3
+  internalIDToNameTable:
+  - first:
+      213: 21300000
+    second: Bat_0
+  - first:
+      213: 21300002
+    second: Bat_1
+  - first:
+      213: 21300004
+    second: Bat_2
+  - first:
+      213: 21300006
+    second: Bat_3
+  - first:
+      213: 21300008
+    second: BatAnimationFrames_0
+  - first:
+      213: 21300010
+    second: BatAnimationFrames_1
+  - first:
+      213: 21300012
+    second: BatAnimationFrames_2
+  - first:
+      213: 21300014
+    second: BatAnimationFrames_3
   externalObjects: {}
-  serializedVersion: 9
+  serializedVersion: 10
   mipmaps:
     mipMapMode: 0
     enableMipMap: 1
@@ -96,6 +112,7 @@ TextureImporter:
       tessellationDetail: -1
       bones: []
       spriteID: 747397157d17cc24ca04250f45c6fa0d
+      internalID: 21300008
       vertices: []
       indices: 
       edges: []
@@ -116,6 +133,7 @@ TextureImporter:
       tessellationDetail: -1
       bones: []
       spriteID: 75fca4e2104ad024499f1439e0f25d3f
+      internalID: 21300010
       vertices: []
       indices: 
       edges: []
@@ -136,6 +154,7 @@ TextureImporter:
       tessellationDetail: -1
       bones: []
       spriteID: f8cfb5659fb8f914b9731442ae861c7b
+      internalID: 21300012
       vertices: []
       indices: 
       edges: []
@@ -156,6 +175,7 @@ TextureImporter:
       tessellationDetail: -1
       bones: []
       spriteID: 9fda82b1233e3bd409d114a64a3af90f
+      internalID: 21300014
       vertices: []
       indices: 
       edges: []
@@ -164,10 +184,12 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 
+    internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
+    secondaryTextures: []
   spritePackingTag: Castle
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
