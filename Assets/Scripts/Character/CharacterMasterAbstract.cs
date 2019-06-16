@@ -30,6 +30,9 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     /// <summary> Reference to this gameObject's Control script </summary>
     [NonSerialized] public CharacterControlAbstract control;
 
+    /// <summary> Reference to this gameObject's Movement script, if it exists </summary>
+    [CanBeNull] protected internal MovementAbstract movement;
+
     /// <summary> Is the character currently unhittable </summary>
     protected internal bool dodging;
 
@@ -64,6 +67,7 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
         rb = GetComponent<Rigidbody2D>();
         characterPhysics = GetComponent<CharacterPhysics>();
         control = GetComponent<CharacterControlAbstract>();
+        movement = GetComponent<MovementAbstract>();
         characterStats = Instantiate(characterStats); //create local instance that can be modified
 
         statusIndicator?.SubscribeToChangeEvents(characterStats);

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using ExtensionMethods;
+using System;
 using System.Collections;
-using ExtensionMethods;
 using UnityEngine;
 using static AnimationParameters.Humanoid;
 using static MovementAbstract.MovementState;
@@ -8,9 +8,6 @@ using static UnityEngine.Physics2D;
 
 [RequireComponent(typeof(Animator)), RequireComponent(typeof(HumanoidParts))]
 public class HumanoidMovement : MovementAbstract {
-    /// <summary> How long after walking off a ledge should the character still be considered grounded </summary>
-    private const float CoyoteTime = 0.08f;
-
     private const string RollStateTag = "Roll";
     private const float GrabAdd = 0.1f;
     private const float TimeToGrab = .15f;
@@ -148,9 +145,6 @@ public class HumanoidMovement : MovementAbstract {
     /// <summary> Used to zero out friction when moving. True if the character's feet have no friction. </summary>
     private bool _frictionZero;
 
-    /// <summary> How much time left till not considered grounded </summary>
-    private float _coyoteTimeLeft;
-
     /// <summary> How much jump fuel is left. Starts at _jumpFuel and moves to 0 </summary>
     private float _jumpFuelLeft;
 
@@ -230,7 +224,7 @@ public class HumanoidMovement : MovementAbstract {
 #if UNITY_EDITOR
         if(visualizeDebug) { //Visualize grab raycasts
             Debug.DrawRay(tf.TransformPoint(new Vector2(0, grabMidOffset + GrabAdd)),
-                          tf.right * FlipInt * grabDistance, new Color(0.52f, 1f, 0.52f));
+                          FlipInt * grabDistance * tf.right, new Color(0.52f, 1f, 0.52f));
             Debug.DrawRay(tf.TransformPoint(new Vector2(_grabDownDist, grabTopOffset)),
                           -tf.up * (grabTopOffset - grabBottomOffset), new Color(0.38f, 0.72f, 0.38f));
             if(movementState == Climbing) DebugExtension.DebugPoint(_parts.armRIK.Target().position, Color.green);
@@ -288,12 +282,12 @@ public class HumanoidMovement : MovementAbstract {
                 float wallDist = sideCheck && !sideCheckPastGrabPoint ?
                                      Vector2.Distance(footRPos, sideCheck.point) :
                                      (sideDistance < -GrabAdd * 3.5f ? 0.5f : 0);
-                Vector2 keepAgainstWall = right * Mathf.Pow(wallDist * 4, 2) * dT;
+                Vector2 keepAgainstWall = Mathf.Pow(wallDist * 4, 2) * dT * right;
 
                 // And a force to move them up or down based on input
                 float horizontalInput = control.moveHorizontal * FlipInt;
                 float climbInput = Mathf.Min(horizontalInput + control.moveVertical, 1f);
-                Vector2 climbControl = up * 3 * climbInput * dT;
+                Vector2 climbControl = 3 * climbInput * dT * up;
                 anim.SetFloat(ClimbAnimSpeed, climbInput);
 
                 rb.MovePosition(rb.position + keepAgainstWall + climbControl);
@@ -529,15 +523,7 @@ public class HumanoidMovement : MovementAbstract {
         else
             grounded = groundCheckHit && walkSlope < maxWalkSlope;
 
-        // This bit of code gives the character a little extra time to do a jump after walking off an edge
-        // This helps account for human reaction times and such
-        if(grounded) _coyoteTimeLeft = CoyoteTime;
-        else if(!grounded && _coyoteTimeLeft > 0) {
-            _coyoteTimeLeft -= Time.fixedDeltaTime;
-            coyoteGrounded = true;
-        } else {
-            coyoteGrounded = false;
-        }
+        UpdateCoyoteGrounded();
 
         // Set this so the animator can play or transition to/from the appropriate animations
         anim.SetBool(GroundedAnim, grounded || coyoteGrounded);
@@ -586,10 +572,10 @@ public class HumanoidMovement : MovementAbstract {
         if(visualizeDebug) Debug.DrawRay(_parts.footL.transform.position, tangent, Color.blue);
 #endif
         float slopeReducer = Mathf.Lerp(1, .7f, walkSlope / maxWalkSlope); // reduce speed as slopes increase
-        moveVec = slopeReducer * rb.mass * tangent * acceleration * moveIn * Time.fixedDeltaTime;
+        moveVec = slopeReducer * rb.mass * acceleration * moveIn * Time.fixedDeltaTime * tangent;
 
         void AddKick(float force) { // If walking from standstill, gives a kick so walking is more responsive
-            Vector2 kickAdd = rb.mass * tangent * force * 30 * slopeReducer;
+            Vector2 kickAdd = rb.mass * force * 30 * slopeReducer * tangent;
             if(moveIn > 0 && velForward < maxSpeed / 3) rb.AddForce(kickAdd);
             else if(moveIn < 0 && velForward > -maxSpeed / 3) rb.AddForce(-kickAdd);
         }
@@ -618,7 +604,7 @@ public class HumanoidMovement : MovementAbstract {
                     _frictionZero = false;
                 }
                 // and slow the character down so that movement isn't all slidey
-                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * groundSlowdownMultiplier;
+                rb.velocity -= velForward * Time.fixedDeltaTime * groundSlowdownMultiplier * (Vector2) tf.right;
             }
             AddKick(kick);
 
@@ -642,14 +628,12 @@ public class HumanoidMovement : MovementAbstract {
                 // If they aren't let them control their movement some
                 moveVec *= airControl;
                 AddKick(kickAir);
-                if(Mathf.Abs(moveIn - velTangent / maxSpeed) > 0 &&
-                   (moveIn > 0 && velForward < maxSpeed || moveIn < 0 && velForward > -maxSpeed)) {
+                if(moveIn > 0 && velForward < maxSpeed || moveIn < 0 && velForward > -maxSpeed)
                     rb.AddForce(moveVec, ForceMode2D.Impulse);
-                }
             }
             // If they aren't holding move in the direction of motion, slow them down a little
             if(Mathf.Abs(moveIn) < 0.1f || moveDirIsNotVelDir)
-                rb.velocity -= (Vector2) tf.right * velForward * Time.fixedDeltaTime * airSlowdownMultiplier;
+                rb.velocity -= velForward * Time.fixedDeltaTime * airSlowdownMultiplier * (Vector2) tf.right;
             anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(0)); //TODO not used while in midair yet
         }
     }
@@ -673,7 +657,7 @@ public class HumanoidMovement : MovementAbstract {
         } else if(jump && _jumpFuelLeft > 0) {
             // Make the character rise higher the longer they hold jump
             _jumpFuelLeft -= Time.fixedDeltaTime * 500;
-            rb.AddForce(tf.up * rb.mass * jumpFuelForce, ForceMode2D.Force);
+            rb.AddForce(rb.mass * jumpFuelForce * tf.up, ForceMode2D.Force);
         } else {
             _jumpFuelLeft = 0;
         }
@@ -731,7 +715,7 @@ public class HumanoidMovement : MovementAbstract {
             _airDashesLeft--;
 
             Vector2 controlVec = (tf.right * control.moveHorizontal + tf.up * control.moveVertical) / norm;
-            Vector2 dashVelocity = controlVec * jumpSpeed * airDashSpeed;
+            Vector2 dashVelocity = jumpSpeed * airDashSpeed * controlVec;
 
             // This makes sure dashes only increase speed in the direction of the dash, never decrease
             float velDot = Vector2.Dot(rb.velocity, controlVec);
@@ -823,9 +807,6 @@ public class HumanoidMovement : MovementAbstract {
 //        print("ROLL INC " + cantFlip);
     }
 
-    private void DodgeStart() { master.dodging = true; }
-    private void DodgeEnd() { master.dodging = false; }
-
     /// <summary> Handles character rolling </summary>
     private void Roll() {
         if(movementState == Rolling) {
@@ -842,7 +823,6 @@ public class HumanoidMovement : MovementAbstract {
         if(movementState != Rolling) return;
         movementState = Default;
         anim.SetBool(RollAnim, false);
-        DodgeEnd(); // Needed in case of roll jump
         foreach(var part in _parts.parts) part.layer = _initLayer;
         foreach(Transform child in _parts.spritesHolder.transform)
             child.GetComponent<SpriteRenderer>().color = Color.white;

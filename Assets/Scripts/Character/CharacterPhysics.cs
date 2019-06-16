@@ -343,9 +343,9 @@ public class CharacterPhysics : MonoBehaviour {
 
                     Vector2 flip = _pp._movement.FacingRight ? Vector2.one : FlipXVec;
                     Vector2 heightStart = partPos + up * footStepHeight.x;
-                    Vector2 heightDir = right * flip * footStepHeight.y * _pp._movement.moveVec.magnitude;
+                    Vector2 heightDir = footStepHeight.y * _pp._movement.moveVec.magnitude * flip * right;
                     Vector2 maxHeightStart = partPos + up * maxStepHeight.x;
-                    Vector2 maxHeightDir = right * flip * maxStepHeight.y * _pp._movement.moveVec.magnitude;
+                    Vector2 maxHeightDir = maxStepHeight.y * _pp._movement.moveVec.magnitude * flip * right;
 #if UNITY_EDITOR
                     if(visSettings) {
                         Debug.DrawRay(heightStart, heightDir, isLeadingLeg ? Color.cyan : new Color(0f, 1f, 0.72f));

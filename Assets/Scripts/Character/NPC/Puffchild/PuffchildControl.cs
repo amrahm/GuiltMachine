@@ -2,7 +2,7 @@
 using ExtensionMethods;
 using UnityEngine;
 
-public class SootballControl : CharacterControlAbstract {
+public class PuffchildControl : CharacterControlAbstract {
     [SerializeField, Tooltip("How far can this bad boy see?")]
     private float visionDistance;
 

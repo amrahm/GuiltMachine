@@ -2,6 +2,9 @@
 using UnityEngine;
 
 public abstract class MovementAbstract : MonoBehaviour {
+    /// <summary> How long after walking off a ledge should the character still be considered grounded </summary>
+    private const float CoyoteTime = 0.08f;
+
     #region Variables
 
     [Header("Movement Setup")]
@@ -28,6 +31,9 @@ public abstract class MovementAbstract : MonoBehaviour {
 
     /// <summary> Did the character just leave the ground, but can still jump to account for reaction time? </summary>
     protected internal bool coyoteGrounded;
+
+    /// <summary> How much time left till not considered grounded </summary>
+    private float _coyoteTimeLeft;
 
     /// <summary> Possible weird states that the character can be in, or default </summary>
     protected internal MovementState movementState;
@@ -96,6 +102,19 @@ public abstract class MovementAbstract : MonoBehaviour {
             var scale = statusTf.localScale;
             scale.x *= -1;
             statusTf.localScale = scale;
+        }
+    }
+
+
+    /// <summary> Updates coyoteGrounded, which gives the character a little extra time to do a jump after walking off
+    /// an edge. This helps account for human reaction times and such </summary>
+    protected internal void UpdateCoyoteGrounded() {
+        if(grounded) _coyoteTimeLeft = CoyoteTime;
+        else if(!grounded && _coyoteTimeLeft > 0) {
+            _coyoteTimeLeft -= Time.fixedDeltaTime;
+            coyoteGrounded = true;
+        } else {
+            coyoteGrounded = false;
         }
     }
 }

@@ -1,12 +1,12 @@
-﻿using System;
+﻿using ExtensionMethods;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using ExtensionMethods;
-using static ExtensionMethods.HelperMethods;
 using UnityEngine;
-using static UnityEngine.Physics2D;
+using static ExtensionMethods.HelperMethods;
 using static MovementAbstract;
+using static UnityEngine.Physics2D;
 
 public class WeaponScript : MonoBehaviour {
     private const int AttackOverrideLayerIndex = 1;
@@ -32,6 +32,10 @@ public class WeaponScript : MonoBehaviour {
 
     [Tooltip("Base of the weapon"), SerializeField]
     private Transform weaponBase;
+
+    [Tooltip("If any special parts are needed for any of the attacks, add them here. " +
+             "Make sure their name matches the one in the attack.")]
+    public WeaponSpecialPart[] specialParts;
 
 
     /// <summary> Previous position of the base </summary>
@@ -114,9 +118,9 @@ public class WeaponScript : MonoBehaviour {
         internal void Initialize(AttackDefinition attackDef) {
             attackDefinition = attackDef;
             directionTriggers = EnumFlagsAttribute.ReturnSelectedElements<AttackDirection>((int) directionTriggerFlags)
-                                                  .Select(x => (AttackDirection) x).ToArray();
+                .Select(x => (AttackDirection) x).ToArray();
             movementStates = EnumFlagsAttribute.ReturnSelectedElements<MovementState>((int) movementStateFlags)
-                                               .Select(x => (MovementState) x).ToArray();
+                .Select(x => (MovementState) x).ToArray();
         }
 
         public int CompareTo(object obj) {
@@ -204,29 +208,6 @@ public class WeaponScript : MonoBehaviour {
         }
     }
 
-    private class FlipIfFacingAway : WeaponAttackAbstract {
-        private WeaponScript _weaponScript;
-        public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
-
-        public override void OnAttackWindup(AttackAction attackAction) {
-            if(attackAction.inH != 0 && _weaponScript.mvmt.FlipInt != attackAction.inH)
-                _weaponScript.mvmt.Flip();
-        }
-
-        public override void OnAttacking(AttackAction attackAction) { }
-        public override void OnRecovering(AttackAction attackAction) { }
-        public override void OnFadingOut(AttackAction attackAction) { }
-    }
-
-    private class PreventFlipWhileAttacking : WeaponAttackAbstract {
-        private WeaponScript _weaponScript;
-        public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
-        public override void OnAttackWindup(AttackAction attackAction) { _weaponScript.mvmt.cantFlip++; }
-        public override void OnAttacking(AttackAction attackAction) { }
-        public override void OnRecovering(AttackAction attackAction) { }
-        public override void OnFadingOut(AttackAction attackAction) { _weaponScript.mvmt.cantFlip--; }
-    }
-
     public class AttackAction {
         public AttackState state = AttackState.DeterminingType;
         private readonly WeaponScript _wA;
@@ -282,7 +263,7 @@ public class WeaponScript : MonoBehaviour {
 
             // If no attack matches, just cancel this attack (do nothing, basically)
             if(attackDefinition == null) {
-                EndAttack(prematureEnd: true);
+                EndAttack(dontFade: true);
                 yield break;
             }
 
@@ -330,12 +311,12 @@ public class WeaponScript : MonoBehaviour {
             foreach(var attack in _attackActions) attack.OnRecovering(this);
         }
 
-        internal void EndAttack(float duration = 0.3f, bool prematureEnd = false) {
+        internal void EndAttack(float duration = 0.3f, bool dontFade = false) {
             state = AttackState.FadingOut;
-            if(!prematureEnd) {
+            if(!dontFade) {
                 _wA.FadeAttackOut(duration);
-                foreach(var attack in _attackActions) attack.OnFadingOut(this);
             }
+            foreach(var attack in _attackActions) attack.OnFadingOut(this);
             if(ReferenceEquals(_wA._bufferAttack, this)) {
                 _wA._bufferAttack = null;
             } else if(_wA._bufferAttack != null && Time.time - _wA._bufferAttackStart < BufferTime) {
@@ -389,7 +370,7 @@ public class WeaponScript : MonoBehaviour {
         }
     }
 
-    private void Awake() {
+    private void Start() {
         _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster.layerMask & ~(1 << gameObject.layer);
         _animEventObjs = CommonObjectsSingleton.Instance;
         List<AttackCondition> attackConditionsTemp = new List<AttackCondition>();
@@ -465,6 +446,31 @@ public class WeaponScript : MonoBehaviour {
     private void FadeAttackOut(float duration) {
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
         _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, AttackOverrideLayerIndex, duration);
+    }
+
+
+    
+    private class FlipIfFacingAway : WeaponAttackAbstract {
+        private WeaponScript _weaponScript;
+        public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
+
+        public override void OnAttackWindup(AttackAction attackAction) {
+            if(attackAction.inH != 0 && _weaponScript.mvmt.FlipInt != attackAction.inH)
+                _weaponScript.mvmt.Flip();
+        }
+
+        public override void OnAttacking(AttackAction attackAction) { }
+        public override void OnRecovering(AttackAction attackAction) { }
+        public override void OnFadingOut(AttackAction attackAction) { }
+    }
+
+    private class PreventFlipWhileAttacking : WeaponAttackAbstract {
+        private WeaponScript _weaponScript;
+        public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
+        public override void OnAttackWindup(AttackAction attackAction) { _weaponScript.mvmt.cantFlip++; }
+        public override void OnAttacking(AttackAction attackAction) { }
+        public override void OnRecovering(AttackAction attackAction) { }
+        public override void OnFadingOut(AttackAction attackAction) { _weaponScript.mvmt.cantFlip--; }
     }
 
     internal IEnumerator _CheckMeleeHit(AttackAction attackAction) {
