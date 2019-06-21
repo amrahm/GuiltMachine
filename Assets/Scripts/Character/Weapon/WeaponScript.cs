@@ -267,6 +267,7 @@ public class WeaponScript : MonoBehaviour {
                 yield break;
             }
 
+
             // Then perform the appropriate action(s)
             switch(attackDefinition.attackInputType) {
                 case AttackInputType.Single:
