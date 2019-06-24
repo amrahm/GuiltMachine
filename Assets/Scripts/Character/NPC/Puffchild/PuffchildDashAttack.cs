@@ -8,19 +8,21 @@ using Debug = System.Diagnostics.Debug;
 [CreateAssetMenu(menuName = "ScriptableObjects/Attacks/PuffchildDashAttack")]
 public class PuffchildDashAttack : WeaponAttackAbstract {
     private const float ActivationEnergy = 0.3f;
+
     public float attackSpeed;
     public float attackLengthReducer;
+    public float chargeMinLength = 0.5f;
+    public float chargeMaxLength = 0.8f;
+
     private Rigidbody2D _rb;
     private CharacterControlAbstract _ctrl;
     private float _chargeAmount;
     private Vector2 _dir;
     private PuffchildRepelCircleSpecialPart _repelCircleSpecialPart;
+    private Coroutine _fadeOutCoroutine;
 
     /// <summary> initial gravity scale of this character </summary>
     private float _initGravity;
-
-    public float chargeMinLength = 0.5f;
-    public float chargeMaxLength = 0.8f;
 
     public override void Initialize(WeaponScript weaponScript) {
         weapon = weaponScript;
@@ -32,6 +34,7 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
     }
 
     public override void OnAttackWindup(AttackAction attackAction) {
+        if(_fadeOutCoroutine != null) weapon.StopCoroutine(_fadeOutCoroutine);
         _dir = attackAction.attackDir.normalized;
         weapon.StartCoroutine(_ChargeAttack(attackAction));
     }
@@ -96,7 +99,8 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
     }
 
     public override void OnFadingOut(AttackAction attackAction) {
-        if(!(_repelCircleSpecialPart.particleTrail is null)) weapon.StartCoroutine(_FadePuff());
+        if(!(_repelCircleSpecialPart.particleTrail is null))
+            _fadeOutCoroutine = weapon.StartCoroutine(_FadePuff());
     }
 
     private IEnumerator _FadePuff() {

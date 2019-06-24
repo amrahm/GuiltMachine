@@ -8,6 +8,25 @@ using static ExtensionMethods.HelperMethods;
 using static MovementAbstract;
 using static UnityEngine.Physics2D;
 
+/* ------ Script Overview ------
+ * This script handles the framework for weapons/enemies whose bodies are weapons.
+ * It allows us to specify attacks in different directions, dependent on input and movement state.
+ * In the inspector, we can create a list of AttackDefinitions, which consist of WeaponAttackAbstracts,
+ * as well as damage and some other stats about the attack.
+ * The AttackDefinition also specifies what attack direction needs to be pressed to trigger it, as
+ * well as the movement states that the player can be in (e.g. some attacks can only be triggered in the air)
+ * WeaponAttackAbstracts are where the actual code for attacks live. They are scriptable objects that inherit from
+ * WeaponAttackAbstract, and multiple of them can be added to a single AttackDefinition to form an attack
+ * (e.g. mixing a sword swing with a dash).
+ *
+ * At runtime, every time an attack input is pressed, a new AttackAction is created. The AttackAction tries to
+ * find an AttackDefinition that matches the input direction and the character's current movement state,
+ * and then begins that attack. The AttackAction keeps track of what state the attack is in
+ * (winding up, attacking, recovering, or fading out) and helps move the attack from one state to the next
+ * If another AttackAction is currently happening, it will instead add it as a buffer AttackAction, and if the
+ * currently active one finishes in less than BufferTime, it will move this AttackAction out of the buffer and start it.
+ * ----------------------------- */
+
 public class WeaponScript : MonoBehaviour {
     private const int AttackOverrideLayerIndex = 1;
 
@@ -45,7 +64,7 @@ public class WeaponScript : MonoBehaviour {
     private Vector2 _prevTip;
 
     [Tooltip("The list of attacks this weapon can do"), SerializeField]
-    private List<AttackDefinition> attacks;
+    private AttackDefinition[] attacks;
 
     protected internal CharacterMasterAbstract holder;
     protected internal CharacterControlAbstract ctrl;
@@ -73,12 +92,10 @@ public class WeaponScript : MonoBehaviour {
 
     private CommonObjectsSingleton _animEventObjs;
     private Coroutine _fadeCoroutine;
-    private Coroutine _bufferAttackCoroutine;
 
     private AttackAction _primaryAttack;
     private AttackAction _bufferAttack;
 
-    private AttackCondition[] _attackConditions;
     private LayerMask _whatIsHittable;
 
     public enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, FadingOut }
@@ -98,47 +115,9 @@ public class WeaponScript : MonoBehaviour {
 
     #endregion
 
-    [Serializable]
-    internal class AttackCondition : IComparable {
-        [Tooltip("Which directions can be pressed to activate this attack"), EnumFlags, SerializeField]
-        private AttackDirection directionTriggerFlags = (AttackDirection) 1;
-
-        internal AttackDirection[] directionTriggers;
-
-        [Tooltip("Should this attack happen when the character is on the ground, in the air, or both"), SerializeField]
-        internal GroundedState groundedState = GroundedState.Both;
-
-        [Tooltip("What movement states can the character be in when initiating this attack"), EnumFlags, SerializeField]
-        private MovementState movementStateFlags = (MovementState) (-1);
-
-        internal MovementState[] movementStates;
-
-        [NonSerialized] internal AttackDefinition attackDefinition;
-
-        internal void Initialize(AttackDefinition attackDef) {
-            attackDefinition = attackDef;
-            directionTriggers = EnumFlagsAttribute.ReturnSelectedElements<AttackDirection>((int) directionTriggerFlags)
-                .Select(x => (AttackDirection) x).ToArray();
-            movementStates = EnumFlagsAttribute.ReturnSelectedElements<MovementState>((int) movementStateFlags)
-                .Select(x => (MovementState) x).ToArray();
-        }
-
-        public int CompareTo(object obj) {
-            if(obj is AttackCondition otherAttack) {
-                if(groundedState == GroundedState.Both && otherAttack.groundedState != GroundedState.Both ||
-                   movementStates.Length > otherAttack.movementStates.Length)
-                    return 1;
-                if(groundedState != GroundedState.Both && otherAttack.groundedState == GroundedState.Both ||
-                   movementStates.Length < otherAttack.movementStates.Length)
-                    return -1;
-                return 0;
-            }
-            throw new ArgumentException($"Object is not a {nameof(AttackCondition)}");
-        }
-    }
 
     [Serializable]
-    internal class AttackDefinition {
+    internal class AttackDefinition : IComparable {
         // ReSharper disable once NotAccessedField.Global (Used in Unity inspector automatically)
         public string name = "I THIRST FOR A NAME";
 
@@ -152,8 +131,18 @@ public class WeaponScript : MonoBehaviour {
         [SerializeField]
         internal List<WeaponAttackAbstract> attackHoldActions;
 
-        [Tooltip("The condition(s) that activate this attack"), SerializeField]
-        internal AttackCondition[] conditions = new AttackCondition[1];
+        [Tooltip("Which directions can be pressed to activate this attack"), EnumFlags, SerializeField]
+        private AttackDirection directionTriggerFlags = (AttackDirection) 1;
+
+        internal AttackDirection[] directionTriggers;
+
+        [Tooltip("Should this attack happen when the character is on the ground, in the air, or both"), SerializeField]
+        internal GroundedState groundedState = GroundedState.Both;
+
+        [Tooltip("What movement states can the character be in when initiating this attack"), EnumFlags, SerializeField]
+        private MovementState movementStateFlags = (MovementState) (-1);
+
+        internal MovementState[] movementStates;
 
         [Tooltip("Should the character turn around and preform this attack if the input is in the opposite " +
                  "(horizontal) direction that the player is currently facing"), SerializeField]
@@ -193,18 +182,34 @@ public class WeaponScript : MonoBehaviour {
                 attackHoldActions[i] = Instantiate(attackHoldActions[i]);
                 attackHoldActions[i].Initialize(weapon);
             }
-            foreach(var condition in conditions) {
-                condition.Initialize(this);
-                if(flipIfFacingAway) {
-                    List<AttackDirection> newDirections = new List<AttackDirection>();
-                    foreach(var direction in condition.directionTriggers) {
-                        newDirections.Add(direction);
-                        var flipped = FlipAttackDirection(direction);
-                        if(flipped != direction) newDirections.Add(flipped);
-                    }
-                    condition.directionTriggers = newDirections.ToArray();
+            directionTriggers = EnumFlagsAttribute.ReturnSelectedElements<AttackDirection>((int) directionTriggerFlags)
+                .Select(x => (AttackDirection) x).ToArray();
+            movementStates = EnumFlagsAttribute.ReturnSelectedElements<MovementState>((int) movementStateFlags)
+                .Select(x => (MovementState) x).ToArray();
+
+            if(flipIfFacingAway) {
+                List<AttackDirection> newDirections = new List<AttackDirection>();
+                foreach(var direction in directionTriggers) {
+                    newDirections.Add(direction);
+                    var flipped = FlipAttackDirection(direction);
+                    if(flipped != direction) newDirections.Add(flipped);
                 }
+                directionTriggers = newDirections.ToArray();
             }
+        }
+
+        public int CompareTo(object obj) {
+            // This is to sort the list of AttackDefinitions so that ones with more specific conditions are picked first
+            if(obj is AttackDefinition otherAttack) {
+                if(groundedState == GroundedState.Both && otherAttack.groundedState != GroundedState.Both ||
+                   movementStates.Length > otherAttack.movementStates.Length)
+                    return 1;
+                if(groundedState != GroundedState.Both && otherAttack.groundedState == GroundedState.Both ||
+                   movementStates.Length < otherAttack.movementStates.Length)
+                    return -1;
+                return 0;
+            }
+            throw new ArgumentException($"Object is not a {nameof(AttackDefinition)}");
         }
     }
 
@@ -219,7 +224,10 @@ public class WeaponScript : MonoBehaviour {
         internal int inV;
 
         internal AttackDefinition attackDefinition;
-        private List<WeaponAttackAbstract> _attackActions;
+
+        private IEnumerable<WeaponAttackAbstract> AttackActions =>
+            isHoldAttack ? attackDefinition.attackHoldActions : attackDefinition.attackTapActions;
+
         internal bool isHoldAttack;
 
         private bool _inBuffer;
@@ -254,12 +262,12 @@ public class WeaponScript : MonoBehaviour {
             attackDir = _wA.mvmt.tf.InverseTransformDirection(inH, inV, 0);
 
             // Figure out which attack, if any, matches the current conditions
-            attackDefinition = (from condition in _wA._attackConditions
-                                where condition.directionTriggers.Contains(_wA.GetAttackDirection(inH, inV)) &&
-                                      (!_wA.mvmt.grounded || condition.groundedState != GroundedState.NotGrounded) &&
-                                      (_wA.mvmt.grounded || condition.groundedState != GroundedState.Grounded) &&
-                                      condition.movementStates.Contains(_wA.mvmt.movementState)
-                                select condition.attackDefinition).FirstOrDefault();
+            attackDefinition = (from attack in _wA.attacks
+                                where attack.directionTriggers.Contains(_wA.GetAttackDirection(inH, inV)) &&
+                                      (!_wA.mvmt.grounded || attack.groundedState != GroundedState.NotGrounded) &&
+                                      (_wA.mvmt.grounded || attack.groundedState != GroundedState.Grounded) &&
+                                      attack.movementStates.Contains(_wA.mvmt.movementState)
+                                select attack).FirstOrDefault();
 
             // If no attack matches, just cancel this attack (do nothing, basically)
             if(attackDefinition == null) {
@@ -271,7 +279,7 @@ public class WeaponScript : MonoBehaviour {
             // Then perform the appropriate action(s)
             switch(attackDefinition.attackInputType) {
                 case AttackInputType.Single:
-                    waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer(attackDefinition.attackTapActions));
+                    waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
                     break;
                 case AttackInputType.TapHold:
                     _wA.StartCoroutine(_InitTapOrHold());
@@ -279,11 +287,10 @@ public class WeaponScript : MonoBehaviour {
             }
         }
 
-        private IEnumerator _BeginWindUpWhenNotInBuffer(List<WeaponAttackAbstract> attackActions) {
+        private IEnumerator _BeginWindUpWhenNotInBuffer() {
             if(_inBuffer) yield return new WaitWhile(() => _inBuffer);
             state = AttackState.WindingUp;
-            _attackActions = attackActions;
-            foreach(var attack in attackActions) attack.OnAttackWindup(this);
+            foreach(var attack in AttackActions) attack.OnAttackWindup(this);
         }
 
 
@@ -292,24 +299,24 @@ public class WeaponScript : MonoBehaviour {
             float attackInitTime = Time.time;
             do {
                 if(Time.time - attackInitTime >= TapThreshold) {
-                    waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer(attackDefinition.attackHoldActions));
                     isHoldAttack = true;
+                    waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
                     yield break;
                 }
                 yield return null;
             } while(_wA.ctrl.attackHorizontal != 0 || _wA.ctrl.attackVertical != 0);
 
-            waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer(attackDefinition.attackTapActions));
+            waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
         }
 
         internal void BeginAttacking() {
             state = AttackState.Attacking;
-            foreach(var attack in _attackActions) attack.OnAttacking(this);
+            foreach(var attack in AttackActions) attack.OnAttacking(this);
         }
 
         internal void BeginRecovering() {
             state = AttackState.Recovering;
-            foreach(var attack in _attackActions) attack.OnRecovering(this);
+            foreach(var attack in AttackActions) attack.OnRecovering(this);
         }
 
         internal void EndAttack(float duration = 0.3f, bool dontFade = false) {
@@ -317,7 +324,7 @@ public class WeaponScript : MonoBehaviour {
             if(!dontFade) {
                 _wA.FadeAttackOut(duration);
             }
-            foreach(var attack in _attackActions) attack.OnFadingOut(this);
+            foreach(var attack in AttackActions) attack.OnFadingOut(this);
             if(ReferenceEquals(_wA._bufferAttack, this)) {
                 _wA._bufferAttack = null;
             } else if(_wA._bufferAttack != null && Time.time - _wA._bufferAttackStart < BufferTime) {
@@ -336,23 +343,23 @@ public class WeaponScript : MonoBehaviour {
                     case -1: return AttackDirection.BackwardDown;
                     case 0:  return AttackDirection.Backward;
                     case 1:  return AttackDirection.BackwardUp;
-                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inV)}");
+                    default: throw new ArgumentOutOfRangeException(nameof(inV));
                 }
             case 0:
                 switch(inV) {
                     case -1: return AttackDirection.Down;
-                    case 0:  throw new ArgumentOutOfRangeException($"No input direction??");
+                    case 0:  throw new ArgumentOutOfRangeException($"{nameof(inH)} and {nameof(inV)}");
                     case 1:  return AttackDirection.Up;
-                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inV)}");
+                    default: throw new ArgumentOutOfRangeException(nameof(inV));
                 }
             case 1:
                 switch(inV) {
                     case -1: return AttackDirection.ForwardDown;
                     case 0:  return AttackDirection.Forward;
                     case 1:  return AttackDirection.ForwardUp;
-                    default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inV)}");
+                    default: throw new ArgumentOutOfRangeException(nameof(inV));
                 }
-            default: throw new ArgumentOutOfRangeException($"Invalid value for {nameof(inH)}");
+            default: throw new ArgumentOutOfRangeException(nameof(inH));
         }
     }
 
@@ -366,21 +373,14 @@ public class WeaponScript : MonoBehaviour {
             case AttackDirection.Backward:     return AttackDirection.Forward;
             case AttackDirection.BackwardUp:   return AttackDirection.ForwardUp;
             case AttackDirection.BackwardDown: return AttackDirection.ForwardDown;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+            default:                           throw new ArgumentOutOfRangeException(nameof(direction));
         }
     }
 
     private void Start() {
         _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster.layerMask & ~(1 << gameObject.layer);
         _animEventObjs = CommonObjectsSingleton.Instance;
-        List<AttackCondition> attackConditionsTemp = new List<AttackCondition>();
-        foreach(AttackDefinition attack in attacks) {
-            attack.Initialize(this);
-            attackConditionsTemp.AddRange(attack.conditions);
-        }
-        attackConditionsTemp.Sort();
-        _attackConditions = attackConditionsTemp.ToArray();
+        foreach(AttackDefinition attack in attacks) attack.Initialize(this);
     }
 
     private void Update() {
@@ -450,7 +450,6 @@ public class WeaponScript : MonoBehaviour {
     }
 
 
-    
     private class FlipIfFacingAway : WeaponAttackAbstract {
         private WeaponScript _weaponScript;
         public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
