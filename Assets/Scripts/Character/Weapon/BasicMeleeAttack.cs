@@ -13,12 +13,16 @@ public class BasicMeleeAttack : WeaponAttackAbstract {
     }
 
     public override void OnAttackWindup(AttackAction attackAction) {
+#if UNITY_EDITOR || DEBUG
+        Debug.Assert(weapon.anim != null, "weapon.anim != null");
+#endif
         weapon.anim.SetTrigger(_animationHash);
     }
 
     public override void OnAttacking(AttackAction attackAction) {
         weapon.StartCoroutine(weapon._CheckMeleeHit(attackAction));
     }
+
     public override void OnRecovering(AttackAction attackAction) { }
     public override void OnFadingOut(AttackAction attackAction) { }
 }

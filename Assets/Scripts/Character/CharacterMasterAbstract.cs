@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using UnityEngine;
 
 public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
@@ -12,26 +11,26 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [SerializeField] private string characterFaction = "I THIRST FOR A FACTION";
     [NonSerialized] public int faction;
 
-    [Tooltip("The weapon currently being held. Doesn't have to be assigned."), CanBeNull]
+    [Tooltip("The weapon currently being held. Doesn't have to be assigned.")]
     public WeaponScript weapon;
 
-    [Tooltip("Status indicator for this character. Doesn't have to be assigned."), SerializeField, CanBeNull]
+    [Tooltip("Status indicator for this character. Doesn't have to be assigned."), SerializeField]
     protected internal StatusIndicator statusIndicator;
 
     [SerializeField] private GameObject bloodEffect;
 
 
     /// <summary> Reference to this gameObject's rigidbody, if it exists </summary>
-    [CanBeNull] protected Rigidbody2D rb;
+    protected Rigidbody2D rb;
 
     /// <summary> Reference to this gameObject's CharacterPhysics, if it exists </summary>
-    [CanBeNull] protected internal CharacterPhysics characterPhysics;
+    protected internal CharacterPhysics characterPhysics;
 
     /// <summary> Reference to this gameObject's Control script </summary>
     [NonSerialized] public CharacterControlAbstract control;
 
     /// <summary> Reference to this gameObject's Movement script, if it exists </summary>
-    [CanBeNull] protected internal MovementAbstract movement;
+    protected internal MovementAbstract movement;
 
     /// <summary> Is the character currently unhittable </summary>
     protected internal bool dodging;

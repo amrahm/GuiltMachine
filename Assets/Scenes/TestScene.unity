@@ -11693,7 +11693,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4337011823225440, guid: 1b82f01fb7a3f874ca4bfa06b42c2680, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -12.55
+      value: 29.1
       objectReference: {fileID: 0}
     - target: {fileID: 4337011823225440, guid: 1b82f01fb7a3f874ca4bfa06b42c2680, type: 3}
       propertyPath: m_LocalPosition.y
@@ -11878,7 +11878,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1696220150
 Transform:
   m_ObjectHideFlags: 0
@@ -15553,7 +15553,7 @@ ParticleSystem:
     m_Dampen:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 0.5
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -15606,7 +15606,7 @@ ParticleSystem:
     m_Bounce:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 0.5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -22032,7 +22032,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 1.4
+      scalar: 1
       minScalar: 0.2
       maxCurve:
         serializedVersion: 2
@@ -25319,7 +25319,7 @@ ParticleSystem:
     m_Dampen:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 0.5
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -25372,7 +25372,7 @@ ParticleSystem:
     m_Bounce:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 0.5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -29387,7 +29387,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1118191473554104}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -12.55, y: 1.67, z: 0}
+  m_LocalPosition: {x: 29.1, y: 1.67, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1696220150}
@@ -31517,6 +31517,8 @@ MonoBehaviour:
   energy: 1
   sprite: {fileID: 1941951173}
   particleTrail: {fileID: 1718809952}
+  particleBurst: {fileID: 1696220152}
+  repelTrigger: {fileID: 0}
   minScale: 0.6
   energyResetTime: 2
   energyResetSpeed: 0.3

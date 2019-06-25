@@ -209,9 +209,11 @@ public class HumanoidMovement : MovementAbstract {
 
     private void FixedUpdate() {
         UpdateGrounded();
-        if(movementState != Rolling) Move(control.moveHorizontal, control.sprint);
-        Jump(control.jumpPressed);
-        Crouch(control.crouchPressed);
+        if(!disableMovement) {
+            if(movementState != Rolling) Move(control.moveHorizontal, control.sprint);
+            Jump(control.jumpPressed);
+            Crouch(control.crouchPressed);
+        }
 
         if(grounded && movementState != Climbing) {
             // When the feet move up relative to the hips, move the character down so that 

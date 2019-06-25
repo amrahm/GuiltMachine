@@ -26,6 +26,9 @@ public abstract class MovementAbstract : MonoBehaviour {
     /// <summary> Is the character character allowed to turn around? No if greater than 0 </summary>
     protected internal int cantFlip = 0;
 
+    /// <summary> Should the character not be allowed to move itself (e.g. if weapon is moving character)? </summary>
+    protected internal bool disableMovement;
+
     /// <summary> Is the character currently on the ground? </summary>
     protected internal bool grounded;
 

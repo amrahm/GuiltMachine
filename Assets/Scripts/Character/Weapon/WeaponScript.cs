@@ -71,7 +71,7 @@ public class WeaponScript : MonoBehaviour {
     protected internal Animator anim;
     protected internal MovementAbstract mvmt;
 
-    public bool Blocking { get; private set; }
+    public bool Blocking { get; internal set; }
 
     /// <summary> what was horizontal attack last frame </summary>
     private int _oldHorizInput;
@@ -93,8 +93,8 @@ public class WeaponScript : MonoBehaviour {
     private CommonObjectsSingleton _animEventObjs;
     private Coroutine _fadeCoroutine;
 
-    private AttackAction _primaryAttack;
-    private AttackAction _bufferAttack;
+    internal AttackAction primaryAttack;
+    internal AttackAction bufferAttack;
 
     private LayerMask _whatIsHittable;
 
@@ -277,14 +277,9 @@ public class WeaponScript : MonoBehaviour {
 
 
             // Then perform the appropriate action(s)
-            switch(attackDefinition.attackInputType) {
-                case AttackInputType.Single:
-                    waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
-                    break;
-                case AttackInputType.TapHold:
-                    _wA.StartCoroutine(_InitTapOrHold());
-                    break;
-            }
+            if(attackDefinition.attackInputType == AttackInputType.Single)
+                waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
+            else _wA.StartCoroutine(_InitTapOrHold());
         }
 
         private IEnumerator _BeginWindUpWhenNotInBuffer() {
@@ -323,16 +318,16 @@ public class WeaponScript : MonoBehaviour {
             state = AttackState.FadingOut;
             if(!dontFade) {
                 _wA.FadeAttackOut(duration);
+                foreach(var attack in AttackActions) attack.OnFadingOut(this);
             }
-            foreach(var attack in AttackActions) attack.OnFadingOut(this);
-            if(ReferenceEquals(_wA._bufferAttack, this)) {
-                _wA._bufferAttack = null;
-            } else if(_wA._bufferAttack != null && Time.time - _wA._bufferAttackStart < BufferTime) {
-                _wA._primaryAttack = _wA._bufferAttack;
-                _wA._primaryAttack._inBuffer = false;
-                _wA._bufferAttack = null;
+            if(ReferenceEquals(_wA.bufferAttack, this)) {
+                _wA.bufferAttack = null;
+            } else if(_wA.bufferAttack != null && Time.time - _wA._bufferAttackStart < BufferTime) {
+                _wA.primaryAttack = _wA.bufferAttack;
+                _wA.primaryAttack._inBuffer = false;
+                _wA.bufferAttack = null;
                 _wA._bufferAttackStart = 0;
-            } else _wA._primaryAttack = null;
+            } else _wA.primaryAttack = null;
         }
     }
 
@@ -386,14 +381,14 @@ public class WeaponScript : MonoBehaviour {
     private void Update() {
         if(ctrl.attackHorizontal != 0 && ctrl.attackHorizontal != _oldHorizInput || // If we have new horizontal input
            ctrl.attackVertical != 0 && ctrl.attackVertical != _oldVertInput) { // or new vertical input
-            if(_primaryAttack == null) {
-                _primaryAttack = new AttackAction(this, false);
+            if(primaryAttack == null) {
+                primaryAttack = new AttackAction(this, false);
                 _attackStart = Time.time;
             } else if(_oldVertInput == 0 && _oldHorizInput == 0 || Time.time - _attackStart > TapThreshold * 2) {
                 // but if we were already attacking and this is an entirely new attack input, or enough time has passed
                 // that we know this isn't just them trying to do a diagonal, then start a buffer attack
-                if(_bufferAttack?.waitForBuffer != null) StopCoroutine(_bufferAttack.waitForBuffer); // else never stops
-                _bufferAttack = new AttackAction(this, true);
+                if(bufferAttack?.waitForBuffer != null) StopCoroutine(bufferAttack.waitForBuffer); // else never stops
+                bufferAttack = new AttackAction(this, true);
                 _bufferAttackStart = Time.time;
             }
         }
@@ -427,26 +422,26 @@ public class WeaponScript : MonoBehaviour {
     /// <param name="e"> The object sent from the animation </param>
     /// <param name="duration"> An optional duration that some events need </param>
     public void ReceiveAnimationEvent(AnimationEventObject e, float duration) {
-        if(_primaryAttack == null) return;
-        if(e == _animEventObjs.attackFadeIn && _primaryAttack.state == AttackState.WindingUp) {
+        if(primaryAttack == null) return;
+        if(e == _animEventObjs.attackFadeIn && primaryAttack.state == AttackState.WindingUp) {
             FadeAttackIn(duration);
-        } else if(e == _animEventObjs.attackAttackingStart && _primaryAttack.state == AttackState.WindingUp) {
-            _primaryAttack.BeginAttacking();
-        } else if(e == _animEventObjs.attackAttackingEnd && _primaryAttack.state == AttackState.Attacking) {
-            _primaryAttack.BeginRecovering();
-        } else if(e == _animEventObjs.attackFadeOut && _primaryAttack.state == AttackState.Recovering) {
-            _primaryAttack.EndAttack(duration);
+        } else if(e == _animEventObjs.attackAttackingStart && primaryAttack.state == AttackState.WindingUp) {
+            primaryAttack.BeginAttacking();
+        } else if(e == _animEventObjs.attackAttackingEnd && primaryAttack.state == AttackState.Attacking) {
+            primaryAttack.BeginRecovering();
+        } else if(e == _animEventObjs.attackFadeOut && primaryAttack.state == AttackState.Recovering) {
+            primaryAttack.EndAttack(duration);
         }
     }
 
     private void FadeAttackIn(float duration) {
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, AttackOverrideLayerIndex, duration);
+        if(anim) _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeIn, AttackOverrideLayerIndex, duration);
     }
 
     private void FadeAttackOut(float duration) {
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, AttackOverrideLayerIndex, duration);
+        if(anim) _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, AttackOverrideLayerIndex, duration);
     }
 
 

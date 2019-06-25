@@ -10,7 +10,7 @@ public class HumanoidMaster : CharacterMasterAbstract {
     }
 
     protected override void Die() {
-        if(!(rb is null)) rb.freezeRotation = false;
+        rb.freezeRotation = false;
         Destroy(control);
     }
 }

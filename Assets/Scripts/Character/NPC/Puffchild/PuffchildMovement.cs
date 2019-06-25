@@ -73,8 +73,10 @@ public class PuffchildMovement : MovementAbstract {
         if(grounded) groundNormal = _squishRepelScript.groundedNormal;
         UpdateCoyoteGrounded();
 
-        Move(control.moveHorizontal, control.moveVertical);
-        Jump(control.jumpPressed, control.moveVertical);
+        if(!disableMovement) {
+            Move(control.moveHorizontal, control.moveVertical);
+            Jump(control.jumpPressed, control.moveVertical);
+        }
     }
 
     /// <summary> Handles character walking and running </summary>
