@@ -8,7 +8,7 @@ public class PuffchildSquish : MonoBehaviour {
 
     private void Start() {
         _startPos = transform.localPosition;
-        _whatIsGround = CommonObjectsSingleton.Instance.whatIsGroundMaster.layerMask & ~(1 << gameObject.layer);
+        _whatIsGround = CommonObjectsSingleton.Instance.whatIsGroundMaster & ~(1 << gameObject.layer);
     }
 
     private void Update() {

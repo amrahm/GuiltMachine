@@ -1492,6 +1492,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   godMode: 0
   characterStats: {fileID: 11400000, guid: a61ff7c0023ceee408cb98860f4eaafc, type: 2}
+  characterFaction: I THIRST FOR A FACTION
   weapon: {fileID: 3762200851535952333}
   statusIndicator: {fileID: 0}
   bloodEffect: {fileID: 1400617746420739960, guid: 7e60c14f2a8217542bd898eaf72bafda,
@@ -2462,7 +2463,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ConstrainRotation: 0
-  m_SolveFromDefaultPose: 1
+  m_SolveFromDefaultPose: 0
   m_Weight: 1
   m_Chain:
     m_EffectorTransform: {fileID: 8540650497953521840}
@@ -2666,7 +2667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ConstrainRotation: 0
-  m_SolveFromDefaultPose: 1
+  m_SolveFromDefaultPose: 0
   m_Weight: 1
   m_Chain:
     m_EffectorTransform: {fileID: 8540650498188607290}
@@ -2730,7 +2731,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ConstrainRotation: 0
-  m_SolveFromDefaultPose: 1
+  m_SolveFromDefaultPose: 0
   m_Weight: 1
   m_Chain:
     m_EffectorTransform: {fileID: 8540650499337589879}

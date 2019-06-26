@@ -80,7 +80,7 @@ public abstract class MovementAbstract : MonoBehaviour {
         tf = transform;
 
         // Common WhatIsGround, but remove current layer
-        WhatIsGround = CommonObjectsSingleton.Instance.whatIsGroundMaster.layerMask & ~(1 << gameObject.layer);
+        WhatIsGround = CommonObjectsSingleton.Instance.whatIsGroundMaster & ~(1 << gameObject.layer);
     }
 
 

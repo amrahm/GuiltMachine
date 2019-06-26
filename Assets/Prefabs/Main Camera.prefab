@@ -666,7 +666,7 @@ Light:
   serializedVersion: 9
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.18
+  m_Intensity: 0.5
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -939,7 +939,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 61495
+    m_Bits: 4290818103
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1433,6 +1433,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4337011823225440}
     m_Modifications:
+    - target: {fileID: 1452392875479830, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
+      propertyPath: m_Name
+      value: DistortCamera
+      objectReference: {fileID: 0}
     - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1476,10 +1480,6 @@ PrefabInstance:
     - target: {fileID: 4099479457136924, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1452392875479830, guid: b4e27c4189f19ca4991bfc846aa1e6eb, type: 3}
-      propertyPath: m_Name
-      value: DistortCamera
       objectReference: {fileID: 0}
     - target: {fileID: 20877382652261156, guid: b4e27c4189f19ca4991bfc846aa1e6eb,
         type: 3}

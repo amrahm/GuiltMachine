@@ -20,8 +20,7 @@ public class PuffchildRepelCircleSpecialPart : WeaponSpecialPart {
     [NonSerialized] public bool recovering;
     private IDamageable _hitOther;
     private Vector2 _hitOtherPoint;
-    private Vector2 _hitOtherForce;
-    private float _hitOtherDamage;
+    private Vector2 _hitOtherDir;
     private Collider2D _hitOtherCollider;
     private Rigidbody2D _rb;
     private WeaponScript _weapon;
@@ -51,9 +50,9 @@ public class PuffchildRepelCircleSpecialPart : WeaponSpecialPart {
         }
     }
 
-    public IEnumerator _Explode(float chargeAmount, CharacterControlAbstract ctrl, MovementAbstract mvmt) {
+    public IEnumerator _Explode(int damage, float knockback, CharacterControlAbstract ctrl, MovementAbstract mvmt) {
         void AirControl() => _rb.AddForce(10 * _rb.mass * new Vector2(ctrl.moveHorizontal, ctrl.moveVertical));
-        _hitOther.DamageMe(_hitOtherPoint, _hitOtherForce, (int) (_hitOtherDamage * chargeAmount), _hitOtherCollider);
+        _hitOther.DamageMe(_hitOtherPoint, knockback * _rb.mass * _hitOtherDir, damage, _hitOtherCollider);
         exploded = true;
         float initGrav = _rb.gravityScale;
         _rb.gravityScale = 0;
@@ -106,8 +105,7 @@ public class PuffchildRepelCircleSpecialPart : WeaponSpecialPart {
         if(_repelTriggerExists) {
             var dist = repelTrigger.Distance(other);
             _hitOtherPoint = dist.pointB;
-            _hitOtherDamage = _rb.velocity.magnitude * _rb.mass;
-            _hitOtherForce = _hitOtherDamage * dist.normal;
+            _hitOtherDir = dist.normal;
         }
         _hitOtherCollider = other;
     }

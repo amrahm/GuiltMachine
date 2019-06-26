@@ -2,11 +2,11 @@
 
 [UnitySingleton(UnitySingletonAttribute.Type.FromPrefab, false)]
 public class CommonObjectsSingleton : UnitySingleton<CommonObjectsSingleton> {
-    [Tooltip("The shared WhatIsGround asset specifying what characters should consider to be ground.")]
-    public LayerMaskScriptableObject whatIsGroundMaster;
+    [Tooltip("The shared layer mask specifying what characters should consider to be ground.")]
+    public LayerMask whatIsGroundMaster;
     
-    [Tooltip("The shared WhatIsGround asset specifying what can be hit by a weapon")]
-    public LayerMaskScriptableObject whatIsHittableMaster;
+    [Tooltip("The shared layer mask specifying what can be hit by a weapon")]
+    public LayerMask whatIsHittableMaster;
 
     [Tooltip("The ScriptableObject asset signifying when the sword swing animation should start fading in")]
     public AnimationEventObject attackFadeIn;

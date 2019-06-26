@@ -166,13 +166,11 @@ public class PuffchildMovement : MovementAbstract {
             _jumpFuelLeft = jumpFuel;
             _jumpStarted = true; //This ensures we don't repeat this step a bunch of times per jump
             rb.velocity = rb.velocity.Projected(tf.right) + JumpDir() * jumpSpeed;
-            Debug.DrawRay(tf.position, groundNormal, Color.red);
         } else {
             if(jump && _jumpFuelLeft > 0) {
                 // Make the character rise higher the longer they hold jump
                 _jumpFuelLeft -= Time.fixedDeltaTime * 500;
                 rb.AddForce(rb.mass * jumpFuelForce * JumpDir(), ForceMode2D.Force);
-                Debug.DrawRay(tf.position, groundNormal, Color.red);
             } else {
                 _jumpFuelLeft = 0;
             }

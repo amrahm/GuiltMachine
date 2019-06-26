@@ -106,8 +106,8 @@ MonoBehaviour:
     attackHoldActions:
     - {fileID: 11400000, guid: dcb952b11c678fa4db043e8c04733a5a, type: 2}
     directionTriggerFlags: 1
-    groundedState: 0
-    movementStateFlags: -1
+    groundedState: 1
+    movementStateFlags: 31
     flipIfFacingAway: 1
     preventFlipWhileAttacking: 1
     tapDamage: 20
@@ -121,8 +121,8 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 91ccd415b6812c74b976cc9b6d806293, type: 2}
     attackHoldActions: []
     directionTriggerFlags: 1
-    groundedState: 0
-    movementStateFlags: -1
+    groundedState: 2
+    movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 1
     tapDamage: 20
@@ -134,9 +134,9 @@ MonoBehaviour:
     attackTapActions:
     - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
     attackHoldActions: []
-    directionTriggerFlags: 1
-    groundedState: 0
-    movementStateFlags: -1
+    directionTriggerFlags: 74
+    groundedState: 1
+    movementStateFlags: 31
     flipIfFacingAway: 1
     preventFlipWhileAttacking: 1
     tapDamage: 20
@@ -150,9 +150,9 @@ MonoBehaviour:
     attackHoldActions:
     - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
     - {fileID: 11400000, guid: 88ec75f983aa3a94e809b040876192d5, type: 2}
-    directionTriggerFlags: 1
-    groundedState: 0
-    movementStateFlags: -1
+    directionTriggerFlags: 74
+    groundedState: 2
+    movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 1
     tapDamage: 20
@@ -166,9 +166,9 @@ MonoBehaviour:
     attackHoldActions:
     - {fileID: 11400000, guid: 2fa4c50c06d0a6b4987b052748e38b5b, type: 2}
     - {fileID: 11400000, guid: 895fdca2fd018064fba0545f979f60cf, type: 2}
-    directionTriggerFlags: 1
-    groundedState: 0
-    movementStateFlags: -1
+    directionTriggerFlags: 148
+    groundedState: 2
+    movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 0
     tapDamage: 20
@@ -182,9 +182,9 @@ MonoBehaviour:
     attackHoldActions:
     - {fileID: 11400000, guid: 5ca938d0ec08e0941b2ed0ad6adcd8b8, type: 2}
     - {fileID: 11400000, guid: 91ccd415b6812c74b976cc9b6d806293, type: 2}
-    directionTriggerFlags: 1
-    groundedState: 0
-    movementStateFlags: -1
+    directionTriggerFlags: 32
+    groundedState: 2
+    movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 0
     tapDamage: 20

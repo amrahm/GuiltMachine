@@ -43,9 +43,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9172ba123613a741a96eb6f1dd53487, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whatIsGroundMaster: {fileID: 11400000, guid: 903c86250aa98c04aa5fe7eb38424058, type: 2}
-  whatIsHittableMaster: {fileID: 11400000, guid: 0dec5b7d1e646884bb5f8b76f013b5d4,
-    type: 2}
+  whatIsGroundMaster:
+    serializedVersion: 2
+    m_Bits: 4290803713
+  whatIsHittableMaster:
+    serializedVersion: 2
+    m_Bits: 4290797568
   attackFadeIn: {fileID: 11400000, guid: 4aadeb1e4190d49408d114193661a820, type: 2}
   attackFadeOut: {fileID: 11400000, guid: e51a50a15a1f89d43b938f16b5ea8937, type: 2}
   attackAttackingStart: {fileID: 11400000, guid: 14c37f0c48e177e4ea309dd02490f1a1,

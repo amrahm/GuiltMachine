@@ -46,7 +46,8 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
         if(hitCollider.isTrigger) return;
 
         characterStats.DamagePlayer(damage);
-        characterPhysics?.AddForceAt(point, force, hitCollider);
+        if(characterPhysics) characterPhysics.AddForceAt(point, force, hitCollider);
+        else if(rb) rb.AddForceAtPosition(force, point);
 
         //TODO Object pool
         if(bloodEffect) {

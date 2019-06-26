@@ -97,6 +97,7 @@ public class WeaponScript : MonoBehaviour {
     internal AttackAction bufferAttack;
 
     private LayerMask _whatIsHittable;
+    private LayerMask _whatIsNotHittable;
 
     public enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, FadingOut }
 
@@ -224,6 +225,8 @@ public class WeaponScript : MonoBehaviour {
         internal int inV;
 
         internal AttackDefinition attackDefinition;
+        internal int Damage => isHoldAttack ? attackDefinition.holdDamage : attackDefinition.tapDamage;
+        internal float Knockback => isHoldAttack ? attackDefinition.holdKnockback : attackDefinition.tapKnockback;
 
         private IEnumerable<WeaponAttackAbstract> AttackActions =>
             isHoldAttack ? attackDefinition.attackHoldActions : attackDefinition.attackTapActions;
@@ -373,7 +376,10 @@ public class WeaponScript : MonoBehaviour {
     }
 
     private void Start() {
-        _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster.layerMask & ~(1 << gameObject.layer);
+        // All hittable things minus this layer
+        _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster & ~(1 << gameObject.layer);
+        // Everything solid but not hittable
+        _whatIsNotHittable = CommonObjectsSingleton.Instance.whatIsGroundMaster & ~CommonObjectsSingleton.Instance.whatIsHittableMaster;
         _animEventObjs = CommonObjectsSingleton.Instance;
         foreach(AttackDefinition attack in attacks) attack.Initialize(this);
     }
@@ -477,13 +483,13 @@ public class WeaponScript : MonoBehaviour {
                 bool HitBaddy(RaycastHit2D rHit) {
 #if UNITY_EDITOR
                     if(visualizeDebug && rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
-                       Linecast(_prevBase, rHit.point, _whatIsHittable & ~(1 << rHit.collider.gameObject.layer))) {
+                       Linecast(_prevBase, rHit.point, _whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer))) {
                         Debug.DrawLine(_prevBase, rHit.point, Color.red);
                     }
 #endif
                     return rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
                            // Make sure nothing of a different layer is between where the sword was and where it hit
-                           !Linecast(_prevBase, rHit.point, _whatIsHittable & ~(1 << rHit.collider.gameObject.layer));
+                           !Linecast(_prevBase, rHit.point, _whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer));
                 }
 
 //               print("CHECK1");
@@ -568,7 +574,6 @@ public class WeaponScript : MonoBehaviour {
             float knockback = attackAction.isHoldAttack ?
                                   attackDefinition.holdKnockback :
                                   attackDefinition.tapKnockback;
-            int damage = attackAction.isHoldAttack ? attackDefinition.holdDamage : attackDefinition.tapDamage;
 
             IDamageable damageable = swingHit.collider.GetComponentInParent<IDamageable>();
             Vector2 point = swingHit.point;
@@ -591,7 +596,7 @@ public class WeaponScript : MonoBehaviour {
                 }
             }
             // Damage scaled based on relative velocity
-            int damageGiven = (int) Math.Max(damage, damage * mvmt.rb.velocity.magnitude);
+            int damageGiven = (int) Math.Max(attackAction.Damage, attackAction.Knockback * mvmt.rb.velocity.magnitude);
             damageable.DamageMe(point, force, damageGiven, swingHit.collider);
             yield break;
         }

@@ -85,7 +85,6 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
 
             yield return Yields.WaitForFixedUpdate;
         }
-        _rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
         attackAction.state = AttackState.Recovering;
         attackAction.BeginRecovering();
     }
@@ -102,7 +101,9 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
                 var emissionModule = _repelCirclePart.particleTrail.emission;
                 emissionModule.rateOverDistance = 0;
             }
-            _repelCirclePart.StartCoroutine(_repelCirclePart._Explode(_chargeAmount, _ctrl, weapon.holder.movement));
+            _repelCirclePart.StartCoroutine(_repelCirclePart._Explode((int) (_chargeAmount * attackAction.Damage),
+                                                                      _chargeAmount * attackAction.Knockback, _ctrl,
+                                                                      weapon.holder.movement));
             exploded = true;
             weapon.Blocking = true;
         } else {
@@ -115,6 +116,7 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
             _rb.velocity -= Time.fixedDeltaTime * 3 * _rb.velocity.Projected(_dir);
             yield return Yields.WaitForFixedUpdate;
         }
+        _rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
 
         if(exploded) {
             yield return new WaitWhile(() => _repelCirclePart.exploded);
