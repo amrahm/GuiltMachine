@@ -21,7 +21,7 @@ namespace ExtensionMethods {
         /// <param name="factor"> Above 1 means sharper out, slower in. Below 1 behaves like SharpInDamp </param>
         /// <returns></returns>
         public static float SharpOutDamp(this float current, float target, float speed, float deltaTime,
-                                         float factor = OutDampDefaultFactor) {
+            float factor = OutDampDefaultFactor) {
             return current + (target - current) * speed * deltaTime * OutDampMult /
                    (Mathf.Pow(Mathf.Abs(current - target), factor) + 0.1f * speed);
         }
@@ -33,7 +33,7 @@ namespace ExtensionMethods {
         }
 
         public static float SharpOutDampAngle(this float current, float target, float smoothTime, float deltaTime,
-                                              float factor = OutDampDefaultFactor) {
+            float factor = OutDampDefaultFactor) {
             target = current + Mathf.DeltaAngle(current, target);
             return SharpOutDamp(current, target, smoothTime, deltaTime, factor);
         }
@@ -44,7 +44,7 @@ namespace ExtensionMethods {
         }
 
         public static Vector3 SharpOutDamp(this Vector3 current, Vector3 target, float speed, float deltaTime,
-                                           float factor = OutDampDefaultFactor) {
+            float factor = OutDampDefaultFactor) {
             return current + (target - current) * speed * deltaTime * OutDampMult /
                    (Mathf.Pow(Vector3.Distance(current, target), factor) + 0.1f * speed);
         }
@@ -54,7 +54,7 @@ namespace ExtensionMethods {
         }
 
         public static Vector2 SharpOutDamp(this Vector2 current, Vector2 target, float speed, float deltaTime,
-                                           float factor = OutDampDefaultFactor) {
+            float factor = OutDampDefaultFactor) {
             return current + (target - current) * speed * deltaTime * OutDampMult /
                    (Mathf.Pow(Vector2.Distance(current, target), factor) + 0.1f * speed);
         }
@@ -144,7 +144,7 @@ namespace ExtensionMethods {
         /// <param name="duration"> How long the fade should take </param>
         /// <param name="smooth"> Smooth if true else linear </param>
         public static Coroutine FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType,
-                                                   int layerIndex, float duration, bool smooth = false) {
+            int layerIndex, float duration, bool smooth = false) {
             return caller.StartCoroutine(
                 FadeAnimationLayerHelper(caller, animator, fadeType, layerIndex, duration, 1, smooth));
         }
@@ -158,13 +158,13 @@ namespace ExtensionMethods {
         /// <param name="extent"> How far to fade in, if fading in </param>
         /// <param name="smooth"> Smooth if true else linear </param>
         public static Coroutine FadeAnimationLayer(MonoBehaviour caller, Animator animator, FadeType fadeType,
-                                                   int layerIndex, float duration, float extent, bool smooth = false) {
+            int layerIndex, float duration, float extent, bool smooth = false) {
             return caller.StartCoroutine(
                 FadeAnimationLayerHelper(caller, animator, fadeType, layerIndex, duration, extent, smooth));
         }
 
         private static IEnumerator FadeAnimationLayerHelper(MonoBehaviour caller, Animator animator, FadeType fadeType,
-                                                            int layerIndex, float duration, float extent, bool smooth) {
+            int layerIndex, float duration, float extent, bool smooth) {
             float start = animator.GetLayerWeight(layerIndex);
             float end = fadeType != FadeType.FadeOut ?
                             extent :
@@ -243,5 +243,8 @@ namespace ExtensionMethods {
 
         /// <summary> Cache to avoid generating garbage </summary>
         public static readonly WaitForSeconds WaitForTenthSecond = new WaitForSeconds(0.1f);
+
+        /// <summary> Cache to avoid generating garbage </summary>
+        public static readonly WaitForSeconds WaitForASecond = new WaitForSeconds(1f);
     }
 }

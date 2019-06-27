@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using UnityEngine;
 
 public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
@@ -9,30 +8,46 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
     [Tooltip("Character Stats Asset (Shared)"), SerializeField]
     protected CharacterStats characterStats;
 
-    [Tooltip("The weapon currently being held. Doesn't have to be assigned."), CanBeNull]
-    public WeaponAbstract weapon;
+    [SerializeField] private string characterFaction = "I THIRST FOR A FACTION";
+    [NonSerialized] public int faction;
 
-    [Tooltip("Status indicator for this character. Doesn't have to be assigned."), SerializeField, CanBeNull]
+    [Tooltip("The weapon currently being held. Doesn't have to be assigned.")]
+    public WeaponScript weapon;
+
+    [Tooltip("Status indicator for this character. Doesn't have to be assigned."), SerializeField]
     protected internal StatusIndicator statusIndicator;
 
     [SerializeField] private GameObject bloodEffect;
 
 
     /// <summary> Reference to this gameObject's rigidbody, if it exists </summary>
-    [CanBeNull] protected Rigidbody2D rb;
+    protected Rigidbody2D rb;
 
     /// <summary> Reference to this gameObject's CharacterPhysics, if it exists </summary>
-    [CanBeNull] protected CharacterPhysics characterPhysics;
+    protected internal CharacterPhysics characterPhysics;
 
     /// <summary> Reference to this gameObject's Control script </summary>
     [NonSerialized] public CharacterControlAbstract control;
 
+    /// <summary> Reference to this gameObject's Movement script, if it exists </summary>
+    protected internal MovementAbstract movement;
+
+    /// <summary> Is the character currently unhittable </summary>
+    protected internal bool dodging;
+
+
+    public ProtectedType CheckProtected(Vector2 point, Collider2D hitCollider) {
+        if(dodging) return ProtectedType.Dodging;
+        if(weapon != null && weapon.Blocking) return ProtectedType.Blocking;
+        return ProtectedType.Not;
+    }
 
     public virtual void DamageMe(Vector2 point, Vector2 force, int damage, Collider2D hitCollider) {
         if(hitCollider.isTrigger) return;
 
         characterStats.DamagePlayer(damage);
-        characterPhysics?.AddForceAt(point, force, hitCollider);
+        if(characterPhysics) characterPhysics.AddForceAt(point, force, hitCollider);
+        else if(rb) rb.AddForceAtPosition(force, point);
 
         //TODO Object pool
         if(bloodEffect) {
@@ -52,10 +67,13 @@ public abstract class CharacterMasterAbstract : MonoBehaviour, IDamageable {
         rb = GetComponent<Rigidbody2D>();
         characterPhysics = GetComponent<CharacterPhysics>();
         control = GetComponent<CharacterControlAbstract>();
+        movement = GetComponent<MovementAbstract>();
         characterStats = Instantiate(characterStats); //create local instance that can be modified
 
         statusIndicator?.SubscribeToChangeEvents(characterStats);
         characterStats.Initialize();
+
+        faction = characterFaction.GetHashCode();
 
         if(weapon != null) weapon.OnEquip(this);
     }

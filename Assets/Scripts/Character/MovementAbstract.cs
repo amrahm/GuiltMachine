@@ -1,26 +1,45 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public abstract class MovementAbstract : MonoBehaviour {
-    [Header("Movement Setup")]
-    [Tooltip("The shared WhatIsGround asset specifying what characters should consider to be ground." +
-             " Ignore for enemies that only fly.")]
-    public WhatIsGround whatIsGroundMaster;
+    /// <summary> How long after walking off a ledge should the character still be considered grounded </summary>
+    private const float CoyoteTime = 0.08f;
 
+    #region Variables
+
+    [Header("Movement Setup")]
     [Tooltip("The greatest slope that the character can walk up. Ignore for enemies that only fly.")]
     public float maxWalkSlope = 50;
 
+    public const int RollLayer = 11;
+
 
     /// <summary> A mask determining what is ground to the character </summary>
-    protected internal LayerMask whatIsGround;
+    protected internal LayerMask WhatIsGround { get; private set; }
 
     /// <summary> Which way the character is currently facing </summary>
-    protected internal bool facingRight = true;
+    protected internal bool FacingRight { get; private set; } = true;
 
-    /// <summary> Is the player currently on the ground? </summary>
+    /// <summary> 1 if character is facing right, else -1 </summary>
+    protected internal int FlipInt { get; private set; } = 1;
+
+    /// <summary> Is the character character allowed to turn around? No if greater than 0 </summary>
+    protected internal int cantFlip = 0;
+
+    /// <summary> Should the character not be allowed to move itself (e.g. if weapon is moving character)? </summary>
+    protected internal bool disableMovement;
+
+    /// <summary> Is the character currently on the ground? </summary>
     protected internal bool grounded;
 
-    /// <summary> Did the player just leave the ground, but can still jump to account for reaction time? </summary>
+    /// <summary> Did the character just leave the ground, but can still jump to account for reaction time? </summary>
     protected internal bool coyoteGrounded;
+
+    /// <summary> How much time left till not considered grounded </summary>
+    private float _coyoteTimeLeft;
+
+    /// <summary> Possible weird states that the character can be in, or default </summary>
+    protected internal MovementState movementState;
 
     /// <summary> The direction that the character wants to move </summary>
     protected internal Vector2 moveVec;
@@ -43,8 +62,14 @@ public abstract class MovementAbstract : MonoBehaviour {
     /// <summary> Reference to Master script, which holds the status indicator and weapons </summary>
     protected CharacterMasterAbstract master;
 
-    /// <summary> Reference to the player's animator component </summary>
+    /// <summary> Reference to the character's animator component </summary>
     protected Animator anim;
+
+
+    [Flags]
+    public enum MovementState { Default, Crouching, Rolling, Diving, Sliding, Climbing }
+
+    #endregion
 
     protected virtual void Awake() {
         //Setting up references.
@@ -54,19 +79,45 @@ public abstract class MovementAbstract : MonoBehaviour {
         master = GetComponent<CharacterMasterAbstract>();
         tf = transform;
 
-        if(whatIsGroundMaster != null)
-            whatIsGround = whatIsGroundMaster.whatIsGround & ~(1 << gameObject.layer); //remove current layer
+        // Common WhatIsGround, but remove current layer
+        WhatIsGround = CommonObjectsSingleton.Instance.whatIsGroundMaster & ~(1 << gameObject.layer);
     }
 
 
-    ///<summary> Flip the player around the y axis </summary>
-    protected void Flip() {
-        facingRight = !facingRight; //Switch the way the player is labelled as facing.
-        //Multiply the player's x local scale by -1.
-        tf.localScale = new Vector3(-tf.localScale.x, tf.localScale.y, tf.localScale.z);
+    ///<summary> Flip the character around the y axis </summary>
+    protected internal void Flip() {
+        if(cantFlip > 0) return;
+#if UNITY_EDITOR || DEBUG
+        if(cantFlip < 0) {
+            Debug.LogError($"{nameof(cantFlip)} < 0, and it should never be");
+            cantFlip = 0;
+        }
+#endif
+        FacingRight = !FacingRight; // Switch the way the character is labelled as facing.
+        FlipInt *= -1;
+        //Multiply the character's x local scale by -1.
+        var localScale = tf.localScale;
+        localScale.x *= -1;
+        tf.localScale = localScale;
         // Fix the status indicator to always face the proper direction regardless of phoenix orientation
         Transform statusTf = master.statusIndicator?.gameObject.transform;
-        if(statusTf != null)
-            statusTf.localScale = new Vector3(-statusTf.localScale.x, statusTf.localScale.y, statusTf.localScale.z);
+        if(statusTf != null) {
+            var scale = statusTf.localScale;
+            scale.x *= -1;
+            statusTf.localScale = scale;
+        }
+    }
+
+
+    /// <summary> Updates coyoteGrounded, which gives the character a little extra time to do a jump after walking off
+    /// an edge. This helps account for human reaction times and such </summary>
+    protected internal void UpdateCoyoteGrounded() {
+        if(grounded) _coyoteTimeLeft = CoyoteTime;
+        else if(!grounded && _coyoteTimeLeft > 0) {
+            _coyoteTimeLeft -= Time.fixedDeltaTime;
+            coyoteGrounded = true;
+        } else {
+            coyoteGrounded = false;
+        }
     }
 }

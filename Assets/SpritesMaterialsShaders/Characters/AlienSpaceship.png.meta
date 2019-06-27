@@ -1,10 +1,12 @@
 fileFormatVersion: 2
 guid: 222abee621fe6fe42a5cdb00aef842d0
 TextureImporter:
-  fileIDToRecycleName:
-    21300000: AlienSpaceship_0
+  internalIDToNameTable:
+  - first:
+      213: 21300000
+    second: AlienSpaceship_0
   externalObjects: {}
-  serializedVersion: 9
+  serializedVersion: 10
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -108,6 +110,7 @@ TextureImporter:
       tessellationDetail: 0
       bones: []
       spriteID: 9222e2ea386b6774fa97adbef9841fd1
+      internalID: 21300000
       vertices: []
       indices: 
       edges: []
@@ -116,10 +119,12 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 088ad1883fa9cd24f8b05f6d06d8d239
+    internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
+    secondaryTextures: []
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

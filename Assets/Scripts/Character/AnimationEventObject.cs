@@ -3,7 +3,7 @@
 [CreateAssetMenu(menuName = "ScriptableObjects/AnimationEventObject")]
 public class AnimationEventObject : ScriptableObject {
     public enum TargetType {
-        Default,
+        Default, //TODO is this needed?
         WeaponAbstract
     }
 

@@ -126,7 +126,7 @@ public class CharacterPhysics : MonoBehaviour {
                                                              _parts.targets[i].transform.rotation);
         }
 
-        _rightFlip = _movement.facingRight ? 1 : -1;
+        _rightFlip = _movement.FlipInt;
         CrouchRotation();
 
         foreach(var part in bodyParts) {
@@ -317,7 +317,7 @@ public class CharacterPhysics : MonoBehaviour {
                 lowerLimit += upperLimit - old;
             }
             if(isLeg) {
-                _pp.StartCoroutine(_CheckStep());
+//                _pp.StartCoroutine(_CheckStep()); //TODO FIXME Checkstep is dumb and bad and needs to be made less bad
 
                 List<GameObject> partsTemp = _pp._nonLegBendParts.ToList();
                 List<float> amountsTemp = _pp._nonLegBendAmounts.ToList();
@@ -341,11 +341,11 @@ public class CharacterPhysics : MonoBehaviour {
                     var up = _root.up;
                     float delta = Vector2.Dot(partPos - foot.transform.position, right);
 
-                    Vector2 flip = _pp._movement.facingRight ? Vector2.one : FlipXVec;
+                    Vector2 flip = _pp._movement.FacingRight ? Vector2.one : FlipXVec;
                     Vector2 heightStart = partPos + up * footStepHeight.x;
-                    Vector2 heightDir = right * flip * footStepHeight.y * _pp._movement.moveVec.magnitude;
+                    Vector2 heightDir = footStepHeight.y * _pp._movement.moveVec.magnitude * flip * right;
                     Vector2 maxHeightStart = partPos + up * maxStepHeight.x;
-                    Vector2 maxHeightDir = right * flip * maxStepHeight.y * _pp._movement.moveVec.magnitude;
+                    Vector2 maxHeightDir = maxStepHeight.y * _pp._movement.moveVec.magnitude * flip * right;
 #if UNITY_EDITOR
                     if(visSettings) {
                         Debug.DrawRay(heightStart, heightDir, isLeadingLeg ? Color.cyan : new Color(0f, 1f, 0.72f));
@@ -366,15 +366,15 @@ public class CharacterPhysics : MonoBehaviour {
 
                     if(delta - _prevFootDelta > steppingThreshold) {
                         RaycastHit2D heightHit =
-                            Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.whatIsGround);
+                            Raycast(heightStart, heightDir, heightDir.magnitude, _pp._movement.WhatIsGround);
                         RaycastHit2D maxHeightHit = Raycast(maxHeightStart, maxHeightDir, maxHeightDir.magnitude,
-                                                            _pp._movement.whatIsGround);
+                                                            _pp._movement.WhatIsGround);
                         if(heightHit && !maxHeightHit) {
                             fastCheck = true;
 
                             Vector2 topStart = new Vector2(heightHit.point.x + flip.x * 0.1f, maxHeightStart.y);
                             RaycastHit2D topHit =
-                                Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.whatIsGround);
+                                Raycast(topStart, _root.up, maxStepHeight.x, _pp._movement.WhatIsGround);
 
                             if(topHit)
                                 _stepCrouchHeightPlus = (topHit.point - heightStart).magnitude * stepHeightMult;
@@ -515,14 +515,12 @@ public class CharacterPhysics : MonoBehaviour {
 
     /// <summary> Passes info from collision events to the BodyPartClass HitCalc method </summary>
     private void CollisionHandler(Collision2D collInfo) {
-        ContactPoint2D[] contacts = collInfo.contacts;
-        foreach(var c in contacts) {
+        foreach(var c in collInfo.contacts) {
             if(collToPart.ContainsKey(c.otherCollider)) {
-                BodyPartClass part = collToPart[c.otherCollider];
                 Vector2 force = float.IsNaN(c.normalImpulse) ?
                                     collInfo.relativeVelocity :
                                     c.normalImpulse / Time.fixedDeltaTime * c.normal / 1000;
-                part.HitCalc(c.point, c.normal, force);
+                collToPart[c.otherCollider].HitCalc(c.point, c.normal, force);
             }
         }
     }
@@ -555,14 +553,14 @@ public class CharacterPhysics : MonoBehaviour {
 //        if(!_wasAnimationMode && animationMode) SwapPartsWithTargets(_parts.parts, _parts.targets);
 //        if(_wasAnimationMode && !animationMode) SwapPartsWithTargets(_parts.targets, _parts.parts);
 //        _wasAnimationMode = animationMode;
-
+//
 //        for(int i = 0; i < _parts.parts.Length; i++) {
 //            //Rotate actual part to animated target in edit mode too
 //            _parts.parts[i].transform.SetPositionAndRotation(_parts.targets[i].transform.position,
 //                                                             _parts.targets[i].transform.rotation);
 //        }
 //    }
-
+//
 //    private void SwapPartsWithTargets(GameObject[] currents, GameObject[] news) {
 //        foreach(Transform sprite in transform.Find("Sprites")) {
 ////            Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git

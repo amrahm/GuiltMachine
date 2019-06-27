@@ -5,14 +5,8 @@ public class PhoenixMovement : MovementAbstract {
     public float speed = 500f;
     public ForceMode2D fMode = ForceMode2D.Force;
 
-    protected override void Awake() {
-        //Setting up references.
-        base.Awake();
-        facingRight = false; //sprite was drawn facing the other way lol
-    }
-
     private void FixedUpdate() {
-        if(facingRight != control.moveHorizontal > 0) {
+        if(FacingRight != control.moveHorizontal > 0) {
             Flip();
         }
 

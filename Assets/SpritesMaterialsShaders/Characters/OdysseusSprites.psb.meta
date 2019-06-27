@@ -1,72 +1,201 @@
 fileFormatVersion: 2
 guid: 577903e3b912add44ae2ad514e6707aa
 ScriptedImporter:
-  fileIDToRecycleName:
-    100000: LegL_GO/LegL_GO
-    100002: LegL_GO/LegL_GO/ArmL
-    100004: LegL_GO/LegL_GO/ArmR
-    100012: LegL_GO/LegL_GO/Hip
-    100014: LegL_GO/LegL_GO/Hip/ThighL
-    100016: LegL_GO/LegL_GO/Hip/ThighL/ShinL
-    100018: LegL_GO/LegL_GO/Hip/ThighL/ShinL/FootL
-    100020: LegL_GO/LegL_GO/Hip/ThighR
-    100022: LegL_GO/LegL_GO/Hip/ThighR/ShinR
-    100024: LegL_GO/LegL_GO/LegL
-    100026: LegL_GO/LegL_GO/LegR
-    100028: LegL_GO/LegL_GO/Hip/ThighR/ShinR/FootR
-    100030: LegL_GO/LegL_GO/Hip/Torso
-    100032: LegL_GO/LegL_GO/Body
-    100034: LegL_GO/LegL_GO/Hip/Torso/Head
-    100036: LegL_GO/LegL_GO/Hip/Torso/UpperArmL
-    100038: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL
-    100040: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL/HandL
-    100042: LegL_GO/LegL_GO/Hip/Torso/UpperArmR
-    100044: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR
-    100046: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR/HandR
-    100048: LegL_GO/LegL_GO/Head
-    400000: LegL_GO/LegL_GO/Transform
-    400002: LegL_GO/LegL_GO/ArmL/Transform
-    400004: LegL_GO/LegL_GO/ArmR/Transform
-    400012: LegL_GO/LegL_GO/Hip/Transform
-    400014: LegL_GO/LegL_GO/Hip/ThighL/Transform
-    400016: LegL_GO/LegL_GO/Hip/ThighL/ShinL/Transform
-    400018: LegL_GO/LegL_GO/Hip/ThighL/ShinL/FootL/Transform
-    400020: LegL_GO/LegL_GO/Hip/ThighR/Transform
-    400022: LegL_GO/LegL_GO/Hip/ThighR/ShinR/Transform
-    400024: LegL_GO/LegL_GO/LegL/Transform
-    400026: LegL_GO/LegL_GO/LegR/Transform
-    400028: LegL_GO/LegL_GO/Hip/ThighR/ShinR/FootR/Transform
-    400030: LegL_GO/LegL_GO/Hip/Torso/Transform
-    400032: LegL_GO/LegL_GO/Body/Transform
-    400034: LegL_GO/LegL_GO/Hip/Torso/Head/Transform
-    400036: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/Transform
-    400038: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL/Transform
-    400040: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL/HandL/Transform
-    400042: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/Transform
-    400044: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR/Transform
-    400046: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR/HandR/Transform
-    400048: LegL_GO/LegL_GO/Head/Transform
-    2800002: OdysseusSprites
-    11400000: LegL_GO/LegL_GO/ArmL/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
-    11400002: LegL_GO/LegL_GO/ArmR/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
-    11400004: LegL_GO/LegL_GO/Body/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
-    11400006: LegL_GO/LegL_GO/Head/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
-    11400008: LegL_GO/LegL_GO/LegL/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
-    11400010: LegL_GO/LegL_GO/LegR/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
-    21200000: LegL_GO/LegL_GO/ArmL/SpriteRenderer
-    21200002: LegL_GO/LegL_GO/ArmR/SpriteRenderer
-    21200004: LegL_GO/LegL_GO/Body/SpriteRenderer
-    21200006: LegL_GO/LegL_GO/Head/SpriteRenderer
-    21200008: LegL_GO/LegL_GO/LegL/SpriteRenderer
-    21200010: LegL_GO/LegL_GO/LegR/SpriteRenderer
-    21300004: ArmR
-    21300006: LegR
-    21300022: ArmL
-    21300024: LegL
-    21300026: Head
-    21300028: Body
-    100100000: LegL_GO
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: LegL_GO/LegL_GO
+  - first:
+      1: 100002
+    second: LegL_GO/LegL_GO/ArmL
+  - first:
+      1: 100004
+    second: LegL_GO/LegL_GO/ArmR
+  - first:
+      1: 100012
+    second: LegL_GO/LegL_GO/Hip
+  - first:
+      1: 100014
+    second: LegL_GO/LegL_GO/Hip/ThighL
+  - first:
+      1: 100016
+    second: LegL_GO/LegL_GO/Hip/ThighL/ShinL
+  - first:
+      1: 100018
+    second: LegL_GO/LegL_GO/Hip/ThighL/ShinL/FootL
+  - first:
+      1: 100020
+    second: LegL_GO/LegL_GO/Hip/ThighR
+  - first:
+      1: 100022
+    second: LegL_GO/LegL_GO/Hip/ThighR/ShinR
+  - first:
+      1: 100024
+    second: LegL_GO/LegL_GO/LegL
+  - first:
+      1: 100026
+    second: LegL_GO/LegL_GO/LegR
+  - first:
+      1: 100028
+    second: LegL_GO/LegL_GO/Hip/ThighR/ShinR/FootR
+  - first:
+      1: 100030
+    second: LegL_GO/LegL_GO/Hip/Torso
+  - first:
+      1: 100032
+    second: LegL_GO/LegL_GO/Body
+  - first:
+      1: 100034
+    second: LegL_GO/LegL_GO/Hip/Torso/Head
+  - first:
+      1: 100036
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmL
+  - first:
+      1: 100038
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL
+  - first:
+      1: 100040
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL/HandL
+  - first:
+      1: 100042
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmR
+  - first:
+      1: 100044
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR
+  - first:
+      1: 100046
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR/HandR
+  - first:
+      1: 100048
+    second: LegL_GO/LegL_GO/Head
+  - first:
+      4: 400000
+    second: LegL_GO/LegL_GO/Transform
+  - first:
+      4: 400002
+    second: LegL_GO/LegL_GO/ArmL/Transform
+  - first:
+      4: 400004
+    second: LegL_GO/LegL_GO/ArmR/Transform
+  - first:
+      4: 400012
+    second: LegL_GO/LegL_GO/Hip/Transform
+  - first:
+      4: 400014
+    second: LegL_GO/LegL_GO/Hip/ThighL/Transform
+  - first:
+      4: 400016
+    second: LegL_GO/LegL_GO/Hip/ThighL/ShinL/Transform
+  - first:
+      4: 400018
+    second: LegL_GO/LegL_GO/Hip/ThighL/ShinL/FootL/Transform
+  - first:
+      4: 400020
+    second: LegL_GO/LegL_GO/Hip/ThighR/Transform
+  - first:
+      4: 400022
+    second: LegL_GO/LegL_GO/Hip/ThighR/ShinR/Transform
+  - first:
+      4: 400024
+    second: LegL_GO/LegL_GO/LegL/Transform
+  - first:
+      4: 400026
+    second: LegL_GO/LegL_GO/LegR/Transform
+  - first:
+      4: 400028
+    second: LegL_GO/LegL_GO/Hip/ThighR/ShinR/FootR/Transform
+  - first:
+      4: 400030
+    second: LegL_GO/LegL_GO/Hip/Torso/Transform
+  - first:
+      4: 400032
+    second: LegL_GO/LegL_GO/Body/Transform
+  - first:
+      4: 400034
+    second: LegL_GO/LegL_GO/Hip/Torso/Head/Transform
+  - first:
+      4: 400036
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/Transform
+  - first:
+      4: 400038
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL/Transform
+  - first:
+      4: 400040
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmL/LowerArmL/HandL/Transform
+  - first:
+      4: 400042
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/Transform
+  - first:
+      4: 400044
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR/Transform
+  - first:
+      4: 400046
+    second: LegL_GO/LegL_GO/Hip/Torso/UpperArmR/LowerArmR/HandR/Transform
+  - first:
+      4: 400048
+    second: LegL_GO/LegL_GO/Head/Transform
+  - first:
+      28: 2800002
+    second: OdysseusSprites
+  - first:
+      114: 11400000
+    second: LegL_GO/LegL_GO/ArmL/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
+  - first:
+      114: 11400002
+    second: LegL_GO/LegL_GO/ArmR/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
+  - first:
+      114: 11400004
+    second: LegL_GO/LegL_GO/Body/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
+  - first:
+      114: 11400006
+    second: LegL_GO/LegL_GO/Head/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
+  - first:
+      114: 11400008
+    second: LegL_GO/LegL_GO/LegL/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
+  - first:
+      114: 11400010
+    second: LegL_GO/LegL_GO/LegR/MonoBehaviour-UnityEngine.Experimental.U2D.Animation.SpriteSkin
+  - first:
+      212: 21200000
+    second: LegL_GO/LegL_GO/ArmL/SpriteRenderer
+  - first:
+      212: 21200002
+    second: LegL_GO/LegL_GO/ArmR/SpriteRenderer
+  - first:
+      212: 21200004
+    second: LegL_GO/LegL_GO/Body/SpriteRenderer
+  - first:
+      212: 21200006
+    second: LegL_GO/LegL_GO/Head/SpriteRenderer
+  - first:
+      212: 21200008
+    second: LegL_GO/LegL_GO/LegL/SpriteRenderer
+  - first:
+      212: 21200010
+    second: LegL_GO/LegL_GO/LegR/SpriteRenderer
+  - first:
+      213: 21300004
+    second: ArmR
+  - first:
+      213: 21300006
+    second: LegR
+  - first:
+      213: 21300022
+    second: ArmL
+  - first:
+      213: 21300024
+    second: LegL
+  - first:
+      213: 21300026
+    second: Head
+  - first:
+      213: 21300028
+    second: Body
+  - first:
+      1001: 100100000
+    second: LegL_GO
   externalObjects: {}
+  serializedVersion: 2
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -137,6 +266,7 @@ ScriptedImporter:
       width: 0
       height: 0
     spriteID: 
+    internalID: 0
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -160,6 +290,7 @@ ScriptedImporter:
       width: 405
       height: 465
     spriteID: 8e78d8bc7144e1343ba3497457fc740d
+    internalID: 0
     spriteBone:
     - name: Head
       position: {x: 212.01224, y: 0.00019491087, z: 0}
@@ -908,6 +1039,7 @@ ScriptedImporter:
       width: 205
       height: 441
     spriteID: 4ef16f54d49e66443b6ccc11484bd5c4
+    internalID: 0
     spriteBone:
     - name: HandR
       position: {x: 140.97589, y: 0.000025733678, z: 0}
@@ -1668,6 +1800,7 @@ ScriptedImporter:
       width: 146
       height: 411
     spriteID: 9d58eec7a9536654eb229edc7d3b619f
+    internalID: 0
     spriteBone:
     - name: FootR
       position: {x: 173.6835, y: -0.00001225813, z: 0}
@@ -2389,6 +2522,7 @@ ScriptedImporter:
       width: 250
       height: 377
     spriteID: 0f24e42168ceb4e40968c483cd7f0b65
+    internalID: 0
     spriteBone:
     - name: Hip
       position: {x: 125.317566, y: 20.30722, z: 0}
@@ -3028,6 +3162,7 @@ ScriptedImporter:
       width: 202
       height: 376
     spriteID: 209fccebc5ba9294198c222b8e03e654
+    internalID: 0
     spriteBone:
     - name: HandL
       position: {x: 104.79555, y: 0.000045026238, z: 0}
@@ -3626,6 +3761,7 @@ ScriptedImporter:
       width: 174
       height: 400
     spriteID: 1c3f1b8956779cf4ba7465244c3ac127
+    internalID: 0
     spriteBone:
     - name: FootL
       position: {x: 177.55363, y: 0.000010043074, z: 0}
