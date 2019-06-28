@@ -24,5 +24,6 @@ public class BasicMeleeAttack : WeaponAttackAbstract {
     }
 
     public override void OnRecovering(AttackAction attackAction) { }
+
     public override void OnFadingOut(AttackAction attackAction) { }
 }

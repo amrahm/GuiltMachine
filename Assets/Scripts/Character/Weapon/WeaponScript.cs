@@ -95,6 +95,7 @@ public class WeaponScript : MonoBehaviour {
 
     internal AttackAction primaryAttack;
     internal AttackAction bufferAttack;
+    internal AttackAction fadingAttack;
 
     private LayerMask _whatIsHittable;
     private LayerMask _whatIsNotHittable;
@@ -216,7 +217,7 @@ public class WeaponScript : MonoBehaviour {
 
     public class AttackAction {
         public AttackState state = AttackState.DeterminingType;
-        private readonly WeaponScript _wA;
+        private readonly WeaponScript _wS;
 
         /// <summary> Direction of the attack </summary>
         internal Vector2 attackDir;
@@ -235,16 +236,17 @@ public class WeaponScript : MonoBehaviour {
 
         private bool _inBuffer;
         internal Coroutine waitForBuffer;
+        internal static readonly AttackDefinition NoMatches = new AttackDefinition {name = "NoMatches"};
 
         public AttackAction(WeaponScript weaponScript, bool inBuffer) {
-            _wA = weaponScript;
+            _wS = weaponScript;
             _inBuffer = inBuffer;
-            _wA.StartCoroutine(_InitAttack());
+            _wS.StartCoroutine(_InitAttack());
         }
 
         private void UpdateInputIfNewKeysPressed() {
-            if(inH == 0 && _wA.ctrl.attackHorizontal != 0) inH = _wA.ctrl.attackHorizontal;
-            if(inV == 0 && _wA.ctrl.attackVertical != 0) inV = _wA.ctrl.attackVertical;
+            if(inH == 0 && _wS.ctrl.attackHorizontal != 0) inH = _wS.ctrl.attackHorizontal;
+            if(inV == 0 && _wS.ctrl.attackVertical != 0) inV = _wS.ctrl.attackVertical;
         }
 
         private IEnumerator _InitAttack() {
@@ -262,27 +264,29 @@ public class WeaponScript : MonoBehaviour {
             UpdateInputIfNewKeysPressed();
 
             //Convert the input into a vector 
-            attackDir = _wA.mvmt.tf.InverseTransformDirection(inH, inV, 0);
+            attackDir = _wS.mvmt.tf.InverseTransformDirection(inH, inV, 0);
 
             // Figure out which attack, if any, matches the current conditions
-            attackDefinition = (from attack in _wA.attacks
-                                where attack.directionTriggers.Contains(_wA.GetAttackDirection(inH, inV)) &&
-                                      (!_wA.mvmt.grounded || attack.groundedState != GroundedState.NotGrounded) &&
-                                      (_wA.mvmt.grounded || attack.groundedState != GroundedState.Grounded) &&
-                                      attack.movementStates.Contains(_wA.mvmt.movementState)
-                                select attack).FirstOrDefault();
+            attackDefinition = (from attack in _wS.attacks
+                                //TODO instead of GetAttackDirection with inH and inV, do it relative to rotated player
+                                where attack.directionTriggers.Contains(_wS.GetAttackDirection(inH, inV)) &&
+                                      (!_wS.mvmt.grounded || attack.groundedState != GroundedState.NotGrounded) &&
+                                      (_wS.mvmt.grounded || attack.groundedState != GroundedState.Grounded) &&
+                                      attack.movementStates.Contains(_wS.mvmt.movementState)
+                                select attack).DefaultIfEmpty(NoMatches).First();
 
             // If no attack matches, just cancel this attack (do nothing, basically)
-            if(attackDefinition == null) {
-                EndAttack(dontFade: true);
+            if(ReferenceEquals(attackDefinition, NoMatches)) {
+                if(ReferenceEquals(this, _wS.bufferAttack)) _wS.bufferAttack = null;
+                else EndAttack(dontFade: true);
                 yield break;
             }
 
 
             // Then perform the appropriate action(s)
             if(attackDefinition.attackInputType == AttackInputType.Single)
-                waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
-            else _wA.StartCoroutine(_InitTapOrHold());
+                waitForBuffer = _wS.StartCoroutine(_BeginWindUpWhenNotInBuffer());
+            else _wS.StartCoroutine(_InitTapOrHold());
         }
 
         private IEnumerator _BeginWindUpWhenNotInBuffer() {
@@ -298,13 +302,13 @@ public class WeaponScript : MonoBehaviour {
             do {
                 if(Time.time - attackInitTime >= TapThreshold) {
                     isHoldAttack = true;
-                    waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
+                    waitForBuffer = _wS.StartCoroutine(_BeginWindUpWhenNotInBuffer());
                     yield break;
                 }
                 yield return null;
-            } while(_wA.ctrl.attackHorizontal != 0 || _wA.ctrl.attackVertical != 0);
+            } while(_wS.ctrl.attackHorizontal != 0 || _wS.ctrl.attackVertical != 0);
 
-            waitForBuffer = _wA.StartCoroutine(_BeginWindUpWhenNotInBuffer());
+            waitForBuffer = _wS.StartCoroutine(_BeginWindUpWhenNotInBuffer());
         }
 
         internal void BeginAttacking() {
@@ -318,19 +322,23 @@ public class WeaponScript : MonoBehaviour {
         }
 
         internal void EndAttack(float duration = 0.3f, bool dontFade = false) {
+#if UNITY_EDITOR || DEBUG
+            Debug.Assert(!ReferenceEquals(this, _wS.bufferAttack));
+#endif
+            if(!ReferenceEquals(_wS.primaryAttack, this)) return;
             state = AttackState.FadingOut;
             if(!dontFade) {
-                _wA.FadeAttackOut(duration);
+                _wS.FadeAttackOut(duration);
                 foreach(var attack in AttackActions) attack.OnFadingOut(this);
             }
-            if(ReferenceEquals(_wA.bufferAttack, this)) {
-                _wA.bufferAttack = null;
-            } else if(_wA.bufferAttack != null && Time.time - _wA._bufferAttackStart < BufferTime) {
-                _wA.primaryAttack = _wA.bufferAttack;
-                _wA.primaryAttack._inBuffer = false;
-                _wA.bufferAttack = null;
-                _wA._bufferAttackStart = 0;
-            } else _wA.primaryAttack = null;
+
+            if(!ReferenceEquals(attackDefinition, NoMatches)) _wS.fadingAttack = _wS.primaryAttack;
+            if(_wS.bufferAttack != null && Time.time - _wS._bufferAttackStart < BufferTime) {
+                _wS.primaryAttack = _wS.bufferAttack;
+                _wS.primaryAttack._inBuffer = false;
+                _wS.bufferAttack = null;
+                _wS._bufferAttackStart = 0;
+            } else _wS.primaryAttack = null;
         }
     }
 
@@ -379,7 +387,8 @@ public class WeaponScript : MonoBehaviour {
         // All hittable things minus this layer
         _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster & ~(1 << gameObject.layer);
         // Everything solid but not hittable
-        _whatIsNotHittable = CommonObjectsSingleton.Instance.whatIsGroundMaster & ~CommonObjectsSingleton.Instance.whatIsHittableMaster;
+        _whatIsNotHittable = CommonObjectsSingleton.Instance.whatIsGroundMaster &
+                             ~CommonObjectsSingleton.Instance.whatIsHittableMaster;
         _animEventObjs = CommonObjectsSingleton.Instance;
         foreach(AttackDefinition attack in attacks) attack.Initialize(this);
     }
@@ -408,7 +417,11 @@ public class WeaponScript : MonoBehaviour {
         holder = newHolder;
         ctrl = holder.control;
         holder.weapon = this;
-        anim = holder.gameObject.GetComponent<Animator>();
+        anim = holder.anim;
+        if(anim)
+            foreach(var makeSureAttackEndCalled in anim.GetBehaviours<MakeSureAttackEndCalled>()) {
+                makeSureAttackEndCalled.weapon = this;
+            }
         mvmt = holder.gameObject.GetComponent<MovementAbstract>();
     }
 
@@ -468,10 +481,13 @@ public class WeaponScript : MonoBehaviour {
     private class PreventFlipWhileAttacking : WeaponAttackAbstract {
         private WeaponScript _weaponScript;
         public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
-        public override void OnAttackWindup(AttackAction attackAction) { _weaponScript.mvmt.cantFlip++; }
+
+        public override void OnAttackWindup(AttackAction attackAction) { _weaponScript.mvmt.CantFlip++; }
+
         public override void OnAttacking(AttackAction attackAction) { }
         public override void OnRecovering(AttackAction attackAction) { }
-        public override void OnFadingOut(AttackAction attackAction) { _weaponScript.mvmt.cantFlip--; }
+
+        public override void OnFadingOut(AttackAction attackAction) { _weaponScript.mvmt.CantFlip--; }
     }
 
     internal IEnumerator _CheckMeleeHit(AttackAction attackAction) {
@@ -489,7 +505,8 @@ public class WeaponScript : MonoBehaviour {
 #endif
                     return rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
                            // Make sure nothing of a different layer is between where the sword was and where it hit
-                           !Linecast(_prevBase, rHit.point, _whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer));
+                           !Linecast(_prevBase, rHit.point,
+                                     _whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer));
                 }
 
 //               print("CHECK1");
