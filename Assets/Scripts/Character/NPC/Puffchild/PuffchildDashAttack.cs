@@ -101,9 +101,10 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
                 var emissionModule = _repelCirclePart.particleTrail.emission;
                 emissionModule.rateOverDistance = 0;
             }
-            _repelCirclePart.StartCoroutine(_repelCirclePart._Explode((int) (_chargeAmount * attackAction.Damage),
-                                                                      _chargeAmount * attackAction.Knockback, _ctrl,
-                                                                      weapon.holder.movement));
+            _repelCirclePart.StartCoroutine(_repelCirclePart._Explode(
+                                                (int) (_chargeAmount * attackAction.attackDefinition.damage),
+                                                _chargeAmount * attackAction.attackDefinition.knockback, _ctrl,
+                                                weapon.holder.movement));
             exploded = true;
             weapon.Blocking = true;
         } else {

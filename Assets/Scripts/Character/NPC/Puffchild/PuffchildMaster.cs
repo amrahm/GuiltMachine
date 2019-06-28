@@ -16,6 +16,7 @@ public class PuffchildMaster : CharacterMasterAbstract {
         CameraShake.Shake(0.5f, 0.5f);
 
         GetComponent<Rigidbody2D>().isKinematic = true;
+        foreach(Collider2D child in GetComponentsInChildren<Collider2D>()) child.isTrigger = true;
         transform.localScale = Vector3.zero;
 
         // Audio to play on death

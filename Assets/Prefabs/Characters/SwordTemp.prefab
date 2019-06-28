@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4692446292442176}
-  - component: {fileID: 212522248447657562}
   - component: {fileID: 8078840869268502559}
   m_Layer: 13
   m_Name: SwordTemp
@@ -26,62 +25,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1735059564621952}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.23273778, y: 0.54328626, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 635317820988699814}
   - {fileID: 8500004457861914004}
+  - {fileID: 7422414094651174437}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &212522248447657562
-SpriteRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1735059564621952}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RenderingLayerMask: 4294967295
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: a8006df53de55f34db217738e5be6d69, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
-  m_SelectedEditorRenderState: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -646028971
-  m_SortingLayer: 3
-  m_SortingOrder: 45
-  m_Sprite: {fileID: 21300000, guid: 8b704956208156549a7d2b4d418d7ddc, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 3.09, y: 12.04}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
-  m_SpriteSortPoint: 0
 --- !u!114 &8078840869268502559
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,55 +51,54 @@ MonoBehaviour:
   weaponBase: {fileID: 635317820988699814}
   specialParts: []
   attacks:
-  - name: Stab/Swing Forward (Ground)
-    attackInputType: 1
-    attackTapActions:
+  - name: Forward Stab (Ground)
+    attackInputType: 0
+    attacks:
     - {fileID: 11400000, guid: ed47138307d2beb40a66113834c89f93, type: 2}
-    attackHoldActions:
+    directionTriggerFlags: 1
+    groundedState: 1
+    movementStateFlags: 31
+    flipIfFacingAway: 1
+    preventFlipWhileAttacking: 1
+    damage: 15
+    knockback: 50
+  - name: Forward Swing (Ground)
+    attackInputType: 1
+    attacks:
     - {fileID: 11400000, guid: dcb952b11c678fa4db043e8c04733a5a, type: 2}
     directionTriggerFlags: 1
     groundedState: 1
     movementStateFlags: 31
     flipIfFacingAway: 1
     preventFlipWhileAttacking: 1
-    tapDamage: 20
-    tapKnockback: 50
-    holdDamage: 35
-    holdKnockback: 150
-  - name: SwingDash Forward (Air)
+    damage: 30
+    knockback: 100
+  - name: Forward SwingDash (Air)
     attackInputType: 0
-    attackTapActions:
+    attacks:
     - {fileID: 11400000, guid: dcb952b11c678fa4db043e8c04733a5a, type: 2}
     - {fileID: 11400000, guid: 91ccd415b6812c74b976cc9b6d806293, type: 2}
-    attackHoldActions: []
     directionTriggerFlags: 1
     groundedState: 2
     movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 1
-    tapDamage: 20
-    tapKnockback: 50
-    holdDamage: 20
-    holdKnockback: 50
-  - name: Swing Up (Ground)
+    damage: 20
+    knockback: 100
+  - name: Up Swing
     attackInputType: 0
-    attackTapActions:
+    attacks:
     - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
-    attackHoldActions: []
     directionTriggerFlags: 74
-    groundedState: 1
+    groundedState: 0
     movementStateFlags: 31
     flipIfFacingAway: 1
     preventFlipWhileAttacking: 1
-    tapDamage: 20
-    tapKnockback: 50
-    holdDamage: 20
-    holdKnockback: 50
-  - name: SwingDash Up (Air)
+    damage: 20
+    knockback: 80
+  - name: Up SwingDash (Air)
     attackInputType: 1
-    attackTapActions:
-    - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
-    attackHoldActions:
+    attacks:
     - {fileID: 11400000, guid: 226185754d8ac7a4fb00a018292dcf26, type: 2}
     - {fileID: 11400000, guid: 88ec75f983aa3a94e809b040876192d5, type: 2}
     directionTriggerFlags: 74
@@ -155,31 +106,45 @@ MonoBehaviour:
     movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 1
-    tapDamage: 20
-    tapKnockback: 50
-    holdDamage: 20
-    holdKnockback: 50
-  - name: Stab/StabDash Down (Air)
-    attackInputType: 1
-    attackTapActions:
+    damage: 30
+    knockback: 100
+  - name: Down Stab (Air)
+    attackInputType: 0
+    attacks:
     - {fileID: 11400000, guid: 2fa4c50c06d0a6b4987b052748e38b5b, type: 2}
-    attackHoldActions:
-    - {fileID: 11400000, guid: 2fa4c50c06d0a6b4987b052748e38b5b, type: 2}
-    - {fileID: 11400000, guid: 895fdca2fd018064fba0545f979f60cf, type: 2}
     directionTriggerFlags: 148
     groundedState: 2
     movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 0
-    tapDamage: 20
-    tapKnockback: 50
-    holdDamage: 20
-    holdKnockback: 50
-  - name: Back/BackDash (Air)
+    damage: 20
+    knockback: 50
+  - name: Down StabDash (Air)
     attackInputType: 1
-    attackTapActions:
+    attacks:
+    - {fileID: 11400000, guid: 2fa4c50c06d0a6b4987b052748e38b5b, type: 2}
+    - {fileID: 11400000, guid: 895fdca2fd018064fba0545f979f60cf, type: 2}
+    directionTriggerFlags: 148
+    groundedState: 2
+    movementStateFlags: 23
+    flipIfFacingAway: 0
+    preventFlipWhileAttacking: 0
+    damage: 40
+    knockback: 50
+  - name: Back Stab (Air)
+    attackInputType: 0
+    attacks:
     - {fileID: 11400000, guid: 7a8ffdd6c84e575498674ca174370e96, type: 2}
-    attackHoldActions:
+    directionTriggerFlags: 32
+    groundedState: 2
+    movementStateFlags: 31
+    flipIfFacingAway: 0
+    preventFlipWhileAttacking: 1
+    damage: 20
+    knockback: 40
+  - name: Back SwingDash (Air)
+    attackInputType: 1
+    attacks:
     - {fileID: 11400000, guid: 5ca938d0ec08e0941b2ed0ad6adcd8b8, type: 2}
     - {fileID: 11400000, guid: 91ccd415b6812c74b976cc9b6d806293, type: 2}
     directionTriggerFlags: 32
@@ -187,10 +152,8 @@ MonoBehaviour:
     movementStateFlags: 31
     flipIfFacingAway: 0
     preventFlipWhileAttacking: 1
-    tapDamage: 20
-    tapKnockback: 50
-    holdDamage: 20
-    holdKnockback: 50
+    damage: 25
+    knockback: 70
   mass: 5
 --- !u!1 &2289720762138855564
 GameObject:
@@ -252,3 +215,82 @@ Transform:
   m_Father: {fileID: 4692446292442176}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5670755494807840098
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7422414094651174437}
+  - component: {fileID: 5039815837993045668}
+  m_Layer: 13
+  m_Name: Sprite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7422414094651174437
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5670755494807840098}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5452855, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4692446292442176}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &5039815837993045668
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5670755494807840098}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a8006df53de55f34db217738e5be6d69, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: -646028971
+  m_SortingLayer: 3
+  m_SortingOrder: 45
+  m_Sprite: {fileID: 21300000, guid: 8b704956208156549a7d2b4d418d7ddc, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 3.09, y: 12.04}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0

@@ -103,11 +103,11 @@ public class WeaponScript : MonoBehaviour {
     public enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, FadingOut }
 
     internal enum AttackInputType {
-        /// <summary> This attack only has a single action </summary>
-        Single,
+        /// <summary> This attack will happen on a tap (a hold too if no hold action is defined) </summary>
+        Tap,
 
-        /// <summary> Different action depending on whether they tap or hold </summary>
-        TapHold
+        /// <summary> If input is held, this attack will happen, else a tap will be chosen if there is one </summary>
+        Hold
     }
 
     [Flags]
@@ -123,15 +123,11 @@ public class WeaponScript : MonoBehaviour {
         // ReSharper disable once NotAccessedField.Global (Used in Unity inspector automatically)
         public string name = "I THIRST FOR A NAME";
 
-        [Tooltip("Does this attack only have a single action or should it do something different if the player taps " +
-                 "or the player holds the input keys"), SerializeField]
+        [Tooltip("Does this attack happen only if you hold it long enough, or is a tap sufficient"), SerializeField]
         internal AttackInputType attackInputType;
 
         [SerializeField]
-        internal List<WeaponAttackAbstract> attackTapActions;
-
-        [SerializeField]
-        internal List<WeaponAttackAbstract> attackHoldActions;
+        internal List<WeaponAttackAbstract> attacks;
 
         [Tooltip("Which directions can be pressed to activate this attack"), EnumFlags, SerializeField]
         private AttackDirection directionTriggerFlags = (AttackDirection) 1;
@@ -154,36 +150,19 @@ public class WeaponScript : MonoBehaviour {
         private bool preventFlipWhileAttacking = true;
 
         [Tooltip("How much the attack hurts"), SerializeField]
-        internal int tapDamage = 20;
+        internal int damage = 20;
 
         [Tooltip("Knockback force applied by attack"), SerializeField]
-        internal float tapKnockback = 50;
-
-        [Tooltip("How much the hold attack hurts"), SerializeField]
-        internal int holdDamage = 20;
-
-        [Tooltip("Knockback force applied by the hold attack"), SerializeField]
-        internal float holdKnockback = 50;
+        internal float knockback = 50;
 
         internal void Initialize(WeaponScript weapon) {
-            if(flipIfFacingAway) {
-                var flipIfFacingAwayInstance = ScriptableObject.CreateInstance<FlipIfFacingAway>();
-                attackTapActions.Insert(0, flipIfFacingAwayInstance);
-                if(attackInputType == AttackInputType.TapHold) attackHoldActions.Insert(0, flipIfFacingAwayInstance);
+            if(flipIfFacingAway) attacks.Insert(0, ScriptableObject.CreateInstance<FlipIfFacingAway>());
+            if(preventFlipWhileAttacking) attacks.Add(ScriptableObject.CreateInstance<PreventFlipWhileAttacking>());
+            for(int i = 0; i < attacks.Count; i++) {
+                attacks[i] = Instantiate(attacks[i]);
+                attacks[i].Initialize(weapon);
             }
-            if(preventFlipWhileAttacking) {
-                var preventFlipWhileAttackingInstance = ScriptableObject.CreateInstance<PreventFlipWhileAttacking>();
-                attackTapActions.Add(preventFlipWhileAttackingInstance);
-                if(attackInputType == AttackInputType.TapHold) attackHoldActions.Add(preventFlipWhileAttackingInstance);
-            }
-            for(int i = 0; i < attackTapActions.Count; i++) {
-                attackTapActions[i] = Instantiate(attackTapActions[i]);
-                attackTapActions[i].Initialize(weapon);
-            }
-            for(int i = 0; i < attackHoldActions.Count; i++) {
-                attackHoldActions[i] = Instantiate(attackHoldActions[i]);
-                attackHoldActions[i].Initialize(weapon);
-            }
+
             directionTriggers = EnumFlagsAttribute.ReturnSelectedElements<AttackDirection>((int) directionTriggerFlags)
                 .Select(x => (AttackDirection) x).ToArray();
             movementStates = EnumFlagsAttribute.ReturnSelectedElements<MovementState>((int) movementStateFlags)
@@ -201,12 +180,15 @@ public class WeaponScript : MonoBehaviour {
         }
 
         public int CompareTo(object obj) {
-            // This is to sort the list of AttackDefinitions so that ones with more specific conditions are picked first
+            // This is to sort the list of AttackDefinitions so that hold attacks are picked first,
+            // then ones with more specific conditions are picked first
             if(obj is AttackDefinition otherAttack) {
-                if(groundedState == GroundedState.Both && otherAttack.groundedState != GroundedState.Both ||
+                if(attackInputType == AttackInputType.Tap && otherAttack.attackInputType == AttackInputType.Hold ||
+                   groundedState == GroundedState.Both && otherAttack.groundedState != GroundedState.Both ||
                    movementStates.Length > otherAttack.movementStates.Length)
                     return 1;
-                if(groundedState != GroundedState.Both && otherAttack.groundedState == GroundedState.Both ||
+                if(attackInputType == AttackInputType.Hold && otherAttack.attackInputType == AttackInputType.Tap ||
+                   groundedState != GroundedState.Both && otherAttack.groundedState == GroundedState.Both ||
                    movementStates.Length < otherAttack.movementStates.Length)
                     return -1;
                 return 0;
@@ -226,22 +208,15 @@ public class WeaponScript : MonoBehaviour {
         internal int inV;
 
         internal AttackDefinition attackDefinition;
-        internal int Damage => isHoldAttack ? attackDefinition.holdDamage : attackDefinition.tapDamage;
-        internal float Knockback => isHoldAttack ? attackDefinition.holdKnockback : attackDefinition.tapKnockback;
-
-        private IEnumerable<WeaponAttackAbstract> AttackActions =>
-            isHoldAttack ? attackDefinition.attackHoldActions : attackDefinition.attackTapActions;
-
-        internal bool isHoldAttack;
 
         private bool _inBuffer;
-        internal Coroutine waitForBuffer;
+        internal readonly Coroutine initAttack;
         internal static readonly AttackDefinition NoMatches = new AttackDefinition {name = "NoMatches"};
 
         public AttackAction(WeaponScript weaponScript, bool inBuffer) {
             _wS = weaponScript;
             _inBuffer = inBuffer;
-            _wS.StartCoroutine(_InitAttack());
+            initAttack = _wS.StartCoroutine(_InitAttack());
         }
 
         private void UpdateInputIfNewKeysPressed() {
@@ -263,13 +238,34 @@ public class WeaponScript : MonoBehaviour {
             // Check again; might have only been updated at beginning of loop, since TimeToWaitForDiagonal is so short
             UpdateInputIfNewKeysPressed();
 
-            //Convert the input into a vector 
+            // Convert the input into a vector 
             attackDir = _wS.mvmt.tf.InverseTransformDirection(inH, inV, 0);
 
+            // Now look for a matching attack, and end early if none was found
+            if(!ChooseAttack()) yield break;
+
+            // Then, if it's a hold, make sure they hold long enough
+            if(attackDefinition.attackInputType == AttackInputType.Hold) {
+                attackInitTime = Time.time;
+                yield return new WaitWhile(() => Time.time - attackInitTime < TapThreshold &&
+                                                 (_wS.ctrl.attackHorizontal != 0 || _wS.ctrl.attackVertical != 0));
+                if(Time.time - attackInitTime < TapThreshold && !ChooseAttack(true))
+                    // They didn't hold for long enough, so look for a matching tap attack, and if one isn't found, break
+                    yield break;
+            }
+
+            // If we get here, an attack was found, so start it if/when we're not in the buffer anymore
+            if(_inBuffer) yield return new WaitWhile(() => _inBuffer);
+            state = AttackState.WindingUp;
+            foreach(var attack in attackDefinition.attacks) attack.OnAttackWindup(this);
+        }
+
+        private bool ChooseAttack(bool onlyLookForTaps = false) {
             // Figure out which attack, if any, matches the current conditions
             attackDefinition = (from attack in _wS.attacks
                                 //TODO instead of GetAttackDirection with inH and inV, do it relative to rotated player
-                                where attack.directionTriggers.Contains(_wS.GetAttackDirection(inH, inV)) &&
+                                where (!onlyLookForTaps || attack.attackInputType == AttackInputType.Tap) &&
+                                      attack.directionTriggers.Contains(_wS.GetAttackDirection(inH, inV)) &&
                                       (!_wS.mvmt.grounded || attack.groundedState != GroundedState.NotGrounded) &&
                                       (_wS.mvmt.grounded || attack.groundedState != GroundedState.Grounded) &&
                                       attack.movementStates.Contains(_wS.mvmt.movementState)
@@ -279,46 +275,19 @@ public class WeaponScript : MonoBehaviour {
             if(ReferenceEquals(attackDefinition, NoMatches)) {
                 if(ReferenceEquals(this, _wS.bufferAttack)) _wS.bufferAttack = null;
                 else EndAttack(dontFade: true);
-                yield break;
+                return false;
             }
-
-
-            // Then perform the appropriate action(s)
-            if(attackDefinition.attackInputType == AttackInputType.Single)
-                waitForBuffer = _wS.StartCoroutine(_BeginWindUpWhenNotInBuffer());
-            else _wS.StartCoroutine(_InitTapOrHold());
-        }
-
-        private IEnumerator _BeginWindUpWhenNotInBuffer() {
-            if(_inBuffer) yield return new WaitWhile(() => _inBuffer);
-            state = AttackState.WindingUp;
-            foreach(var attack in AttackActions) attack.OnAttackWindup(this);
-        }
-
-
-        /// <summary> Inititates the attack as either a tap or a hold </summary>
-        private IEnumerator _InitTapOrHold() {
-            float attackInitTime = Time.time;
-            do {
-                if(Time.time - attackInitTime >= TapThreshold) {
-                    isHoldAttack = true;
-                    waitForBuffer = _wS.StartCoroutine(_BeginWindUpWhenNotInBuffer());
-                    yield break;
-                }
-                yield return null;
-            } while(_wS.ctrl.attackHorizontal != 0 || _wS.ctrl.attackVertical != 0);
-
-            waitForBuffer = _wS.StartCoroutine(_BeginWindUpWhenNotInBuffer());
+            return true;
         }
 
         internal void BeginAttacking() {
             state = AttackState.Attacking;
-            foreach(var attack in AttackActions) attack.OnAttacking(this);
+            foreach(var attack in attackDefinition.attacks) attack.OnAttacking(this);
         }
 
         internal void BeginRecovering() {
             state = AttackState.Recovering;
-            foreach(var attack in AttackActions) attack.OnRecovering(this);
+            foreach(var attack in attackDefinition.attacks) attack.OnRecovering(this);
         }
 
         internal void EndAttack(float duration = 0.3f, bool dontFade = false) {
@@ -329,7 +298,7 @@ public class WeaponScript : MonoBehaviour {
             state = AttackState.FadingOut;
             if(!dontFade) {
                 _wS.FadeAttackOut(duration);
-                foreach(var attack in AttackActions) attack.OnFadingOut(this);
+                foreach(var attack in attackDefinition.attacks) attack.OnFadingOut(this);
             }
 
             if(!ReferenceEquals(attackDefinition, NoMatches)) _wS.fadingAttack = _wS.primaryAttack;
@@ -391,18 +360,19 @@ public class WeaponScript : MonoBehaviour {
                              ~CommonObjectsSingleton.Instance.whatIsHittableMaster;
         _animEventObjs = CommonObjectsSingleton.Instance;
         foreach(AttackDefinition attack in attacks) attack.Initialize(this);
+        attacks = attacks.Sort();
     }
 
     private void Update() {
         if(ctrl.attackHorizontal != 0 && ctrl.attackHorizontal != _oldHorizInput || // If we have new horizontal input
            ctrl.attackVertical != 0 && ctrl.attackVertical != _oldVertInput) { // or new vertical input
             if(primaryAttack == null) {
-                primaryAttack = new AttackAction(this, false);
+                primaryAttack = new AttackAction(this, false); //TODO might be able to reuse these and prevent some GC
                 _attackStart = Time.time;
             } else if(_oldVertInput == 0 && _oldHorizInput == 0 || Time.time - _attackStart > TapThreshold * 2) {
                 // but if we were already attacking and this is an entirely new attack input, or enough time has passed
                 // that we know this isn't just them trying to do a diagonal, then start a buffer attack
-                if(bufferAttack?.waitForBuffer != null) StopCoroutine(bufferAttack.waitForBuffer); // else never stops
+                if(bufferAttack?.initAttack != null) StopCoroutine(bufferAttack.initAttack); // else might never stop
                 bufferAttack = new AttackAction(this, true);
                 _bufferAttackStart = Time.time;
             }
@@ -588,16 +558,12 @@ public class WeaponScript : MonoBehaviour {
                 continue;
             }
 
-            float knockback = attackAction.isHoldAttack ?
-                                  attackDefinition.holdKnockback :
-                                  attackDefinition.tapKnockback;
-
             IDamageable damageable = swingHit.collider.GetComponentInParent<IDamageable>();
             Vector2 point = swingHit.point;
             Vector2 force = mvmt.rb.velocity; //Relative Velocity
             if(swingHit.collider.attachedRigidbody) force -= swingHit.collider.attachedRigidbody.velocity;
             force = mass * force; //Kinetic Energy = mv^2, but that was too much so just doing mv lol
-            force += attackAction.attackDir * knockback; // Add knockback in the direction of the swing
+            force += attackAction.attackDir * attackDefinition.knockback; // Add knockback in the direction of the swing
 
 
             switch(damageable.CheckProtected(point, swingHit.collider)) {
@@ -605,7 +571,8 @@ public class WeaponScript : MonoBehaviour {
                 case ProtectedType.Blocking: {
                     //TODO recoil and sparks or something shit idk
                     var hTf = holder.transform;
-                    Vector2 recoil = (hTf.position - swingHit.transform.position + hTf.up / 6) * knockback;
+                    Vector2 recoil = (hTf.position - swingHit.transform.position + hTf.up / 6) *
+                                     attackDefinition.knockback;
                     holder.characterPhysics?.AddForceAt(point, recoil, GetComponentInParent<Collider2D>());
                     FadeAttackOut(0.30121f);
                     attackAction.BeginRecovering();
@@ -613,7 +580,8 @@ public class WeaponScript : MonoBehaviour {
                 }
             }
             // Damage scaled based on relative velocity
-            int damageGiven = (int) Math.Max(attackAction.Damage, attackAction.Knockback * mvmt.rb.velocity.magnitude);
+            int damageGiven = (int) Math.Max(attackAction.attackDefinition.damage,
+                                             attackAction.attackDefinition.knockback * mvmt.rb.velocity.magnitude);
             damageable.DamageMe(point, force, damageGiven, swingHit.collider);
             yield break;
         }
