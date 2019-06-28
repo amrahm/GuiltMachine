@@ -42,7 +42,7 @@ public class DashWhileSwinging : WeaponAttackAbstract {
     }
 
     public override void OnRecovering(AttackAction attackAction) { }
-    public override void OnFadingOut(AttackAction attackAction) { }
+    public override void OnEnding(AttackAction attackAction) { }
 
     private IEnumerator _AttackDash(AttackAction attackAction) {
         //FIXME Not framerate independent? Seems to go crazy sometimes at low/unstable framerates

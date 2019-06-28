@@ -8,5 +8,5 @@ public abstract class WeaponAttackAbstract : ScriptableObject {
     public abstract void OnAttackWindup(AttackAction attackAction);
     public abstract void OnAttacking(AttackAction attackAction);
     public abstract void OnRecovering(AttackAction attackAction);
-    public abstract void OnFadingOut(AttackAction attackAction);
+    public abstract void OnEnding(AttackAction attackAction);
 }

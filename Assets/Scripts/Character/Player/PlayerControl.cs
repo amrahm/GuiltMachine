@@ -1,6 +1,17 @@
-﻿using UnityStandardAssets.CrossPlatformInput;
+﻿using Cinemachine;
+using UnityEngine;
+using UnityStandardAssets.CrossPlatformInput;
 
 public class PlayerControl : CharacterControlAbstract {
+    private void OnEnable() {
+        Camera main = Camera.main;
+        if(main != null) {
+            main.GetComponentInChildren<CinemachineVirtualCamera>().Follow = transform;
+            GetComponent<CharacterMasterAbstract>().statusIndicator =
+                main.GetComponentInChildren<PlayerStatusIndicator>();
+        }
+    }
+
     private void Update() {
         //Movement
         moveHorizontal = CrossPlatformInputManager.GetAxis("Horizontal");
@@ -18,7 +29,7 @@ public class PlayerControl : CharacterControlAbstract {
         else if(CrossPlatformInputManager.GetButtonDown("AttackDown"))
             attackVertical = -1;
         else if(CrossPlatformInputManager.GetButtonUp("AttackUp") && attackVertical == 1 ||
-           CrossPlatformInputManager.GetButtonUp("AttackDown") && attackVertical == -1)
+                CrossPlatformInputManager.GetButtonUp("AttackDown") && attackVertical == -1)
             attackVertical = 0;
         // Same for horizontal
         if(CrossPlatformInputManager.GetButtonDown("AttackRight"))
@@ -26,7 +37,7 @@ public class PlayerControl : CharacterControlAbstract {
         else if(CrossPlatformInputManager.GetButtonDown("AttackLeft"))
             attackHorizontal = -1;
         else if(CrossPlatformInputManager.GetButtonUp("AttackRight") && attackHorizontal == 1 ||
-           CrossPlatformInputManager.GetButtonUp("AttackLeft") && attackHorizontal == -1)
+                CrossPlatformInputManager.GetButtonUp("AttackLeft") && attackHorizontal == -1)
             attackHorizontal = 0;
 
         blockPressed = CrossPlatformInputManager.GetButton("Block");

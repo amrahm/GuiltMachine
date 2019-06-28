@@ -8,10 +8,12 @@ public class PhoenixMaster : CharacterMasterAbstract {
 
     /// <summary> prevents multiple damaging collisions to player </summary>
     private bool _exploded;
+
     /// <summary> helps reset _exploded </summary>
     private float _timeExploded;
 
     protected override void Die() { StartCoroutine(_DieHelper()); }
+
     private IEnumerator _DieHelper() {
         Transform deathParticle = Instantiate(deathExplosionPrefab, transform.position, Quaternion.identity);
         // Destroy particle system after 1 second
@@ -36,11 +38,13 @@ public class PhoenixMaster : CharacterMasterAbstract {
         IDamageable damageable = collision.gameObject.GetComponent<IDamageable>();
         if(damageable != null) {
             if(Time.time - _timeExploded > 0.5f) _exploded = false;
-            
+
             if(!_exploded) {
-                Vector2 point = collision.GetContact(0).point;
-                var relativeVelocity = collision.GetContact(0).relativeVelocity;
-                damageable.DamageMe(point, -collision.GetContact(0).normal * collision.GetContact(0).normalImpulse, 34, collision.collider);
+                ContactPoint2D contact = collision.GetContact(0);
+                Vector2 point = contact.point;
+                var relativeVelocity = contact.relativeVelocity;
+                if(damageable.CheckProtected(point, collision.collider) == ProtectedType.Not)
+                    damageable.DamageMe(point, -contact.normal * contact.normalImpulse, 34, collision.collider);
 
                 // Enemy self-destructs and causes damage to player
                 // Comment out line below if you do not want enemy to self-destruct
@@ -51,5 +55,4 @@ public class PhoenixMaster : CharacterMasterAbstract {
             }
         }
     }
-
 }

@@ -95,12 +95,11 @@ public class WeaponScript : MonoBehaviour {
 
     internal AttackAction primaryAttack;
     internal AttackAction bufferAttack;
-    internal AttackAction fadingAttack;
 
     private LayerMask _whatIsHittable;
     private LayerMask _whatIsNotHittable;
 
-    public enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, FadingOut }
+    public enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, Ended }
 
     internal enum AttackInputType {
         /// <summary> This attack will happen on a tap (a hold too if no hold action is defined) </summary>
@@ -198,7 +197,7 @@ public class WeaponScript : MonoBehaviour {
     }
 
     public class AttackAction {
-        public AttackState state = AttackState.DeterminingType;
+        public AttackState state = AttackState.Ended;
         private readonly WeaponScript _wS;
 
         /// <summary> Direction of the attack </summary>
@@ -210,21 +209,31 @@ public class WeaponScript : MonoBehaviour {
         internal AttackDefinition attackDefinition;
 
         private bool _inBuffer;
-        internal readonly Coroutine initAttack;
-        internal static readonly AttackDefinition NoMatches = new AttackDefinition {name = "NoMatches"};
+        internal  Coroutine initAttack;
 
-        public AttackAction(WeaponScript weaponScript, bool inBuffer) {
+        private static readonly AttackDefinition NoMatches = new AttackDefinition {
+            name = "NoMatches",
+            attacks = new List<WeaponAttackAbstract>()
+        };
+
+        internal AttackAction(WeaponScript weaponScript) {
             _wS = weaponScript;
+        }
+
+        internal void InitAttack(bool inBuffer = false) {
             _inBuffer = inBuffer;
-            initAttack = _wS.StartCoroutine(_InitAttack());
+            inH = inV = 0;
+            initAttack = _wS.StartCoroutine(_InitAttackHelper());
         }
 
-        private void UpdateInputIfNewKeysPressed() {
-            if(inH == 0 && _wS.ctrl.attackHorizontal != 0) inH = _wS.ctrl.attackHorizontal;
-            if(inV == 0 && _wS.ctrl.attackVertical != 0) inV = _wS.ctrl.attackVertical;
-        }
+        private IEnumerator _InitAttackHelper() {
+            void UpdateInputIfNewKeysPressed() {
+                if(inH == 0 && _wS.ctrl.attackHorizontal != 0) inH = _wS.ctrl.attackHorizontal;
+                if(inV == 0 && _wS.ctrl.attackVertical != 0) inV = _wS.ctrl.attackVertical;
+            }
 
-        private IEnumerator _InitAttack() {
+            state = AttackState.DeterminingType;
+
             // First, get the attack direction
             UpdateInputIfNewKeysPressed();
 
@@ -273,8 +282,8 @@ public class WeaponScript : MonoBehaviour {
 
             // If no attack matches, just cancel this attack (do nothing, basically)
             if(ReferenceEquals(attackDefinition, NoMatches)) {
-                if(ReferenceEquals(this, _wS.bufferAttack)) _wS.bufferAttack = null;
-                else EndAttack(dontFade: true);
+                if(ReferenceEquals(this, _wS.bufferAttack)) _wS.bufferAttack.state = AttackState.Ended;
+                else EndAttack(dontFade: true); // To also make buffer attack primary
                 return false;
             }
             return true;
@@ -295,19 +304,16 @@ public class WeaponScript : MonoBehaviour {
             Debug.Assert(!ReferenceEquals(this, _wS.bufferAttack));
 #endif
             if(!ReferenceEquals(_wS.primaryAttack, this)) return;
-            state = AttackState.FadingOut;
-            if(!dontFade) {
-                _wS.FadeAttackOut(duration);
-                foreach(var attack in attackDefinition.attacks) attack.OnFadingOut(this);
-            }
+            state = AttackState.Ended;
+            if(!dontFade && _wS.anim) _wS.FadeAttackOut(duration);
+            foreach(var attack in attackDefinition.attacks) attack.OnEnding(this);
 
-            if(!ReferenceEquals(attackDefinition, NoMatches)) _wS.fadingAttack = _wS.primaryAttack;
-            if(_wS.bufferAttack != null && Time.time - _wS._bufferAttackStart < BufferTime) {
+            if(_wS.bufferAttack.state != AttackState.Ended && Time.time - _wS._bufferAttackStart < BufferTime) {
                 _wS.primaryAttack = _wS.bufferAttack;
                 _wS.primaryAttack._inBuffer = false;
-                _wS.bufferAttack = null;
+                _wS.bufferAttack = this;
                 _wS._bufferAttackStart = 0;
-            } else _wS.primaryAttack = null;
+            }
         }
     }
 
@@ -361,19 +367,22 @@ public class WeaponScript : MonoBehaviour {
         _animEventObjs = CommonObjectsSingleton.Instance;
         foreach(AttackDefinition attack in attacks) attack.Initialize(this);
         attacks = attacks.Sort();
+
+        primaryAttack = new AttackAction(this);
+        bufferAttack = new AttackAction(this);
     }
 
     private void Update() {
         if(ctrl.attackHorizontal != 0 && ctrl.attackHorizontal != _oldHorizInput || // If we have new horizontal input
            ctrl.attackVertical != 0 && ctrl.attackVertical != _oldVertInput) { // or new vertical input
-            if(primaryAttack == null) {
-                primaryAttack = new AttackAction(this, false); //TODO might be able to reuse these and prevent some GC
+            if(primaryAttack.state == AttackState.Ended) {
+                primaryAttack.InitAttack();
                 _attackStart = Time.time;
             } else if(_oldVertInput == 0 && _oldHorizInput == 0 || Time.time - _attackStart > TapThreshold * 2) {
                 // but if we were already attacking and this is an entirely new attack input, or enough time has passed
                 // that we know this isn't just them trying to do a diagonal, then start a buffer attack
-                if(bufferAttack?.initAttack != null) StopCoroutine(bufferAttack.initAttack); // else might never stop
-                bufferAttack = new AttackAction(this, true);
+                if(bufferAttack.initAttack != null) StopCoroutine(bufferAttack.initAttack); // else might never stop
+                bufferAttack.InitAttack(true);
                 _bufferAttackStart = Time.time;
             }
         }
@@ -388,10 +397,6 @@ public class WeaponScript : MonoBehaviour {
         ctrl = holder.control;
         holder.weapon = this;
         anim = holder.anim;
-        if(anim)
-            foreach(var makeSureAttackEndCalled in anim.GetBehaviours<MakeSureAttackEndCalled>()) {
-                makeSureAttackEndCalled.weapon = this;
-            }
         mvmt = holder.gameObject.GetComponent<MovementAbstract>();
     }
 
@@ -411,7 +416,7 @@ public class WeaponScript : MonoBehaviour {
     /// <param name="e"> The object sent from the animation </param>
     /// <param name="duration"> An optional duration that some events need </param>
     public void ReceiveAnimationEvent(AnimationEventObject e, float duration) {
-        if(primaryAttack == null) return;
+        if(primaryAttack.state == AttackState.Ended) return;
         if(e == _animEventObjs.attackFadeIn && primaryAttack.state == AttackState.WindingUp) {
             FadeAttackIn(duration);
         } else if(e == _animEventObjs.attackAttackingStart && primaryAttack.state == AttackState.WindingUp) {
@@ -430,7 +435,7 @@ public class WeaponScript : MonoBehaviour {
 
     private void FadeAttackOut(float duration) {
         if(_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
-        if(anim) _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, AttackOverrideLayerIndex, duration);
+        _fadeCoroutine = FadeAnimationLayer(this, anim, FadeType.FadeOut, AttackOverrideLayerIndex, duration);
     }
 
 
@@ -445,7 +450,7 @@ public class WeaponScript : MonoBehaviour {
 
         public override void OnAttacking(AttackAction attackAction) { }
         public override void OnRecovering(AttackAction attackAction) { }
-        public override void OnFadingOut(AttackAction attackAction) { }
+        public override void OnEnding(AttackAction attackAction) { }
     }
 
     private class PreventFlipWhileAttacking : WeaponAttackAbstract {
@@ -457,7 +462,7 @@ public class WeaponScript : MonoBehaviour {
         public override void OnAttacking(AttackAction attackAction) { }
         public override void OnRecovering(AttackAction attackAction) { }
 
-        public override void OnFadingOut(AttackAction attackAction) { _weaponScript.mvmt.CantFlip--; }
+        public override void OnEnding(AttackAction attackAction) { _weaponScript.mvmt.CantFlip--; }
     }
 
     internal IEnumerator _CheckMeleeHit(AttackAction attackAction) {

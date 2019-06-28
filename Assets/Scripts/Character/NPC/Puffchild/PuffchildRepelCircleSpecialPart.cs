@@ -17,7 +17,7 @@ public class PuffchildRepelCircleSpecialPart : WeaponSpecialPart {
     private Vector3 _initRepelScale;
     [NonSerialized] public bool touchingHittable;
     [NonSerialized] public bool exploded;
-    [NonSerialized] public bool recovering;
+    private bool _recovering;
     private IDamageable _hitOther;
     private Vector2 _hitOtherPoint;
     private Vector2 _hitOtherDir;
@@ -30,13 +30,12 @@ public class PuffchildRepelCircleSpecialPart : WeaponSpecialPart {
         _rb = GetComponentInParent<Rigidbody2D>();
         _weapon = GetComponentInParent<WeaponScript>();
         repelTrigger = GetComponent<Collider2D>();
-        _repelTriggerExists = repelTrigger != null;
-        if(!_repelTriggerExists) return;
+        if(!(_repelTriggerExists = repelTrigger != null)) return;
         _initRepelScale = repelTrigger.transform.localScale;
     }
 
     private void Update() {
-        if(!exploded || recovering) {
+        if(!exploded || _recovering) {
             float lerpedMult = exploded ? energy : Mathf.Lerp(minScale, 1, energy);
             Color spriteColor = sprite.color;
             spriteColor.a = lerpedMult;
@@ -71,7 +70,7 @@ public class PuffchildRepelCircleSpecialPart : WeaponSpecialPart {
                 AirControl();
                 yield return null;
             }
-            recovering = true;
+            _recovering = true;
             mvmt.disableMovement = false;
             var velMod = particleBurst.velocityOverLifetime;
             float initialRadial = velMod.radialMultiplier;
@@ -91,13 +90,13 @@ public class PuffchildRepelCircleSpecialPart : WeaponSpecialPart {
             limitVelMod.dragMultiplier = initialDrag;
         }
         exploded = false;
-        recovering = false;
+        _recovering = false;
         _rb.gravityScale = initGrav;
         _rb.drag = initDrag;
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if(_weapon.primaryAttack == null || _weapon.primaryAttack.state != WeaponScript.AttackState.Attacking) return;
+        if(_weapon.primaryAttack.state != WeaponScript.AttackState.Attacking) return;
         IDamageable damageable = other.GetComponentInParent<IDamageable>();
         if(damageable is null) return;
         touchingHittable = true;
