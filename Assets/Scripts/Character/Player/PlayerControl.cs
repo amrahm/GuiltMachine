@@ -18,7 +18,7 @@ public class PlayerControl : CharacterControlAbstract {
         sprint = CrossPlatformInputManager.GetButton("Sprint");
         moveVertical = CrossPlatformInputManager.GetAxis("Vertical");
         jumpPressed = CrossPlatformInputManager.GetButton("Jump");
-        crouchPressed = CrossPlatformInputManager.GetAxis("Vertical") < -0.01f;
+        crouchPressed = moveVertical < -0.01f;
 
         //Attack
         // Set attackVertical on ButtonDown, and only unset it on ButtonUp if attackVertical is still in that direction

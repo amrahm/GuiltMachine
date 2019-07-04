@@ -1,30 +1,40 @@
 ﻿using System.Collections;
-using ExtensionMethods;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PuffchildControl : CharacterControlAbstract {
-    [SerializeField, Tooltip("How far can this bad boy see?")]
-    private float visionDistance;
+    public Transform target;
+    [SerializeField] private bool learningMode;
+    private readonly List<Vector3> _points = new List<Vector3>();
+    private RegisteredMove _hMove;
 
-    /// <summary> What to chase? </summary>
-    private Transform _target;
+    private IEnumerator Start() {
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        _hMove = registeredMoves.First(move => move.continuous);
 
-    private bool _hasTarget;
+        if(!learningMode) yield break;
+        foreach(var move in registeredMoves) {
+//            if(!move.continuous) move.doMove(move.durationMax);
+            float time = 0;
+            while(time < 3) {
+//                if(move.continuous) move.doMove(0);
+                _points.Add(transform.position);
 
-    private void Start() {
-        if(_target == null) {
-            StartCoroutine(SearchForPlayer());
+                time += Time.deltaTime;
+                yield return null;
+            }
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0;
+            transform.position = Vector3.zero;
         }
     }
 
-    private IEnumerator SearchForPlayer() {
-        while(true) {
-            while(!_hasTarget) {
-                // Search for player every second if player is still not found
-                yield return Yields.WaitForASecond;
-            }
+    private void Update() {
+        foreach(Vector3 point in _points) DebugExtension.DebugPoint(point);
+        ResetInput();
 
-            yield return new WaitUntil(() => !_hasTarget);
-        }
+        if(Vector3.Distance(transform.position, target.position) > .5f)
+            _hMove.doMove(transform.position.x < target.position.x ? 1 : -1);
     }
 }

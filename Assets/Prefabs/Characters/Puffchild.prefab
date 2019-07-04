@@ -14698,7 +14698,8 @@ MonoBehaviour:
   attackVertical: 0
   attackHorizontal: 0
   blockPressed: 0
-  visionDistance: 0
+  target: {fileID: 0}
+  learningMode: 0
 --- !u!58 &4648037109064424558
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -14828,6 +14829,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 30
       objectReference: {fileID: 0}
+    - target: {fileID: -2766225822741078752, guid: abad538709d290341bf959d6e8784c11,
+        type: 3}
+      propertyPath: m_Name
+      value: Sprite
+      objectReference: {fileID: 0}
     - target: {fileID: -1713367989251008790, guid: abad538709d290341bf959d6e8784c11,
         type: 3}
       propertyPath: m_Layer
@@ -14887,21 +14893,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -4527052043202429031, guid: abad538709d290341bf959d6e8784c11,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: a8006df53de55f34db217738e5be6d69, type: 2}
-    - target: {fileID: -4527052043202429031, guid: abad538709d290341bf959d6e8784c11,
-        type: 3}
-      propertyPath: m_SortingLayerID
-      value: -646028971
-      objectReference: {fileID: 0}
-    - target: {fileID: -4527052043202429031, guid: abad538709d290341bf959d6e8784c11,
-        type: 3}
-      propertyPath: m_SortingLayer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -1949770283943183372, guid: abad538709d290341bf959d6e8784c11,
         type: 3}
@@ -15142,6 +15133,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4527052043202429031, guid: abad538709d290341bf959d6e8784c11,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: a8006df53de55f34db217738e5be6d69, type: 2}
+    - target: {fileID: -4527052043202429031, guid: abad538709d290341bf959d6e8784c11,
+        type: 3}
+      propertyPath: m_SortingLayerID
+      value: -646028971
+      objectReference: {fileID: 0}
+    - target: {fileID: -4527052043202429031, guid: abad538709d290341bf959d6e8784c11,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -4352947290257873316, guid: abad538709d290341bf959d6e8784c11,
         type: 3}

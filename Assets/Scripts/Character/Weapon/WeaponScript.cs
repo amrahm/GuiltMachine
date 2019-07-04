@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 using static ExtensionMethods.HelperMethods;
 using static MovementAbstract;
 using static UnityEngine.Physics2D;
@@ -125,8 +126,8 @@ public class WeaponScript : MonoBehaviour {
         [Tooltip("Does this attack happen only if you hold it long enough, or is a tap sufficient"), SerializeField]
         internal AttackInputType attackInputType;
 
-        [SerializeField]
-        internal List<WeaponAttackAbstract> attacks;
+        [FormerlySerializedAs("attacks")] [SerializeField]
+        internal List<WeaponAttackAbstract> attackScriptableObjects;
 
         [Tooltip("Which directions can be pressed to activate this attack"), EnumFlags, SerializeField]
         private AttackDirection directionTriggerFlags = (AttackDirection) 1;
@@ -155,11 +156,11 @@ public class WeaponScript : MonoBehaviour {
         internal float knockback = 50;
 
         internal void Initialize(WeaponScript weapon) {
-            if(flipIfFacingAway) attacks.Insert(0, ScriptableObject.CreateInstance<FlipIfFacingAway>());
-            if(preventFlipWhileAttacking) attacks.Add(ScriptableObject.CreateInstance<PreventFlipWhileAttacking>());
-            for(int i = 0; i < attacks.Count; i++) {
-                attacks[i] = Instantiate(attacks[i]);
-                attacks[i].Initialize(weapon);
+            if(flipIfFacingAway) attackScriptableObjects.Insert(0, ScriptableObject.CreateInstance<FlipIfFacingAway>());
+            if(preventFlipWhileAttacking) attackScriptableObjects.Add(ScriptableObject.CreateInstance<PreventFlipWhileAttacking>());
+            for(int i = 0; i < attackScriptableObjects.Count; i++) {
+                attackScriptableObjects[i] = Instantiate(attackScriptableObjects[i]);
+                attackScriptableObjects[i].Initialize(weapon);
             }
 
             directionTriggers = EnumFlagsAttribute.ReturnSelectedElements<AttackDirection>((int) directionTriggerFlags)
@@ -213,7 +214,7 @@ public class WeaponScript : MonoBehaviour {
 
         private static readonly AttackDefinition NoMatches = new AttackDefinition {
             name = "NoMatches",
-            attacks = new List<WeaponAttackAbstract>()
+            attackScriptableObjects = new List<WeaponAttackAbstract>()
         };
 
         internal AttackAction(WeaponScript weaponScript) {
@@ -266,7 +267,7 @@ public class WeaponScript : MonoBehaviour {
             // If we get here, an attack was found, so start it if/when we're not in the buffer anymore
             if(_inBuffer) yield return new WaitWhile(() => _inBuffer);
             state = AttackState.WindingUp;
-            foreach(var attack in attackDefinition.attacks) attack.OnAttackWindup(this);
+            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnAttackWindup(this);
         }
 
         private bool ChooseAttack(bool onlyLookForTaps = false) {
@@ -291,12 +292,12 @@ public class WeaponScript : MonoBehaviour {
 
         internal void BeginAttacking() {
             state = AttackState.Attacking;
-            foreach(var attack in attackDefinition.attacks) attack.OnAttacking(this);
+            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnAttacking(this);
         }
 
         internal void BeginRecovering() {
             state = AttackState.Recovering;
-            foreach(var attack in attackDefinition.attacks) attack.OnRecovering(this);
+            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnRecovering(this);
         }
 
         internal void EndAttack(float duration = 0.3f, bool dontFade = false) {
@@ -306,7 +307,7 @@ public class WeaponScript : MonoBehaviour {
             if(!ReferenceEquals(_wS.primaryAttack, this)) return;
             state = AttackState.Ended;
             if(!dontFade && _wS.anim) _wS.FadeAttackOut(duration);
-            foreach(var attack in attackDefinition.attacks) attack.OnEnding(this);
+            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnEnding(this);
 
             if(_wS.bufferAttack.state != AttackState.Ended && Time.time - _wS._bufferAttackStart < BufferTime) {
                 _wS.primaryAttack = _wS.bufferAttack;
@@ -358,6 +359,11 @@ public class WeaponScript : MonoBehaviour {
         }
     }
 
+    private void Awake() {
+        primaryAttack = new AttackAction(this);
+        bufferAttack = new AttackAction(this);
+    }
+
     private void Start() {
         // All hittable things minus this layer
         _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster & ~(1 << gameObject.layer);
@@ -367,9 +373,6 @@ public class WeaponScript : MonoBehaviour {
         _animEventObjs = CommonObjectsSingleton.Instance;
         foreach(AttackDefinition attack in attacks) attack.Initialize(this);
         attacks = attacks.Sort();
-
-        primaryAttack = new AttackAction(this);
-        bufferAttack = new AttackAction(this);
     }
 
     private void Update() {

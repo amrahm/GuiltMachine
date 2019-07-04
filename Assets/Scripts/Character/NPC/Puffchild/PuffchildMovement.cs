@@ -1,8 +1,11 @@
 ﻿using ExtensionMethods;
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class PuffchildMovement : MovementAbstract {
+    private const int JumpFuelReductionFactor = 500;
+
     #region Variables
 
     [Tooltip("The fastest the character can travel in the x axis"), SerializeField]
@@ -66,6 +69,24 @@ public class PuffchildMovement : MovementAbstract {
         _initGravity = rb.gravityScale;
         _squishRepelScript = GetComponentInChildren<PuffchildSquishRepel>();
         _sprite = _squishRepelScript.gameObject;
+
+        control.registeredMoves.Add(new CharacterControlAbstract.RegisteredMove {
+            doMove = (polarity, _) => control.moveHorizontal = polarity,
+            continuous = true
+        });
+        control.registeredMoves.Add(new CharacterControlAbstract.RegisteredMove {
+            doMove = (_, duration) => StartCoroutine(_NPCJump(duration)),
+            durationMin = 0,
+            durationMax = jumpFuel / JumpFuelReductionFactor
+        });
+    }
+
+    private IEnumerator _NPCJump(float duration) {
+        float start = Time.time;
+        while(Time.time - start < duration) {
+            control.jumpPressed = true;
+            yield return null;
+        }
     }
 
     private void FixedUpdate() {
@@ -169,7 +190,7 @@ public class PuffchildMovement : MovementAbstract {
         } else {
             if(jump && _jumpFuelLeft > 0) {
                 // Make the character rise higher the longer they hold jump
-                _jumpFuelLeft -= Time.fixedDeltaTime * 500;
+                _jumpFuelLeft -= Time.fixedDeltaTime * JumpFuelReductionFactor;
                 rb.AddForce(rb.mass * jumpFuelForce * JumpDir(), ForceMode2D.Force);
             } else {
                 _jumpFuelLeft = 0;
