@@ -7,6 +7,7 @@ using static WeaponScript;
 public class DashWhileSwinging : WeaponAttackAbstract {
     [Tooltip("If true, dash will stop if the character touches the ground"), SerializeField]
     private bool endWhenGrounded;
+
     [Tooltip("If true, the entire attack will stop too when the character touches the ground"), SerializeField,
      ConditionalHide(nameof(endWhenGrounded), true)]
     private bool alsoEndRestOfAttackWhenGrounded;
@@ -28,18 +29,20 @@ public class DashWhileSwinging : WeaponAttackAbstract {
     private float perpVelCancelSpeed = 1.1f;
 
     private Coroutine _attackDash;
+
     public override void Initialize(WeaponScript weaponScript) {
         weapon = weaponScript;
     }
 
-    public override void OnAttackWindup(AttackAction attackAction) {
+    public override void OnAttackWindup(AttackAction attackAction) { }
+
+    public override void OnAttacking(AttackAction attackAction) {
         _attackDash = weapon.StartCoroutine(_AttackDash(attackAction));
         if(endWhenGrounded) weapon.StartCoroutine(_GroundedEndCheck(attackAction));
     }
 
-    public override void OnAttacking(AttackAction attackAction) { }
     public override void OnRecovering(AttackAction attackAction) { }
-    public override void OnFadingOut(AttackAction attackAction) { }
+    public override void OnEnding(AttackAction attackAction) { }
 
     private IEnumerator _AttackDash(AttackAction attackAction) {
         //FIXME Not framerate independent? Seems to go crazy sometimes at low/unstable framerates
@@ -48,11 +51,6 @@ public class DashWhileSwinging : WeaponAttackAbstract {
                                 attackAction.attackDir.normalized;
         Vector2 perpVec = Vector3.Cross(direction, Vector3.forward);
         float maxVel = Mathf.Max(Mathf.Sqrt(Vector2.Dot(weapon.mvmt.rb.velocity, direction)) + speed, speed);
-        bool beforeSwing = attackAction.state != AttackState.Attacking;
-        while(beforeSwing) {
-            if(attackAction.state == AttackState.Attacking) beforeSwing = false;
-            yield return null;
-        }
         while(attackAction.state == AttackState.Attacking) {
             weapon.mvmt.rb.gravityScale = 0;
             Vector2 vel = weapon.mvmt.rb.velocity;
@@ -67,14 +65,11 @@ public class DashWhileSwinging : WeaponAttackAbstract {
 
 
     private IEnumerator _GroundedEndCheck(AttackAction attackAction) {
-        bool beforeSwing = attackAction.state != AttackState.Attacking;
-        while(beforeSwing || attackAction.state == AttackState.Attacking && !weapon.mvmt.grounded) {
-            if(attackAction.state == AttackState.Attacking) beforeSwing = false;
-            yield return null;
-        }
-        if(alsoEndRestOfAttackWhenGrounded) {
-            attackAction.EndAttack();
-        } else {
+        yield return new WaitWhile(() => attackAction.state == AttackState.WindingUp ||
+                                         attackAction.state == AttackState.Attacking && !weapon.mvmt.grounded);
+
+        if(alsoEndRestOfAttackWhenGrounded) attackAction.EndAttack();
+        else {
             weapon.StopCoroutine(_attackDash);
             weapon.mvmt.rb.gravityScale = 1;
         }

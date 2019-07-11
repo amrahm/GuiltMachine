@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public abstract class MovementAbstract : MonoBehaviour {
     /// <summary> How long after walking off a ledge should the character still be considered grounded </summary>
@@ -24,7 +28,29 @@ public abstract class MovementAbstract : MonoBehaviour {
     protected internal int FlipInt { get; private set; } = 1;
 
     /// <summary> Is the character character allowed to turn around? No if greater than 0 </summary>
-    protected internal int cantFlip = 0;
+    protected internal int CantFlip {
+        get => _cantFlip;
+        set {
+#if UNITY_EDITOR
+            // This can help see who's causing problems
+            var mth = new StackTrace().GetFrame(1).GetMethod();
+            string cls = mth.ReflectedType?.Name;
+            if(value > _cantFlip)
+                cantFlippers.Add($"{DateTime.Now.TimeOfDay} ::: {cls}  :  {mth.Name}");
+            else
+                cantFlippers.Remove(cantFlippers.Last(str => cls != null && str.Contains(cls)));
+#endif
+            _cantFlip = value;
+        }
+    }
+
+    private int _cantFlip;
+
+#if UNITY_EDITOR
+    // ReSharper disable once CollectionNeverQueried.Global
+    // ReSharper disable once FieldCanBeMadeReadOnly.Global
+    protected internal List<string> cantFlippers = new List<string>();
+#endif
 
     /// <summary> Should the character not be allowed to move itself (e.g. if weapon is moving character)? </summary>
     protected internal bool disableMovement;
@@ -86,11 +112,11 @@ public abstract class MovementAbstract : MonoBehaviour {
 
     ///<summary> Flip the character around the y axis </summary>
     protected internal void Flip() {
-        if(cantFlip > 0) return;
+        if(CantFlip > 0) return;
 #if UNITY_EDITOR || DEBUG
-        if(cantFlip < 0) {
-            Debug.LogError($"{nameof(cantFlip)} < 0, and it should never be");
-            cantFlip = 0;
+        if(CantFlip < 0) {
+            Debug.LogError($"{nameof(CantFlip)} < 0, and it should never be");
+            CantFlip = 0;
         }
 #endif
         FacingRight = !FacingRight; // Switch the way the character is labelled as facing.

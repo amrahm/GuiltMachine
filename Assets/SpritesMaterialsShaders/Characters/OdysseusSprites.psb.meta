@@ -293,14 +293,14 @@ ScriptedImporter:
     internalID: 0
     spriteBone:
     - name: Head
-      position: {x: 212.01224, y: 0.00019491087, z: 0}
-      rotation: {x: 0, y: 0, z: -0.040313695, w: 0.9991871}
-      length: 288.62213
+      position: {x: 212.01224, y: -0.0013178797, z: 0}
+      rotation: {x: 0, y: 0, z: -0.070291504, w: 0.9975265}
+      length: 293.1659
       parentId: 1
     - name: Torso
       position: {x: 214.65543, y: -116.881775, z: 0}
-      rotation: {x: 0, y: 0, z: 0.69870657, w: 0.71540844}
-      length: 212.01224
+      rotation: {x: 0, y: 0, z: 0.6987093, w: 0.7154057}
+      length: 212.01222
       parentId: -1
     spriteOutline: []
     vertices:
@@ -1034,7 +1034,7 @@ ScriptedImporter:
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 665
+      x: 662
       y: 4
       width: 205
       height: 441
@@ -1042,19 +1042,19 @@ ScriptedImporter:
     internalID: 0
     spriteBone:
     - name: HandR
-      position: {x: 140.97589, y: 0.000025733678, z: 0}
-      rotation: {x: 0, y: 0, z: 0.24122775, w: 0.9704686}
-      length: 123.487434
+      position: {x: 140.97607, y: -0.000017549486, z: 0}
+      rotation: {x: 0, y: 0, z: 0.16767223, w: 0.9858428}
+      length: 128.81224
       parentId: 1
     - name: LowerArmR
-      position: {x: 143.47858, y: -0.000009580535, z: 0}
-      rotation: {x: 0, y: 0, z: 0.21891479, w: 0.975744}
-      length: 140.97594
+      position: {x: 143.47832, y: -0.000067906694, z: 0}
+      rotation: {x: 0, y: 0, z: 0.2189147, w: 0.975744}
+      length: 140.97603
       parentId: 2
     - name: UpperArmR
-      position: {x: 151.89569, y: 396.41272, z: 0}
-      rotation: {x: 0, y: 0, z: 0.8801723, w: -0.47465438}
-      length: 143.47858
+      position: {x: 151.89429, y: 396.412, z: 0}
+      rotation: {x: 0, y: 0, z: 0.88017046, w: -0.47465783}
+      length: 143.47832
       parentId: -1
     spriteOutline: []
     vertices:
@@ -1787,7 +1787,7 @@ ScriptedImporter:
     - {x: 56, y: 34}
     tessellationDetail: 0
     parentGroupIndex: -1
-    uvTransform: {x: 552, y: -295}
+    uvTransform: {x: 549, y: -295}
   - name: LegR
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -1796,19 +1796,19 @@ ScriptedImporter:
     rect:
       serializedVersion: 2
       x: 396
-      y: 474
+      y: 463
       width: 146
       height: 411
     spriteID: 9d58eec7a9536654eb229edc7d3b619f
     internalID: 0
     spriteBone:
     - name: FootR
-      position: {x: 173.6835, y: -0.00001225813, z: 0}
+      position: {x: 173.68362, y: -0.000021601974, z: 0}
       rotation: {x: 0, y: 0, z: 0.67175156, w: 0.74077654}
       length: 107.501884
       parentId: 1
     - name: ShinR
-      position: {x: 142.87614, y: 0.000027313246, z: 0}
+      position: {x: 142.87614, y: 0.000012233273, z: 0}
       rotation: {x: 0, y: 0, z: -0.114214115, w: 0.9934562}
       length: 173.68352
       parentId: 2
@@ -2509,7 +2509,7 @@ ScriptedImporter:
     - {x: 58, y: 28}
     tessellationDetail: 0
     parentGroupIndex: -1
-    uvTransform: {x: 177, y: 403}
+    uvTransform: {x: 177, y: 392}
   - name: Body
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -2517,7 +2517,7 @@ ScriptedImporter:
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 407
+      x: 404
       y: 4
       width: 250
       height: 377
@@ -2527,12 +2527,12 @@ ScriptedImporter:
     - name: Hip
       position: {x: 125.317566, y: 20.30722, z: 0}
       rotation: {x: 0, y: 0, z: 0.69597596, w: 0.7180651}
-      length: 106.86315
+      length: 106.863144
       parentId: -1
     - name: Torso
-      position: {x: 106.863144, y: 0.00007570724, z: 0}
-      rotation: {x: 0, y: 0, z: 0.0038097096, w: 0.9999927}
-      length: 212.01227
+      position: {x: 106.863144, y: 0.000076780125, z: 0}
+      rotation: {x: 0, y: 0, z: 0.0038135878, w: 0.9999927}
+      length: 212.01222
       parentId: 0
     spriteOutline: []
     vertices:
@@ -3149,7 +3149,7 @@ ScriptedImporter:
     - {x: 0, y: 37}
     tessellationDetail: 0
     parentGroupIndex: -1
-    uvTransform: {x: 174, y: -388}
+    uvTransform: {x: 171, y: -388}
   - name: ArmL
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -3158,26 +3158,26 @@ ScriptedImporter:
     rect:
       serializedVersion: 2
       x: 4
-      y: 474
+      y: 463
       width: 202
       height: 376
     spriteID: 209fccebc5ba9294198c222b8e03e654
     internalID: 0
     spriteBone:
     - name: HandL
-      position: {x: 104.79555, y: 0.000045026238, z: 0}
-      rotation: {x: 0, y: 0, z: 0.07176479, w: 0.9974216}
-      length: 116.496
+      position: {x: 104.79551, y: 0.00002014215, z: 0}
+      rotation: {x: 0, y: 0, z: 0.034550607, w: 0.99940294}
+      length: 119.08327
       parentId: 1
     - name: LowerArmL
-      position: {x: 159.3326, y: -0.000109263194, z: 0}
-      rotation: {x: 0, y: 0, z: 0.2871623, w: 0.9578819}
-      length: 104.795555
+      position: {x: 159.33263, y: -0.00011028386, z: 0}
+      rotation: {x: 0, y: 0, z: 0.28716213, w: 0.95788205}
+      length: 104.79549
       parentId: 2
     - name: UpperArmL
-      position: {x: 74.462006, y: 335.20148, z: 0}
-      rotation: {x: 0, y: 0, z: -0.7143562, w: 0.6997824}
-      length: 159.33258
+      position: {x: 74.46069, y: 335.20233, z: 0}
+      rotation: {x: 0, y: 0, z: -0.71435344, w: 0.6997851}
+      length: 159.33257
       parentId: -1
     spriteOutline: []
     vertices:
@@ -3748,7 +3748,7 @@ ScriptedImporter:
     - {x: 0, y: 31}
     tessellationDetail: 0
     parentGroupIndex: -1
-    uvTransform: {x: -395, y: 122}
+    uvTransform: {x: -395, y: 111}
   - name: LegL
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -3757,26 +3757,26 @@ ScriptedImporter:
     rect:
       serializedVersion: 2
       x: 214
-      y: 474
+      y: 463
       width: 174
       height: 400
     spriteID: 1c3f1b8956779cf4ba7465244c3ac127
     internalID: 0
     spriteBone:
     - name: FootL
-      position: {x: 177.55363, y: 0.000010043074, z: 0}
-      rotation: {x: 0, y: 0, z: 0.6748538, w: 0.7379515}
-      length: 109.39194
+      position: {x: 177.5536, y: 0.000016975304, z: 0}
+      rotation: {x: 0, y: 0, z: 0.67485386, w: 0.73795146}
+      length: 109.39195
       parentId: 1
     - name: ShinL
-      position: {x: 138.42755, y: 0.000016114494, z: 0}
+      position: {x: 138.42758, y: 0.0000018317314, z: 0}
       rotation: {x: 0, y: 0, z: -0.064657144, w: 0.9979076}
-      length: 177.55356
+      length: 177.5536
       parentId: 2
     - name: ThighL
       position: {x: 51.056366, y: 362.86322, z: 0}
       rotation: {x: 0, y: 0, z: -0.6771096, w: 0.7358822}
-      length: 138.42761
+      length: 138.42758
       parentId: -1
     spriteOutline: []
     vertices:
@@ -4377,7 +4377,7 @@ ScriptedImporter:
     - {x: 44, y: 18}
     tessellationDetail: 0
     parentGroupIndex: -1
-    uvTransform: {x: -146, y: 396}
+    uvTransform: {x: -146, y: 385}
   platformSettings: []
   mosaicLayers: 1
   documentPivot: {x: 0, y: 0}
@@ -4406,81 +4406,81 @@ ScriptedImporter:
     parentIndex: -1
     spriteID: 4ef16f54d49e66443b6ccc11484bd5c4
     layerID: 66
-    mosaicPosition: {x: 665, y: 4}
+    mosaicPosition: {x: 662, y: 4}
   - name: LegR
     spriteName: LegR
     isGroup: 0
     parentIndex: -1
     spriteID: 9d58eec7a9536654eb229edc7d3b619f
     layerID: 67
-    mosaicPosition: {x: 396, y: 474}
+    mosaicPosition: {x: 396, y: 463}
   - name: Body
     spriteName: Body
     isGroup: 0
     parentIndex: -1
     spriteID: 0f24e42168ceb4e40968c483cd7f0b65
     layerID: 68
-    mosaicPosition: {x: 407, y: 4}
+    mosaicPosition: {x: 404, y: 4}
   - name: ArmL
     spriteName: ArmL
     isGroup: 0
     parentIndex: -1
     spriteID: 209fccebc5ba9294198c222b8e03e654
     layerID: 69
-    mosaicPosition: {x: 4, y: 474}
+    mosaicPosition: {x: 4, y: 463}
   - name: LegL
     spriteName: LegL
     isGroup: 0
     parentIndex: -1
     spriteID: 1c3f1b8956779cf4ba7465244c3ac127
     layerID: 70
-    mosaicPosition: {x: 214, y: 474}
+    mosaicPosition: {x: 214, y: 463}
   characterData:
     bones:
     - name: Hip
       position: {x: 358.31757, y: 412.30722, z: 0}
       rotation: {x: 0, y: 0, z: 0.69597596, w: 0.7180651}
-      length: 106.86315
+      length: 106.863144
       parentId: -1
     - name: Torso
       position: {x: 106.86315, y: -0.0000062938634, z: 0}
-      rotation: {x: 0, y: 0, z: 0.003809689, w: 0.9999927}
-      length: 212.01227
+      rotation: {x: 0, y: 0, z: 0.0038135983, w: 0.9999927}
+      length: 212.01224
       parentId: 0
     - name: Head
-      position: {x: 212.01227, y: 0.00020658063, z: 0}
-      rotation: {x: 0, y: 0, z: -0.040313672, w: 0.9991871}
-      length: 288.62213
+      position: {x: 212.01224, y: -0.0013513719, z: 0}
+      rotation: {x: 0, y: 0, z: -0.07029153, w: 0.9975265}
+      length: 293.1659
       parentId: 1
     - name: UpperArmL
       position: {x: 170.67706, y: -107.80554, z: 0}
       rotation: {x: 0, y: -0, z: -0.9999989, w: 0.0015048538}
-      length: 159.33257
+      length: 159.33255
       parentId: 1
     - name: LowerArmL
-      position: {x: 159.33257, y: -0.00012564797, z: 0}
-      rotation: {x: 0, y: 0, z: 0.28716236, w: 0.9578819}
-      length: 104.79554
+      position: {x: 159.33261, y: -0.00010970577, z: 0}
+      rotation: {x: 0, y: 0, z: 0.28716213, w: 0.957882}
+      length: 104.79547
       parentId: 3
     - name: HandL
-      position: {x: 104.795525, y: -0.000022329892, z: 0}
-      rotation: {x: 0, y: 0, z: 0.07176473, w: 0.9974216}
-      length: 116.49599
+      position: {x: 104.79549, y: 0.000023909575, z: 0}
+      rotation: {x: 0, y: 0, z: 0.03455062, w: 0.999403}
+      length: 119.08325
       parentId: 4
     - name: UpperArmR
       position: {x: 173.96, y: 100.89655, z: 0}
       rotation: {x: 0, y: -0, z: 0.9613268, w: 0.27541038}
-      length: 143.47858
+      length: 143.47832
       parentId: 1
     - name: LowerArmR
-      position: {x: 143.47852, y: -0.000010975471, z: 0}
-      rotation: {x: 0, y: 0, z: 0.21891479, w: 0.975744}
-      length: 140.97594
+      position: {x: 143.47835, y: 0.000025002702, z: 0}
+      rotation: {x: 0, y: 0, z: 0.21891473, w: 0.975744}
+      length: 140.97603
       parentId: 6
     - name: HandR
-      position: {x: 140.97594, y: -0.000021671478, z: 0}
-      rotation: {x: 0, y: 0, z: 0.2412277, w: 0.9704686}
-      length: 123.48741
+      position: {x: 140.97604, y: 0.00000051182724, z: 0}
+      rotation: {x: 0, y: 0, z: 0.16767219, w: 0.9858429}
+      length: 128.81224
       parentId: 7
     - name: ThighR
       position: {x: 31.266537, y: 71.44179, z: 0}
@@ -4500,16 +4500,16 @@ ScriptedImporter:
     - name: ThighL
       position: {x: 30.18936, y: -51.821133, z: 0}
       rotation: {x: 0, y: -0, z: -0.9983651, w: 0.05715933}
-      length: 138.42758
+      length: 138.42757
       parentId: 0
     - name: ShinL
       position: {x: 138.42757, y: -0.000008260112, z: 0}
       rotation: {x: 0, y: 0, z: -0.06465718, w: 0.9979076}
-      length: 177.55353
+      length: 177.55359
       parentId: 12
     - name: FootL
-      position: {x: 177.55353, y: 0.00001892283, z: 0}
-      rotation: {x: 0, y: 0, z: 0.6748538, w: 0.7379515}
+      position: {x: 177.5536, y: 0.000022451208, z: 0}
+      rotation: {x: 0, y: 0, z: 0.6748539, w: 0.7379514}
       length: 109.39193
       parentId: 13
     parts:
@@ -4557,34 +4557,36 @@ ScriptedImporter:
       bones: 0e0000000d0000000c000000
     dimension: {x: 0, y: 0}
   boneGOs:
-  - go: {fileID: 100012, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -6107350129260930122, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 0
-  - go: {fileID: 100030, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: 6280859391416996661, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 1
-  - go: {fileID: 100034, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: 74424668917902293, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 2
-  - go: {fileID: 100036, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -8096810821503064040, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 3
-  - go: {fileID: 100038, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -5389913031534922936, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 4
-  - go: {fileID: 100040, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -3985625889622667913, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 5
-  - go: {fileID: 100042, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -6192974671313589815, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 6
-  - go: {fileID: 100044, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -8055332884529894662, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 7
-  - go: {fileID: 100046, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: 8367982190951505588, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 8
-  - go: {fileID: 100020, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: 6188289151334818476, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 9
-  - go: {fileID: 100022, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -4991036804201371598, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 10
-  - go: {fileID: 100028, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -4333155125460745773, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 11
-  - go: {fileID: 100014, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -5172624758703036694, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 12
-  - go: {fileID: 100016, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: 3257438508209997284, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 13
-  - go: {fileID: 100018, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  - go: {fileID: -6250487564908887944, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 14
   generateGOHierarchy: 1
+  textureAssetName: OdysseusSprites
+  prefabAssetName: OdysseusSprites_GO

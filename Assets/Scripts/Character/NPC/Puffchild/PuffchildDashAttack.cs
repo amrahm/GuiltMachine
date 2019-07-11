@@ -26,8 +26,6 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
 
     private bool _isparticleTrailNotNull;
 
-    private void Start() { _isparticleTrailNotNull = _repelCirclePart.particleTrail != null; }
-
     public override void Initialize(WeaponScript weaponScript) {
         weapon = weaponScript;
         _rb = weapon.holder.gameObject.GetComponent<Rigidbody2D>();
@@ -35,6 +33,7 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
         _ctrl = weapon.holder.control;
         _repelCirclePart = (PuffchildRepelCircleSpecialPart)
             weapon.specialParts.First(part => part.GetType() == typeof(PuffchildRepelCircleSpecialPart));
+        _isparticleTrailNotNull = _repelCirclePart.particleTrail != null;
     }
 
     public override void OnAttackWindup(AttackAction attackAction) {
@@ -76,6 +75,7 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
             var emissionModule = _repelCirclePart.particleTrail.emission;
             emissionModule.rateOverDistance = TrailRateOverDistance;
         }
+        weapon.Blocking = true;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         while(chargeDistance > 0 && _repelCirclePart.energy > 0 && !_repelCirclePart.touchingHittable) {
             _rb.gravityScale = 0;
@@ -101,11 +101,11 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
                 var emissionModule = _repelCirclePart.particleTrail.emission;
                 emissionModule.rateOverDistance = 0;
             }
-            _repelCirclePart.StartCoroutine(_repelCirclePart._Explode((int) (_chargeAmount * attackAction.Damage),
-                                                                      _chargeAmount * attackAction.Knockback, _ctrl,
-                                                                      weapon.holder.movement));
+            _repelCirclePart.StartCoroutine(_repelCirclePart._Explode(
+                                                (int) (_chargeAmount * attackAction.attackDefinition.damage),
+                                                _chargeAmount * attackAction.attackDefinition.knockback, _ctrl,
+                                                weapon.holder.movement));
             exploded = true;
-            weapon.Blocking = true;
         } else {
             attackAction.EndAttack();
         }
@@ -120,12 +120,12 @@ public class PuffchildDashAttack : WeaponAttackAbstract {
 
         if(exploded) {
             yield return new WaitWhile(() => _repelCirclePart.exploded);
-            weapon.Blocking = false;
             attackAction.EndAttack(dontFade: true);
         }
     }
 
-    public override void OnFadingOut(AttackAction attackAction) {
+    public override void OnEnding(AttackAction attackAction) {
+        weapon.Blocking = false;
         if(_isparticleTrailNotNull) _fadeOutCoroutine = weapon.StartCoroutine(_FadePuff());
     }
 

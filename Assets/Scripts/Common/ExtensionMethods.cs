@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.U2D.IK;
@@ -201,6 +203,12 @@ namespace ExtensionMethods {
         public static void Init<T>(this T[] array, T defaultVaue) {
             if(array == null) return;
             for(int i = 0; i < array.Length; i++) array[i] = defaultVaue;
+        }
+
+        public static T[] Sort<T>(this T[] array) {
+            List<T> list = array.ToList();
+            list.Sort();
+            return list.ToArray();
         }
     }
 

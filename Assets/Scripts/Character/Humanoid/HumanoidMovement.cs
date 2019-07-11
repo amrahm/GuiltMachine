@@ -367,7 +367,7 @@ public class HumanoidMovement : MovementAbstract {
         rb.gravityScale = 0f;
         _grabPoint = point;
         StartCoroutine(_ClimbHandle());
-        cantFlip += 1;
+        CantFlip += 1;
     }
 
     /// <summary> Used to set end of grab </summary>
@@ -381,7 +381,7 @@ public class HumanoidMovement : MovementAbstract {
         _parts.upperArmR.GetComponent<Collider2D>().isTrigger = false;
         _parts.upperArmL.GetComponent<Collider2D>().isTrigger = false;
         anim.SetBool(ClimbAnim, false);
-        cantFlip -= 1;
+        CantFlip -= 1;
 
         StartCoroutine(_ClimbIKRelease());
         if(pullUp) StartCoroutine(_ClimbPullUp());
@@ -620,7 +620,7 @@ public class HumanoidMovement : MovementAbstract {
                               Mathf.Abs(velTangent) / (maxSpeed * sprintSpeed);
             // avg it with player intention
             _walkSprint = (_walkSprint + Mathf.Abs(moveIn / 2 * sprintSpeed * slopeReducer)) / 2;
-            if(cantFlip > 0 && shouldFlip) _walkSprint *= -1;
+            if(CantFlip > 0 && shouldFlip) _walkSprint *= -1;
             // avg it for smoothing
             anim.SetFloat(SpeedAnim, anim.GetFloat(SpeedAnim).SharpInDamp(_walkSprint, 2f, Time.fixedDeltaTime));
         } else { // Not grounded
@@ -805,7 +805,7 @@ public class HumanoidMovement : MovementAbstract {
         foreach(Transform child in _parts.spritesHolder.transform)
             child.GetComponent<SpriteRenderer>().color = Color.blue;
         _rollDir = Mathf.Sign(control.moveHorizontal);
-        cantFlip++;
+        CantFlip++;
 //        print("ROLL INC " + cantFlip);
     }
 
@@ -829,7 +829,7 @@ public class HumanoidMovement : MovementAbstract {
         foreach(Transform child in _parts.spritesHolder.transform)
             child.GetComponent<SpriteRenderer>().color = Color.white;
         _rollingTime = 0;
-        cantFlip--;
+        CantFlip--;
         _lastRollTime = Time.time;
 //        print("ROLL DEC " + cantFlip);
     }
