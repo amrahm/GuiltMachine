@@ -126,8 +126,8 @@ public class WeaponScript : MonoBehaviour {
         [Tooltip("Does this attack happen only if you hold it long enough, or is a tap sufficient"), SerializeField]
         internal AttackInputType attackInputType;
 
-        [FormerlySerializedAs("attacks")] [SerializeField]
-        internal List<WeaponAttackAbstract> attackScriptableObjects;
+        [FormerlySerializedAs("attackScriptableObjects")] [FormerlySerializedAs("attacks")] [SerializeField]
+        internal List<WeaponAttackAbstract> attackComponents;
 
         [Tooltip("Which directions can be pressed to activate this attack"), EnumFlags, SerializeField]
         private AttackDirection directionTriggerFlags = (AttackDirection) 1;
@@ -156,11 +156,11 @@ public class WeaponScript : MonoBehaviour {
         internal float knockback = 50;
 
         internal void Initialize(WeaponScript weapon) {
-            if(flipIfFacingAway) attackScriptableObjects.Insert(0, ScriptableObject.CreateInstance<FlipIfFacingAway>());
-            if(preventFlipWhileAttacking) attackScriptableObjects.Add(ScriptableObject.CreateInstance<PreventFlipWhileAttacking>());
-            for(int i = 0; i < attackScriptableObjects.Count; i++) {
-                attackScriptableObjects[i] = Instantiate(attackScriptableObjects[i]);
-                attackScriptableObjects[i].Initialize(weapon);
+            if(flipIfFacingAway) attackComponents.Insert(0, ScriptableObject.CreateInstance<FlipIfFacingAway>());
+            if(preventFlipWhileAttacking) attackComponents.Add(ScriptableObject.CreateInstance<PreventFlipWhileAttacking>());
+            for(int i = 0; i < attackComponents.Count; i++) {
+                attackComponents[i] = Instantiate(attackComponents[i]);
+                attackComponents[i].Initialize(weapon);
             }
 
             directionTriggers = EnumFlagsAttribute.ReturnSelectedElements<AttackDirection>((int) directionTriggerFlags)
@@ -214,7 +214,7 @@ public class WeaponScript : MonoBehaviour {
 
         private static readonly AttackDefinition NoMatches = new AttackDefinition {
             name = "NoMatches",
-            attackScriptableObjects = new List<WeaponAttackAbstract>()
+            attackComponents = new List<WeaponAttackAbstract>()
         };
 
         internal AttackAction(WeaponScript weaponScript) {
@@ -267,7 +267,7 @@ public class WeaponScript : MonoBehaviour {
             // If we get here, an attack was found, so start it if/when we're not in the buffer anymore
             if(_inBuffer) yield return new WaitWhile(() => _inBuffer);
             state = AttackState.WindingUp;
-            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnAttackWindup(this);
+            foreach(var attack in attackDefinition.attackComponents) attack.OnAttackWindup(this);
         }
 
         private bool ChooseAttack(bool onlyLookForTaps = false) {
@@ -292,12 +292,12 @@ public class WeaponScript : MonoBehaviour {
 
         internal void BeginAttacking() {
             state = AttackState.Attacking;
-            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnAttacking(this);
+            foreach(var attack in attackDefinition.attackComponents) attack.OnAttacking(this);
         }
 
         internal void BeginRecovering() {
             state = AttackState.Recovering;
-            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnRecovering(this);
+            foreach(var attack in attackDefinition.attackComponents) attack.OnRecovering(this);
         }
 
         internal void EndAttack(float duration = 0.3f, bool dontFade = false) {
@@ -307,7 +307,7 @@ public class WeaponScript : MonoBehaviour {
             if(!ReferenceEquals(_wS.primaryAttack, this)) return;
             state = AttackState.Ended;
             if(!dontFade && _wS.anim) _wS.FadeAttackOut(duration);
-            foreach(var attack in attackDefinition.attackScriptableObjects) attack.OnEnding(this);
+            foreach(var attack in attackDefinition.attackComponents) attack.OnEnding(this);
 
             if(_wS.bufferAttack.state != AttackState.Ended && Time.time - _wS._bufferAttackStart < BufferTime) {
                 _wS.primaryAttack = _wS.bufferAttack;
