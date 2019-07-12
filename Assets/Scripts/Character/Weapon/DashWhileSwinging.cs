@@ -4,7 +4,7 @@ using UnityEngine;
 using static WeaponScript;
 
 [CreateAssetMenu(menuName = "ScriptableObjects/Attacks/DashWhileSwinging")]
-public class DashWhileSwinging : WeaponAttackAbstract {
+public class DashWhileSwinging : AttackComponentAbstract {
     [Tooltip("If true, dash will stop if the character touches the ground"), SerializeField]
     private bool endWhenGrounded;
 

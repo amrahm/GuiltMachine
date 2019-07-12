@@ -127,7 +127,7 @@ public class WeaponScript : MonoBehaviour {
         internal AttackInputType attackInputType;
 
         [FormerlySerializedAs("attackScriptableObjects")] [FormerlySerializedAs("attacks")] [SerializeField]
-        internal List<WeaponAttackAbstract> attackComponents;
+        internal List<AttackComponentAbstract> attackComponents;
 
         [Tooltip("Which directions can be pressed to activate this attack"), EnumFlags, SerializeField]
         private AttackDirection directionTriggerFlags = (AttackDirection) 1;
@@ -214,7 +214,7 @@ public class WeaponScript : MonoBehaviour {
 
         private static readonly AttackDefinition NoMatches = new AttackDefinition {
             name = "NoMatches",
-            attackComponents = new List<WeaponAttackAbstract>()
+            attackComponents = new List<AttackComponentAbstract>()
         };
 
         internal AttackAction(WeaponScript weaponScript) {
@@ -442,7 +442,7 @@ public class WeaponScript : MonoBehaviour {
     }
 
 
-    private class FlipIfFacingAway : WeaponAttackAbstract {
+    private class FlipIfFacingAway : AttackComponentAbstract {
         private WeaponScript _weaponScript;
         public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
 
@@ -456,7 +456,7 @@ public class WeaponScript : MonoBehaviour {
         public override void OnEnding(AttackAction attackAction) { }
     }
 
-    private class PreventFlipWhileAttacking : WeaponAttackAbstract {
+    private class PreventFlipWhileAttacking : AttackComponentAbstract {
         private WeaponScript _weaponScript;
         public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
 
