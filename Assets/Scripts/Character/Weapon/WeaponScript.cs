@@ -48,10 +48,10 @@ public class WeaponScript : MonoBehaviour {
 #endif
 
     [Tooltip("Tip/front of the weapon"), SerializeField]
-    private Transform weaponTip;
+    public Transform weaponTip;
 
     [Tooltip("Base of the weapon"), SerializeField]
-    private Transform weaponBase;
+    public Transform weaponBase;
 
     [Tooltip("If any special parts are needed for any of the attacks, add them here. " +
              "Make sure their name matches the one in the attack.")]
@@ -97,8 +97,8 @@ public class WeaponScript : MonoBehaviour {
     internal AttackAction primaryAttack;
     internal AttackAction bufferAttack;
 
-    private LayerMask _whatIsHittable;
-    private LayerMask _whatIsNotHittable;
+    [NonSerialized] public LayerMask whatIsHittable;
+    [NonSerialized] public LayerMask whatIsNotHittable;
 
     public enum AttackState { DeterminingType, WindingUp, Attacking, Recovering, Ended }
 
@@ -365,10 +365,8 @@ public class WeaponScript : MonoBehaviour {
     }
 
     private void Start() {
-        // All hittable things minus this layer
-        _whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster & ~(1 << gameObject.layer);
         // Everything solid but not hittable
-        _whatIsNotHittable = CommonObjectsSingleton.Instance.whatIsGroundMaster &
+        whatIsNotHittable = CommonObjectsSingleton.Instance.whatIsGroundMaster &
                              ~CommonObjectsSingleton.Instance.whatIsHittableMaster;
         _animEventObjs = CommonObjectsSingleton.Instance;
         foreach(AttackDefinition attack in attacks) attack.Initialize(this);
@@ -397,6 +395,10 @@ public class WeaponScript : MonoBehaviour {
     /// <param name="newHolder"> The CharacterMasterAbstract of the character that just picked up this weapon </param>
     public void OnEquip(CharacterMasterAbstract newHolder) {
         holder = newHolder;
+
+        // All hittable things minus this layer
+        whatIsHittable = CommonObjectsSingleton.Instance.whatIsHittableMaster & ~(1 << holder.gameObject.layer);
+
         ctrl = holder.control;
         holder.weapon = this;
         anim = holder.anim;
@@ -477,21 +479,21 @@ public class WeaponScript : MonoBehaviour {
                 bool HitBaddy(RaycastHit2D rHit) {
 #if UNITY_EDITOR
                     if(visualizeDebug && rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
-                       Linecast(_prevBase, rHit.point, _whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer))) {
+                       Linecast(_prevBase, rHit.point, whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer))) {
                         Debug.DrawLine(_prevBase, rHit.point, Color.red);
                     }
 #endif
                     return rHit && !(rHit.collider.GetComponentInParent<IDamageable>() is null) &&
                            // Make sure nothing of a different layer is between where the sword was and where it hit
                            !Linecast(_prevBase, rHit.point,
-                                     _whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer));
+                                     whatIsNotHittable & ~(1 << rHit.collider.gameObject.layer));
                 }
 
 //               print("CHECK1");
                 //CHECK1: along blade
                 Vector2 basePos = weaponBase.position;
                 Vector2 tipPos = weaponTip.position;
-                swingCheck = Linecast(basePos, tipPos, _whatIsHittable);
+                swingCheck = Linecast(basePos, tipPos, whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(basePos, tipPos);
 #endif
@@ -500,7 +502,7 @@ public class WeaponScript : MonoBehaviour {
 
 //               print("CHECK2");
                 //CHECK2: along tip movement
-                swingCheck = Linecast(_prevTip, tipPos, _whatIsHittable);
+                swingCheck = Linecast(_prevTip, tipPos, whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(_prevTip, tipPos);
 #endif
@@ -508,7 +510,7 @@ public class WeaponScript : MonoBehaviour {
 
 //                print("CHECK3");
                 //CHECK3: along base movement
-                swingCheck = Linecast(_prevBase, basePos, _whatIsHittable);
+                swingCheck = Linecast(_prevBase, basePos, whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawLine(_prevBase, basePos);
 #endif
@@ -517,7 +519,7 @@ public class WeaponScript : MonoBehaviour {
 //               print("CHECK4");
                 //CHECK4: along lower third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f),
-                                      _whatIsHittable);
+                                      whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.33f), Vector2.Lerp(basePos, tipPos, 0.33f));
@@ -527,7 +529,7 @@ public class WeaponScript : MonoBehaviour {
 //               print("CHECK5");
                 //CHECK5: along upper third movement
                 swingCheck = Linecast(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f),
-                                      _whatIsHittable);
+                                      whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug)
                     Debug.DrawLine(Vector2.Lerp(_prevBase, _prevTip, 0.66f), Vector2.Lerp(basePos, tipPos, 0.66f));
@@ -539,7 +541,7 @@ public class WeaponScript : MonoBehaviour {
                 float swordLength = Vector2.Distance(basePos, tipPos);
                 Vector2 baseMid = Vector2.Lerp(_prevBase, basePos, 0.33f);
                 Vector2 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.33f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, _whatIsHittable);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif
@@ -549,7 +551,7 @@ public class WeaponScript : MonoBehaviour {
                 //CHECK7: along second third blade
                 baseMid = Vector2.Lerp(_prevBase, basePos, 0.66f);
                 tipMid = Vector2.Lerp(_prevTip, tipPos, 0.66f);
-                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, _whatIsHittable);
+                swingCheck = Raycast(baseMid, tipMid - baseMid, swordLength, whatIsHittable);
 #if UNITY_EDITOR
                 if(visualizeDebug) Debug.DrawRay(baseMid, (tipMid - baseMid).normalized * swordLength);
 #endif

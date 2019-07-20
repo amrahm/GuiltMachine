@@ -34,7 +34,20 @@ public class PuffchildControl : CharacterControlAbstract {
         foreach(Vector3 point in _points) DebugExtension.DebugPoint(point);
         ResetInput();
 
-        if(Vector3.Distance(transform.position, target.position) > .5f)
-            _hMove.doMove(transform.position.x < target.position.x ? 1 : -1);
+        if(Vector3.Distance(transform.position, target.position) > .5f) {
+            Vector2 targetDir = target.position - transform.position;
+            float bestAngle = float.MaxValue; //TODO make smarter
+            RegisteredMove bestMove = null;
+            foreach(var move in registeredMoves) {
+                if(!move.checkCondition()) continue;
+                float angle = Vector2.Angle(targetDir, move.direction);
+                if(angle < bestAngle) {
+                    bestAngle = angle;
+                    bestMove = move;
+                }
+            }
+            bestMove?.doMove(bestMove.durationMax);
+            print(bestMove?.name);
+        }
     }
 }

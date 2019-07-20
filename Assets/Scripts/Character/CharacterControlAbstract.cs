@@ -22,8 +22,10 @@ public abstract class CharacterControlAbstract : MonoBehaviour {
     }
 
     public class RegisteredMove {
-        public delegate void Move(int polarity = 0, float duration = 0);
+        public string name;
+        public delegate void Move(float duration = 0);
         public Move doMove;
+        public Func<bool> checkCondition = () => true;
         public Vector2 direction;
         public bool continuous;
         public float durationMin;

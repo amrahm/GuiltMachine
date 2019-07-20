@@ -71,13 +71,24 @@ public class PuffchildMovement : MovementAbstract {
         _sprite = _squishRepelScript.gameObject;
 
         control.registeredMoves.Add(new CharacterControlAbstract.RegisteredMove {
-            doMove = (polarity, _) => control.moveHorizontal = polarity,
-            continuous = true
+            name = "Move Right",
+            doMove = _ => control.moveHorizontal = 1,
+            continuous = true,
+            direction = Vector2.right
         });
         control.registeredMoves.Add(new CharacterControlAbstract.RegisteredMove {
-            doMove = (_, duration) => StartCoroutine(_NPCJump(duration)),
-            durationMin = 0,
-            durationMax = jumpFuel / JumpFuelReductionFactor
+            name = "Move Left",
+            doMove = _ => control.moveHorizontal = -1,
+            continuous = true,
+            direction = Vector2.left
+        });
+        control.registeredMoves.Add(new CharacterControlAbstract.RegisteredMove {
+            name = "Jump",
+            doMove = duration => StartCoroutine(_NPCJump(duration)),
+            checkCondition = () => grounded,
+            durationMin = 0.01f,
+            durationMax = jumpFuel / JumpFuelReductionFactor + .1f,
+            direction = Vector2.up
         });
     }
 
