@@ -57,3 +57,15 @@ sysinfo.txt
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Keep this file since we need to keep a modification in it
+# We have to specifically keep each folder along the way, but ignore everything else in them, because git is dumb
+![Ll]ibrary/
+[Ll]ibrary/*
+![Ll]ibrary/PackageCache/
+[Ll]ibrary/PackageCache/*
+![Ll]ibrary/PackageCache/com.unity.2d.animation@*
+[Ll]ibrary/PackageCache/com.unity.2d.animation@*/*
+![Ll]ibrary/PackageCache/com.unity.2d.animation@*/Runtime/
+[Ll]ibrary/PackageCache/com.unity.2d.animation@*/Runtime/*
+![Ll]ibrary/PackageCache/com.unity.2d.animation@*/Runtime/SpriteSkin.cs
