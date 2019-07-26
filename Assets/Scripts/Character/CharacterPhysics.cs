@@ -565,8 +565,8 @@ public class CharacterPhysics : MonoBehaviour {
         foreach(Transform sprite in transform.Find("Sprites")) {
 //            Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git
             SpriteSkin spriteSkin = sprite.GetComponent<SpriteSkin>();
-            Transform[] bones = spriteSkin.m_BoneTransforms;
-            Transform root = spriteSkin.m_RootBone;
+            Transform[] bones = spriteSkin.GetFieldValue<Transform[]>("m_BoneTransforms");
+            Transform root = spriteSkin.GetFieldValue<Transform>("m_RootBone");
             for(int i = 0; i < bones.Length; i++) {
                 int index = Array.IndexOf(currents, bones[i].gameObject);
                 if(index != -1) {
@@ -577,8 +577,8 @@ public class CharacterPhysics : MonoBehaviour {
                     Debug.LogError($"Can't find {bones[i].gameObject.name} in the parts list of {gameObject.name}");
                 }
             }
-            spriteSkin.m_BoneTransforms = bones;
-            spriteSkin.m_RootBone = root;
+            spriteSkin.SetFieldValue("m_BoneTransforms", bones);
+            spriteSkin.SetFieldValue("m_RootBone", root);
         }
     }
 #endif
