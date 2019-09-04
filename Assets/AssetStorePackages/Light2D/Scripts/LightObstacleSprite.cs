@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
+
 #endif
 
 namespace Light2D {
@@ -26,7 +27,9 @@ namespace Light2D {
 
         protected override void OnEnable() {
 #if UNITY_EDITOR
-            if(material == null) material = (Material) AssetDatabase.LoadAssetAtPath("Assets/AssetStorePackages/Light2D/Materials/DualColor.mat", typeof(Material));
+            if(material == null)
+                material = (Material) AssetDatabase.LoadAssetAtPath(
+                    "Assets/AssetStorePackages/Light2D/Materials/DualColor.mat", typeof(Material));
 #endif
 
             base.OnEnable();
@@ -40,10 +43,10 @@ namespace Light2D {
         }
 
         private void UpdateSecondaryColor() {
-            Vector2 uv1 = new Vector2(
+            Vector2 newUv1 = new Vector2(
                 Util.DecodeFloatRgba((Vector4) additiveColor),
                 Util.DecodeFloatRgba(new Vector4(additiveColor.a, 0, 0)));
-            for(int i = 0; i < this.uv1.Length; i++) this.uv1[i] = uv1;
+            for(int i = 0; i < uv1.Length; i++) uv1[i] = newUv1;
         }
 
         protected override void UpdateMeshData(bool forceUpdate = false) {
@@ -51,8 +54,10 @@ namespace Light2D {
                 return;
 
             if(gameSpriteRenderer != null && (gameSpriteRenderer != _oldGameSpriteRenderer || forceUpdate ||
-                                              _oldUnitySprite != null && _oldUnitySprite.sprite != null && _oldUnitySprite.sprite != sprite ||
-                                              _oldCustomSprite != null && _oldCustomSprite.sprite != null && _oldCustomSprite.sprite != sprite)) {
+                                              _oldUnitySprite != null && _oldUnitySprite.sprite != null &&
+                                              _oldUnitySprite.sprite != sprite ||
+                                              _oldCustomSprite != null && _oldCustomSprite.sprite != null &&
+                                              _oldCustomSprite.sprite != sprite)) {
                 _oldGameSpriteRenderer = gameSpriteRenderer;
 
                 _oldCustomSprite = gameSpriteRenderer.GetComponent<CustomSprite>();

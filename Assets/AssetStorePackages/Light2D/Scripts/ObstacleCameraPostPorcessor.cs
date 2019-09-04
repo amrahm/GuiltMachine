@@ -27,7 +27,7 @@ namespace Light2D {
             }
 
             Graphics.DrawMesh(_mesh, camera.transform.position, camera.transform.rotation, _material,
-                LightingSystem.Instance.lightObstaclesLayer, camera);
+                              LightingSystem.Instance.lightObstaclesLayer, camera);
         }
 
         /// <summary>

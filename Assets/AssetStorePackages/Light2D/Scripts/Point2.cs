@@ -7,8 +7,8 @@ namespace Light2D {
     /// </summary>
     [Serializable]
     public struct Point2 : IEquatable<Point2> {
-        public int x;
-        public int y;
+        public readonly int x;
+        public readonly int y;
 
         public Point2(int x, int y) {
             this.x = x;
@@ -21,7 +21,7 @@ namespace Light2D {
 
         public override bool Equals(object obj) {
             if(ReferenceEquals(null, obj)) return false;
-            return obj is Point2 && Equals((Point2) obj);
+            return obj is Point2 point2 && Equals(point2);
         }
 
         public override int GetHashCode() {
@@ -43,7 +43,7 @@ namespace Light2D {
         }
 
         public static implicit operator Vector3(Point2 p) {
-            return new Vector2(p.x, p.y);
+            return new Vector3(p.x, p.y);
         }
 
         public static Point2 Floor(Vector2 v) {
@@ -99,7 +99,7 @@ namespace Light2D {
         public static Point2 Zero => new Point2(0, 0);
 
         public override string ToString() {
-            return "(" + x + ", " + y + ")";
+            return $"({x}, {y})";
         }
     }
 }

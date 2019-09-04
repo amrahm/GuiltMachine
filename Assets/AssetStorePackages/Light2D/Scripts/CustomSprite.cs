@@ -16,7 +16,10 @@ namespace Light2D {
     public class CustomSprite : MonoBehaviour {
         private const string GeneratedMaterialName = "Generated Material (DONT change it)";
         private const string GeneratedMeshName = "Generated Mesh (DONT change it)";
-        public static readonly Dictionary<MaterialKey, MaterialValue> MaterialMap = new Dictionary<MaterialKey, MaterialValue>();
+
+        private static readonly Dictionary<MaterialKey, MaterialValue> MaterialMap =
+            new Dictionary<MaterialKey, MaterialValue>();
+
         private Color _oldColor;
         private Material _oldMaterial;
         private MaterialKey _oldMaterialKey;
@@ -247,8 +250,9 @@ namespace Light2D {
 #else
                 true
 #endif
-                    ? textureSize
-                    : new Point2(Mathf.NextPowerOfTwo(textureSize.x), Mathf.NextPowerOfTwo(textureSize.y));
+                    ?
+                    textureSize :
+                    new Point2(Mathf.NextPowerOfTwo(textureSize.x), Mathf.NextPowerOfTwo(textureSize.y));
 
             Vector2 unitSize2 = rect.size / sprite.pixelsPerUnit / 2f;
             Vector2 offest = bounds.center;
@@ -335,19 +339,20 @@ namespace Light2D {
             /// <summary>
             ///     Non instantiated material.
             /// </summary>
-            public Material material;
+            public readonly Material material;
 
             /// <summary>
             ///     Sprite's texture.
             /// </summary>
-            public Texture2D texture;
+            public readonly Texture2D texture;
 
             public MaterialKey(Material material, Texture2D texture) {
                 this.material = material;
                 this.texture = texture;
             }
 
-            public static IEqualityComparer<MaterialKey> TextureMaterialComparer { get; } = new TextureMaterialEqualityComparer();
+            public static IEqualityComparer<MaterialKey> TextureMaterialComparer { get; } =
+                new TextureMaterialEqualityComparer();
 
             public bool Equals(MaterialKey other) {
                 if(ReferenceEquals(null, other)) return false;
@@ -364,7 +369,8 @@ namespace Light2D {
 
             public override int GetHashCode() {
                 unchecked {
-                    return ((texture != null ? texture.GetHashCode() : 0) * 397) ^ (material != null ? material.GetHashCode() : 0);
+                    return ((texture != null ? texture.GetHashCode() : 0) * 397) ^
+                           (material != null ? material.GetHashCode() : 0);
                 }
             }
 
@@ -387,7 +393,8 @@ namespace Light2D {
 
                 public int GetHashCode(MaterialKey obj) {
                     unchecked {
-                        return ((obj.texture != null ? obj.texture.GetHashCode() : 0) * 397) ^ (obj.material != null ? obj.material.GetHashCode() : 0);
+                        return ((obj.texture != null ? obj.texture.GetHashCode() : 0) * 397) ^
+                               (obj.material != null ? obj.material.GetHashCode() : 0);
                     }
                 }
             }

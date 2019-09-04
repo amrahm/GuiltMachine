@@ -115,6 +115,18 @@ namespace Light2D {
         private Material _normalMappedLightMaterial;
         private Material _lightCombiningMaterial;
         private Material _alphaBlendedMaterial;
+        private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+        private static readonly int NormalsBuffer = Shader.PropertyToID("_NormalsBuffer");
+        private static readonly int LightSourcesTex = Shader.PropertyToID("_LightSourcesTex");
+        private static readonly int Shift = Shader.PropertyToID("_Shift");
+        private static readonly int AmbientLightTex = Shader.PropertyToID("_AmbientLightTex");
+        private static readonly int GameTex = Shader.PropertyToID("_GameTex");
+        private static readonly int Offset = Shader.PropertyToID("_Offset");
+        private static readonly int Scale = Shader.PropertyToID("_Scale");
+        private static readonly int PosOffset = Shader.PropertyToID("_PosOffset");
+        private static readonly int ExtendedToSmallTextureScale = Shader.PropertyToID("_ExtendedToSmallTextureScale");
+        private static readonly int PixelsPerBlock = Shader.PropertyToID("_PixelsPerBlock");
+        private static readonly int ObstacleTex = Shader.PropertyToID("_ObstacleTex");
 
         private void Reset() {
             lightSourcesLayer = LayerMask.NameToLayer("LightSources");
@@ -142,7 +154,6 @@ namespace Light2D {
         }
 
         private void Start() {
-
             if(lightCamera == null) {
                 Debug.LogError(
                     "Lighting Camera in LightingSystem is null. Please, select Lighting Camera camera for lighting to work.");
@@ -218,20 +229,18 @@ namespace Light2D {
             }
 
             if(_extendedLightTextureSize.x % 2 != 0)
-                _extendedLightTextureSize.x++;
+                _extendedLightTextureSize = new Point2(_extendedLightTextureSize.x + 1, _extendedLightTextureSize.y);
             if(_extendedLightTextureSize.y % 2 != 0)
-                _extendedLightTextureSize.y++;
+                _extendedLightTextureSize = new Point2(_extendedLightTextureSize.x, _extendedLightTextureSize.y + 1);
 
             if(_extendedLightTextureSize.x > 1024 || _extendedLightTextureSize.y > 1024 ||
                _smallLightTextureSize.x > 1024 || _smallLightTextureSize.y > 1024) {
                 Debug.LogError("LightPixelSize is too small. That might have a performance impact.");
-                return;
             }
 
             if(_extendedLightTextureSize.x < 4 || _extendedLightTextureSize.y < 4 ||
                _smallLightTextureSize.x < 4 || _smallLightTextureSize.y < 4) {
                 Debug.LogError("LightPixelSize is too big. Lighting may not work correctly.");
-                return;
             }
 
             _screenBlitTempTex = new RenderTexture(_camera.pixelWidth, _camera.pixelHeight, 0, _texFormat) {
@@ -242,19 +251,19 @@ namespace Light2D {
 
             if(enableNormalMapping)
                 _lightSourcesTexture = new RenderTexture(_camera.pixelWidth, _camera.pixelHeight,
-                    0, _texFormat) {
+                                                         0, _texFormat) {
                     filterMode = FilterMode.Point
                 };
             else
                 _lightSourcesTexture = new RenderTexture(_smallLightTextureSize.x, _smallLightTextureSize.y,
-                    0, _texFormat) {
+                                                         0, _texFormat) {
                     filterMode = lightTexturesFilterMode
                 };
 
             _obstaclesTexture = new RenderTexture(_extendedLightTextureSize.x, _extendedLightTextureSize.y,
-                0, _texFormat);
+                                                  0, _texFormat);
             _ambientTexture = new RenderTexture(_extendedLightTextureSize.x, _extendedLightTextureSize.y,
-                0, _texFormat) {
+                                                0, _texFormat) {
                 filterMode = lightTexturesFilterMode
             };
 
@@ -263,9 +272,10 @@ namespace Light2D {
                 upsampledObstacleSize.x, upsampledObstacleSize.y, 0, _texFormat);
 
             if(affectOnlyThisCamera) {
-                _renderTargetTexture = new RenderTexture(_camera.pixelWidth, _camera.pixelHeight, 0, RenderTextureFormat.ARGB32) {
-                    filterMode = FilterMode.Point
-                };
+                _renderTargetTexture =
+                    new RenderTexture(_camera.pixelWidth, _camera.pixelHeight, 0, RenderTextureFormat.ARGB32) {
+                        filterMode = FilterMode.Point
+                    };
                 _camera.targetTexture = _renderTargetTexture;
                 _camera.clearFlags = CameraClearFlags.SolidColor;
                 _camera.backgroundColor = Color.clear;
@@ -345,14 +355,19 @@ namespace Light2D {
             if(_camera.orthographic) Shader.DisableKeyword("PERSPECTIVE_CAMERA");
             else Shader.EnableKeyword("PERSPECTIVE_CAMERA");
 
-            Shader.SetGlobalTexture("_ObstacleTex", _obstaclesTexture);
-            Shader.SetGlobalFloat("_PixelsPerBlock", lightPixelsPerUnityMeter);
-            Shader.SetGlobalVector("_ExtendedToSmallTextureScale", new Vector2(
-                _smallLightTextureSize.x / (float) _extendedLightTextureSize.x,
-                _smallLightTextureSize.y / (float) _extendedLightTextureSize.y));
-            Shader.SetGlobalVector("_PosOffset", lightObstaclesAntialiasing
-                                                     ? (enableNormalMapping ? _obstaclesUpsampledTexture.texelSize * 0.75f : _obstaclesUpsampledTexture.texelSize * 0.25f)
-                                                     : (enableNormalMapping ? _obstaclesTexture.texelSize : _obstaclesTexture.texelSize * 0.5f));
+            Shader.SetGlobalTexture(ObstacleTex, _obstaclesTexture);
+            Shader.SetGlobalFloat(PixelsPerBlock, lightPixelsPerUnityMeter);
+            Shader.SetGlobalVector(ExtendedToSmallTextureScale, new Vector2(
+                                       _smallLightTextureSize.x / (float) _extendedLightTextureSize.x,
+                                       _smallLightTextureSize.y / (float) _extendedLightTextureSize.y));
+            Shader.SetGlobalVector(PosOffset,
+                                   lightObstaclesAntialiasing ?
+                                       (enableNormalMapping ?
+                                            _obstaclesUpsampledTexture.texelSize * 0.75f :
+                                            _obstaclesUpsampledTexture.texelSize * 0.25f) :
+                                       (enableNormalMapping ?
+                                            _obstaclesTexture.texelSize :
+                                            _obstaclesTexture.texelSize * 0.5f));
         }
 
         private void RenderNormalBuffer() {
@@ -389,7 +404,7 @@ namespace Light2D {
             _normalMapCamera.backgroundColor = new Color(0.5f, 0.5f, 0, 1);
             _normalMapCamera.RenderWithShader(_normalMapRenderShader, "LightObstacle");
 
-            Shader.SetGlobalTexture("_NormalsBuffer", _normalMapBuffer);
+            Shader.SetGlobalTexture(NormalsBuffer, _normalMapBuffer);
             Shader.EnableKeyword("NORMAL_MAPPED_LIGHTS");
         }
 
@@ -405,12 +420,12 @@ namespace Light2D {
 
                 if(_normalMappedLightMaterial == null) {
                     _normalMappedLightMaterial = new Material(Shader.Find("Light2D/Internal/Normal Mapped Light"));
-                    _normalMappedLightMaterial.SetTexture("_MainTex", _singleLightSourceTexture);
+                    _normalMappedLightMaterial.SetTexture(MainTex, _singleLightSourceTexture);
                 }
 
                 if(_lightCombiningMaterial == null) {
                     _lightCombiningMaterial = new Material(Shader.Find("Light2D/Internal/Light Blender"));
-                    _lightCombiningMaterial.SetTexture("_MainTex", _singleLightSourceTexture);
+                    _lightCombiningMaterial.SetTexture(MainTex, _singleLightSourceTexture);
                 }
 
                 Plane[] cameraPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
@@ -466,12 +481,12 @@ namespace Light2D {
                 Profiler.BeginSample("LightingSystem.OnRenderImage Bluring Light Sources");
 
                 if(_bluredLightTexture == null) {
-                    int w = _lightSourcesTexture.width == _smallLightTextureSize.x
-                                ? _lightSourcesTexture.width * 2
-                                : _lightSourcesTexture.width;
-                    int h = _lightSourcesTexture.height == _smallLightTextureSize.y
-                                ? _lightSourcesTexture.height * 2
-                                : _lightSourcesTexture.height;
+                    int w = _lightSourcesTexture.width == _smallLightTextureSize.x ?
+                                _lightSourcesTexture.width * 2 :
+                                _lightSourcesTexture.width;
+                    int h = _lightSourcesTexture.height == _smallLightTextureSize.y ?
+                                _lightSourcesTexture.height * 2 :
+                                _lightSourcesTexture.height;
                     _bluredLightTexture = new RenderTexture(w, h, 0, _texFormat);
                 }
 
@@ -528,10 +543,10 @@ namespace Light2D {
                 Vector2 posShift = ((Vector2) (_currPos - _oldPos) / lightPixelSize).Div(texSize);
                 _oldPos = _currPos;
 
-                ambientLightComputeMaterial.SetTexture("_LightSourcesTex", _ambientEmissionTexture);
+                ambientLightComputeMaterial.SetTexture(LightSourcesTex, _ambientEmissionTexture);
                 if(_prevAmbientTexture.IsCreated())
-                    ambientLightComputeMaterial.SetTexture("_MainTex", _prevAmbientTexture);
-                ambientLightComputeMaterial.SetVector("_Shift", posShift);
+                    ambientLightComputeMaterial.SetTexture(MainTex, _prevAmbientTexture);
+                ambientLightComputeMaterial.SetVector(Shift, posShift);
 
                 _ambientTexture.DiscardContents();
                 Graphics.Blit(null, _ambientTexture, ambientLightComputeMaterial);
@@ -562,12 +577,14 @@ namespace Light2D {
 
             Vector2 lightTexelSize = new Vector2(1f / _smallLightTextureSize.x, 1f / _smallLightTextureSize.y);
             float lightPixelsPerUnityMeter = LightPixelsPerUnityMeter;
-            Vector2 worldOffset = Quaternion.Inverse(_camera.transform.rotation) * (lightCamera.transform.position - _camera.transform.position);
+            Vector2 worldOffset = Quaternion.Inverse(_camera.transform.rotation) *
+                                  (lightCamera.transform.position - _camera.transform.position);
             Vector2 offset = Vector2.Scale(lightTexelSize, -worldOffset * lightPixelsPerUnityMeter);
 
-            RenderTexture lightSourcesTex = blurLightSources && lightSourcesBlurMaterial != null && lightTexturesFilterMode != FilterMode.Point
-                                                ? _bluredLightTexture
-                                                : _lightSourcesTexture;
+            RenderTexture lightSourcesTex =
+                blurLightSources && lightSourcesBlurMaterial != null && lightTexturesFilterMode != FilterMode.Point ?
+                    _bluredLightTexture :
+                    _lightSourcesTexture;
             float xDiff = _camera.aspect / lightCamera.aspect;
 
             if(!_camera.orthographic) {
@@ -580,11 +597,11 @@ namespace Light2D {
             Vector2 scale = new Vector2(scaleY * xDiff, scaleY);
 
             FilterMode oldAmbientFilterMode = _ambientTexture == null ? FilterMode.Point : _ambientTexture.filterMode;
-            lightOverlayMaterial.SetTexture("_AmbientLightTex", enableAmbientLight ? _ambientTexture : null);
-            lightOverlayMaterial.SetTexture("_LightSourcesTex", lightSourcesTex);
-            lightOverlayMaterial.SetTexture("_GameTex", src);
-            lightOverlayMaterial.SetVector("_Offset", offset);
-            lightOverlayMaterial.SetVector("_Scale", scale);
+            lightOverlayMaterial.SetTexture(AmbientLightTex, enableAmbientLight ? _ambientTexture : null);
+            lightOverlayMaterial.SetTexture(LightSourcesTex, lightSourcesTex);
+            lightOverlayMaterial.SetTexture(GameTex, src);
+            lightOverlayMaterial.SetVector(Offset, offset);
+            lightOverlayMaterial.SetVector(Scale, scale);
 
             if(_screenBlitTempTex == null || _screenBlitTempTex.width != src.width ||
                _screenBlitTempTex.height != src.height) {
@@ -628,12 +645,14 @@ namespace Light2D {
 
         private void ConfigLightCamera(bool extended) {
             if(extended) {
-                lightCamera.orthographicSize =
-                    _camera.orthographicSize * (_extendedLightTextureSize.y / (float) _smallLightTextureSize.y); // _extendedLightTextureSize.y/(2f*LightPixelsPerUnityMeter);
+                // _extendedLightTextureSize.y/(2f*LightPixelsPerUnityMeter);
+                lightCamera.orthographicSize = _camera.orthographicSize *
+                                               (_extendedLightTextureSize.y / (float) _smallLightTextureSize.y);
                 lightCamera.fieldOfView = _camera.fieldOfView + lightCameraFovAdd;
                 lightCamera.aspect = _extendedLightTextureSize.x / (float) _extendedLightTextureSize.y;
             } else {
-                lightCamera.orthographicSize = _camera.orthographicSize; // _smallLightTextureSize.y / (2f * LightPixelsPerUnityMeter);
+                // _smallLightTextureSize.y / (2f * LightPixelsPerUnityMeter);
+                lightCamera.orthographicSize = _camera.orthographicSize;
                 lightCamera.fieldOfView = _camera.fieldOfView;
                 lightCamera.aspect = _smallLightTextureSize.x / (float) _smallLightTextureSize.y;
             }

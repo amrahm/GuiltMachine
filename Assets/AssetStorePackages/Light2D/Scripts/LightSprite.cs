@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+
 #if UNITY_EDITOR
 #endif
 
@@ -21,6 +22,7 @@ namespace Light2D {
         private LightShape _oldLightShape;
         public Vector3 lightOrigin = new Vector3(0, 0, 1);
         public LightShape shape = LightShape.Point;
+        private static readonly int LightPos = Shader.PropertyToID("_LightPos");
 
         public MeshRenderer Renderer => meshRenderer;
 
@@ -150,7 +152,7 @@ namespace Light2D {
             Vector2 center = _modelMatrix.MultiplyPoint3x4(((Vector2) lightOrigin).Mul(size));
             Vector4 lightPos = new Vector4(center.x, center.y, lightOrigin.z);
 
-            mat.SetVector("_LightPos", lightPos);
+            mat.SetVector(LightPos, lightPos);
 
             if(!mat.SetPass(0))
                 return;
