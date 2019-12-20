@@ -2,12 +2,12 @@ Shader "Sprites/Sprite (Unlit)"
 {
 	Properties
 	{
-		[PerRendererData] _MainTex ("Main Texture", 2D) = "white" {}
+		_MainTex ("Main Texture", 2D) = "white" {}
 		_Color ("Color", Color) = (1,1,1,1)
 		
-		[MaterialToggle] PixelSnap ("Pixel snap", Float) = 0
-		[PerRendererData] _AlphaTex ("External Alpha", 2D) = "white" {}
-		[PerRendererData] _EnableExternalAlpha ("Enable External Alpha", Float) = 0
+		PixelSnap ("Pixel snap", Float) = 0
+		_AlphaTex ("External Alpha", 2D) = "white" {}
+		_EnableExternalAlpha ("Enable External Alpha", Float) = 0
 		
 		_ZWrite ("Depth Write", Float) = 0.0
 		_Cutoff ("Depth alpha cutoff", Range(0,1)) = 0.0
@@ -51,6 +51,7 @@ Shader "Sprites/Sprite (Unlit)"
 				
 				#pragma fragmentoption ARB_precision_hint_fastest
 				#pragma multi_compile_fog
+				#pragma multi_compile_instancing
 				#pragma multi_compile _ PIXELSNAP_ON
 				#pragma multi_compile _ ETC1_EXTERNAL_ALPHA
 				
@@ -75,6 +76,7 @@ Shader "Sprites/Sprite (Unlit)"
 			CGPROGRAM		
 				#pragma fragmentoption ARB_precision_hint_fastest
 				#pragma multi_compile_shadowcaster
+				#pragma multi_compile_instancing
 				#pragma multi_compile _ PIXELSNAP_ON
 				#pragma multi_compile _ ETC1_EXTERNAL_ALPHA
 				

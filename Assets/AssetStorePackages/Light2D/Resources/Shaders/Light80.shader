@@ -28,7 +28,7 @@ SubShader {
 			#pragma multi_compile LIGHT2D_XY_PLANE LIGHT2D_XZ_PLANE
 			
 			#include "UnityCG.cginc"
-			#include "Assets/AssetStorePackages/Light2D/Resources/Shaders/LightBase.cginc" // all code is here
+			#include "./LightBase.cginc" // all code is here
 			
 			#pragma vertex light2d_fixed_vert
 			#pragma fragment light2_fixed_frag

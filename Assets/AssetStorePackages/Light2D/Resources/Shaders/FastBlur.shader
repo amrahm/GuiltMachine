@@ -1,10 +1,4 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-/*
-
-Fast, low quality blur.
-
-*/
+// Fast, low quality blur.
 
 Shader "Light2D/Fast Blur" {
 Properties {

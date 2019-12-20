@@ -9,7 +9,7 @@ namespace Light2D {
     ///     Used to draw lights. Puts LightOrigin world position to UV1.
     ///     Supports Point and Line light types.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class LightSprite : CustomSprite {
         public enum LightShape {
             Point,

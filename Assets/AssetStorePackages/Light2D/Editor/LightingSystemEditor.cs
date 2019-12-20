@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+
+using UnityEditor;
 using UnityEngine;
 
 namespace Light2D {
@@ -24,11 +26,6 @@ namespace Light2D {
         private SerializedProperty _lightObstaclesDistance;
         private SerializedProperty _lightTexturesFilterMode;
         private SerializedProperty _enableNormalMapping;
-        private SerializedProperty _affectOnlyThisCamera;
-#if LIGHT2D_2DTK
-        private float _old2dtkCamSize;
-        private DateTime _sizeChangeTime;
-#endif
 
         private void OnEnable() {
             _lightPixelSize = serializedObject.FindProperty(nameof(LightingSystem.lightPixelSize));
@@ -50,8 +47,8 @@ namespace Light2D {
             _lightObstaclesDistance = serializedObject.FindProperty(nameof(LightingSystem.lightObstaclesDistance));
             _lightTexturesFilterMode = serializedObject.FindProperty(nameof(LightingSystem.lightTexturesFilterMode));
             _enableNormalMapping = serializedObject.FindProperty(nameof(LightingSystem.enableNormalMapping));
-            _affectOnlyThisCamera = serializedObject.FindProperty(nameof(LightingSystem.affectOnlyThisCamera));
-            _lightObstaclesReplacementShaderLayer = serializedObject.FindProperty(nameof(LightingSystem.lightObstaclesReplacementShaderLayer));
+            _lightObstaclesReplacementShaderLayer =
+                serializedObject.FindProperty(nameof(LightingSystem.lightObstaclesReplacementShaderLayer));
         }
 
         public override void OnInspectorGUI() {
@@ -70,26 +67,10 @@ namespace Light2D {
 
             EditorGUILayout.PropertyField(_lightPixelSize, new GUIContent("Light Pixel Size"));
 
-            bool sizeChanged = false;
-#if LIGHT2D_2DTK
-            var tk2dCamera = lightingSystem.GetComponent<tk2dCamera>();
-            var tk2dCamSize = tk2dCamera == null
-                ? (cam == null ? 0 : cam.orthographicSize)
-                : tk2dCamera.ScreenExtents.yMax;
-            var currSizeChanged = !Mathf.Approximately(tk2dCamSize, _old2dtkCamSize);
-            _old2dtkCamSize = tk2dCamSize;
-            if (currSizeChanged) _sizeChangeTime = DateTime.Now;
-            sizeChanged = (DateTime.Now - _sizeChangeTime).TotalSeconds < 0.2f;
-#endif
             if(cam != null) {
                 float size;
                 if(cam.orthographic) {
-#if LIGHT2D_2DTK
-                    float zoom = (tk2dCamera == null ? 1 : tk2dCamera.ZoomFactor);
-                    size = (cam.orthographicSize*zoom + _lightCameraSizeAdd.floatValue) * 2f;
-#else
                     size = (cam.orthographicSize + _lightCameraSizeAdd.floatValue) * 2f;
-#endif
                 } else {
                     float halfFov = (cam.fieldOfView + _lightCameraFovAdd.floatValue) * Mathf.Deg2Rad / 2f;
                     size = Mathf.Tan(halfFov) * _lightObstaclesDistance.floatValue * 2;
@@ -112,7 +93,7 @@ namespace Light2D {
                         EditorGUILayout.LabelField("WARNING: Light Texture Height is too big.");
                         EditorGUILayout.LabelField(" 50-200 (mobile) and 200-1000 (pc) is recommended.");
                     }
-                    if(oldSize != lightTextureHeight && !sizeChanged) _lightPixelSize.floatValue = size / lightTextureHeight;
+                    if(oldSize != lightTextureHeight) _lightPixelSize.floatValue = size / lightTextureHeight;
                 }
             }
 
@@ -126,8 +107,8 @@ namespace Light2D {
             EditorGUILayout.PropertyField(_hdr, new GUIContent("64 Bit Color"));
             EditorGUILayout.PropertyField(_lightObstaclesAntialiasing, new GUIContent("Light Obstacles Antialiasing"));
             EditorGUILayout.PropertyField(_enableNormalMapping, new GUIContent("Normal Mapping"));
-            if(_enableNormalMapping.boolValue && isMobileTarget) EditorGUILayout.LabelField("WARNING: Normal mapping is not supported on mobiles.");
-            EditorGUILayout.PropertyField(_affectOnlyThisCamera, new GUIContent("Affect Only This Camera"));
+            if(_enableNormalMapping.boolValue && isMobileTarget)
+                EditorGUILayout.LabelField("WARNING: Normal mapping is not supported on mobiles.");
             _lightTexturesFilterMode.enumValueIndex = (int) (FilterMode) EditorGUILayout.EnumPopup(
                 "Texture Filtering", (FilterMode) _lightTexturesFilterMode.enumValueIndex);
 
@@ -157,9 +138,12 @@ namespace Light2D {
 
             EditorGUILayout.PropertyField(_lightOverlayMaterial, new GUIContent("Light Overlay Material"));
             EditorGUILayout.PropertyField(_lightCamera, new GUIContent("Lighting Camera"));
-            _lightSourcesLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Light Sources Layer"), _lightSourcesLayer.intValue);
-            _lightObstaclesLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Light Obstacles Layer"), _lightObstaclesLayer.intValue);
-            _ambientLightLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Ambient Light Layer"), _ambientLightLayer.intValue);
+            _lightSourcesLayer.intValue =
+                EditorGUILayout.LayerField(new GUIContent("Light Sources Layer"), _lightSourcesLayer.intValue);
+            _lightObstaclesLayer.intValue =
+                EditorGUILayout.LayerField(new GUIContent("Light Obstacles Layer"), _lightObstaclesLayer.intValue);
+            _ambientLightLayer.intValue =
+                EditorGUILayout.LayerField(new GUIContent("Ambient Light Layer"), _ambientLightLayer.intValue);
             EditorGUILayout.PropertyField(_lightObstaclesReplacementShaderLayer);
 
             // Apply changes to the serializedProperty - always do this in the end of OnInspectorGUI.
@@ -167,3 +151,5 @@ namespace Light2D {
         }
     }
 }
+
+#endif

@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+
+using UnityEditor;
 using UnityEngine;
 
 namespace Light2D {
@@ -58,3 +60,5 @@ namespace Light2D {
         }
     }
 }
+
+#endif

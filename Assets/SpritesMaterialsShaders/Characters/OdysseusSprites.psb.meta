@@ -4386,6 +4386,10 @@ ScriptedImporter:
   importedTextureWidth: 1024
   importedTextureHeight: 1024
   documentSize: {x: 740, y: 1110}
+  paperDollMode: 0
+  keepDupilcateSpriteName: 0
+  spriteCategoryList:
+    categories: []
   textureActualWidth: 1024
   textureActualHeight: 1024
   spritePackingTag: 
@@ -4520,6 +4524,8 @@ ScriptedImporter:
         height: 465
       spriteId: 8e78d8bc7144e1343ba3497457fc740d
       bones: 0200000001000000
+      parentGroup: 0
+      order: 0
     - spritePosition:
         x: 113
         y: 299
@@ -4527,6 +4533,8 @@ ScriptedImporter:
         height: 441
       spriteId: 4ef16f54d49e66443b6ccc11484bd5c4
       bones: 080000000700000006000000
+      parentGroup: 0
+      order: 0
     - spritePosition:
         x: 219
         y: 71
@@ -4534,6 +4542,8 @@ ScriptedImporter:
         height: 411
       spriteId: 9d58eec7a9536654eb229edc7d3b619f
       bones: 0b0000000a00000009000000
+      parentGroup: 0
+      order: 0
     - spritePosition:
         x: 233
         y: 392
@@ -4541,6 +4551,8 @@ ScriptedImporter:
         height: 377
       spriteId: 0f24e42168ceb4e40968c483cd7f0b65
       bones: 0000000001000000
+      parentGroup: 0
+      order: 0
     - spritePosition:
         x: 399
         y: 352
@@ -4548,6 +4560,8 @@ ScriptedImporter:
         height: 376
       spriteId: 209fccebc5ba9294198c222b8e03e654
       bones: 050000000400000003000000
+      parentGroup: 0
+      order: 0
     - spritePosition:
         x: 360
         y: 78
@@ -4555,7 +4569,10 @@ ScriptedImporter:
         height: 400
       spriteId: 1c3f1b8956779cf4ba7465244c3ac127
       bones: 0e0000000d0000000c000000
+      parentGroup: 0
+      order: 0
     dimension: {x: 0, y: 0}
+    characterGroups: []
   boneGOs:
   - go: {fileID: -6107350129260930122, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
     index: 0
@@ -4590,3 +4607,4 @@ ScriptedImporter:
   generateGOHierarchy: 1
   textureAssetName: OdysseusSprites
   prefabAssetName: OdysseusSprites_GO
+  spriteLibAssetName: OdysseusSprites Sprite Lib

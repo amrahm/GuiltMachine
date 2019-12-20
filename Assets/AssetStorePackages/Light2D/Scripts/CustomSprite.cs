@@ -16,6 +16,7 @@ namespace Light2D {
     public class CustomSprite : MonoBehaviour {
         private const string GeneratedMaterialName = "Generated Material (DONT change it)";
         private const string GeneratedMeshName = "Generated Mesh (DONT change it)";
+        private Shader _transNormMapped;
 
         private static readonly Dictionary<MaterialKey, MaterialValue> MaterialMap =
             new Dictionary<MaterialKey, MaterialValue>();
@@ -126,7 +127,11 @@ namespace Light2D {
 
         private void OnWillRenderObject() {
             UpdateMeshData();
-            if(Application.isPlaying && LightingSystem.Instance.enableNormalMapping) {
+            if(_transNormMapped == null) {
+                _transNormMapped = Shader.Find("Transparent Normal Mapped");
+            }
+
+            if(Application.isPlaying && LightingSystem.Instance.enableNormalMapping && material.shader == _transNormMapped) {
                 RendererEnabled = meshRenderer.enabled;
                 meshRenderer.enabled = false;
             }
@@ -146,10 +151,9 @@ namespace Light2D {
             if(material == null || sprite == null)
                 return null;
 
-            MaterialValue matValue;
             MaterialKey key = new MaterialKey(material, sprite.texture);
 
-            if(!MaterialMap.TryGetValue(key, out matValue)) {
+            if(!MaterialMap.TryGetValue(key, out MaterialValue matValue)) {
                 Material mat = Instantiate(material);
                 mat.name = GeneratedMaterialName;
                 mat.mainTexture = sprite.texture;
@@ -173,10 +177,9 @@ namespace Light2D {
                 return null;
             }
 
-            MaterialValue matValue;
             MaterialKey key = materialKey = new MaterialKey(baseMaterial, texture);
 
-            if(!MaterialMap.TryGetValue(key, out matValue)) {
+            if(!MaterialMap.TryGetValue(key, out MaterialValue matValue)) {
                 Material mat = Instantiate(baseMaterial);
                 mat.name = GeneratedMaterialName;
                 mat.mainTexture = texture;

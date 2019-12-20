@@ -47,6 +47,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -58,6 +59,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -101,6 +103,7 @@ MonoBehaviour:
   m_Bounds:
     m_Center: {x: 0.5847821, y: 0.060335606, z: 0}
     m_Extent: {x: 0.48014954, y: 0.3844157, z: 0}
+  m_UseBatching: 1
 --- !u!114 &5354293983492970963
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -495,6 +498,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -506,6 +510,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -549,6 +554,7 @@ MonoBehaviour:
   m_Bounds:
     m_Center: {x: 0.2810798, y: 0.018274412, z: 0}
     m_Extent: {x: 0.39131445, y: 0.24648091, z: 0}
+  m_UseBatching: 1
 --- !u!114 &5174831909049053361
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -705,6 +711,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -716,6 +723,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -760,6 +768,7 @@ MonoBehaviour:
   m_Bounds:
     m_Center: {x: 0.28215018, y: 0.0072180107, z: 0}
     m_Extent: {x: 0.42812526, y: 0.15162817, z: 0}
+  m_UseBatching: 1
 --- !u!114 &6932172432227458239
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -819,6 +828,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -830,6 +840,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -874,6 +885,7 @@ MonoBehaviour:
   m_Bounds:
     m_Center: {x: 0.27600506, y: 0.03402081, z: 0}
     m_Extent: {x: 0.42436063, y: 0.15766826, z: 0}
+  m_UseBatching: 1
 --- !u!114 &195296821008249072
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1223,6 +1235,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1234,6 +1247,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1277,6 +1291,7 @@ MonoBehaviour:
   m_Bounds:
     m_Center: {x: 0.28247115, y: 0.10792425, z: 0}
     m_Extent: {x: 0.44450915, y: 0.25722075, z: 0}
+  m_UseBatching: 1
 --- !u!114 &4764874372515656616
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1336,6 +1351,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1347,6 +1363,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1391,6 +1408,7 @@ MonoBehaviour:
   m_Bounds:
     m_Center: {x: 0.24300995, y: 0.051628113, z: 0}
     m_Extent: {x: 0.38715333, y: 0.21941501, z: 0}
+  m_UseBatching: 1
 --- !u!114 &8465197733941355625
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2624,6 +2642,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2635,6 +2654,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2860,7 +2880,7 @@ MonoBehaviour:
   color: {r: 0, g: 0, b: 0, a: 0.25490198}
   material: {fileID: 2100000, guid: 0a8c132f813f5514b9f5b48ff3956482, type: 2}
   sortingOrder: 0
-  sprite: {fileID: 21300026, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  sprite: {fileID: -6045037972383837360, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
   additiveColor: {r: 0, g: 0, b: 0, a: 0}
   gameSpriteRenderer: {fileID: 0}
 --- !u!1 &9027153015406790217
@@ -2909,7 +2929,7 @@ MonoBehaviour:
   color: {r: 0, g: 0, b: 0, a: 0.25490198}
   material: {fileID: 2100000, guid: 0a8c132f813f5514b9f5b48ff3956482, type: 2}
   sortingOrder: 0
-  sprite: {fileID: 21300028, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
+  sprite: {fileID: 4267453158757836409, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
   additiveColor: {r: 0, g: 0, b: 0, a: 0}
   gameSpriteRenderer: {fileID: 0}
 --- !u!1 &9027381013307612153
@@ -2977,16 +2997,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2289720762138855564, guid: b42e2a925a0510c428cb7aac7a8935ef,
-        type: 3}
-      propertyPath: m_Layer
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4220050242119473452, guid: b42e2a925a0510c428cb7aac7a8935ef,
-        type: 3}
-      propertyPath: m_Layer
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 114782131370789682, guid: b42e2a925a0510c428cb7aac7a8935ef,
         type: 3}
       propertyPath: swordBase
@@ -2997,6 +3007,16 @@ PrefabInstance:
       propertyPath: swordTip
       value: 
       objectReference: {fileID: 3593272507467586630}
+    - target: {fileID: 2289720762138855564, guid: b42e2a925a0510c428cb7aac7a8935ef,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4220050242119473452, guid: b42e2a925a0510c428cb7aac7a8935ef,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b42e2a925a0510c428cb7aac7a8935ef, type: 3}
 --- !u!4 &4916629568501300626 stripped

@@ -116,6 +116,10 @@ ScriptedImporter:
   importedTextureWidth: 2048
   importedTextureHeight: 1024
   documentSize: {x: 2048, y: 2048}
+  paperDollMode: 0
+  keepDupilcateSpriteName: 0
+  spriteCategoryList:
+    categories: []
   textureActualWidth: 2048
   textureActualHeight: 1024
   spritePackingTag: 
@@ -134,7 +138,9 @@ ScriptedImporter:
     bones: []
     parts: []
     dimension: {x: 0, y: 0}
+    characterGroups: []
   boneGOs: []
   generateGOHierarchy: 0
   textureAssetName: Dust_Spritesheet
   prefabAssetName: Dust_Spritesheet_GO
+  spriteLibAssetName: Dust_Spritesheet Sprite Lib

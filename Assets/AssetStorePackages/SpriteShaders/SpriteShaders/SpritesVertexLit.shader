@@ -2,7 +2,7 @@ Shader "Sprites/Sprite (Vertex Lit)"
 {
 	Properties
 	{
-		[PerRendererData] _MainTex ("Main Texture", 2D) = "white" {}
+		_MainTex ("Main Texture", 2D) = "white" {}
 		_Color ("Color", Color) = (1,1,1,1)
 		
 		_BumpScale("Scale", Float) = 1.0
@@ -80,6 +80,7 @@ Shader "Sprites/Sprite (Vertex Lit)"
 			
 				#pragma fragmentoption ARB_precision_hint_fastest
 				#pragma multi_compile_fog
+				#pragma multi_compile_instancing
 				#pragma multi_compile _ PIXELSNAP_ON
 				#pragma multi_compile _ ETC1_EXTERNAL_ALPHA
 				
@@ -104,6 +105,7 @@ Shader "Sprites/Sprite (Vertex Lit)"
 			CGPROGRAM		
 				#pragma fragmentoption ARB_precision_hint_fastest
 				#pragma multi_compile_shadowcaster
+				#pragma multi_compile_instancing
 				#pragma multi_compile _ PIXELSNAP_ON
 				#pragma multi_compile _ ETC1_EXTERNAL_ALPHA
 				

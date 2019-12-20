@@ -31,7 +31,7 @@ SubShader {
 		#pragma glsl
             
         #include "UnityCG.cginc"
-		#include "Assets/AssetStorePackages/Light2D/Resources/Shaders/LightBase.cginc" 
+		#include "./LightBase.cginc" // all code is here
 			
 		#pragma vertex light2d_fixed_vert
         #pragma fragment frag

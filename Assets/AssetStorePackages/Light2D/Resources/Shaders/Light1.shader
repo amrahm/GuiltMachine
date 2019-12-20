@@ -1,10 +1,6 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 /*
-
 This is simplest and fastest light shader without path tracking. 
 It requires no aditional data to work so it could be used with Particle System.
-
 */
 
 Shader "Light2D/Light 1 Point" {

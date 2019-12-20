@@ -241,15 +241,32 @@ namespace ExtensionMethods {
         }
     }
 
-    public static class Reflection {
+    public static class ReflectionExtensions {
         public static T GetFieldValue<T>(this object obj, string name) {
-            var field = obj.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            return (T) field?.GetValue(obj);
+            return (T) obj.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.GetValue(obj);
         }
 
         public static void SetFieldValue<T>(this object obj, string name, T value) {
             obj.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 ?.SetValue(obj, value);
+        }
+    }
+
+    static class SpriteSkinExtension
+    {
+        static public MonoBehaviour GetSpriteSkinComponent(this GameObject gameObject)
+        {
+            var components = gameObject.GetComponents<MonoBehaviour>();
+            foreach (var c in components)
+            {
+                var type = c.GetType();
+                if (type.FullName == "UnityEngine.Experimental.U2D.Animation.SpriteSkin")
+                {
+                    return c;
+                }
+            }
+            return null;
         }
     }
 

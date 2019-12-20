@@ -85,10 +85,11 @@ public class PuffchildMovement : MovementAbstract {
         control.registeredMoves.Add(new CharacterControlAbstract.RegisteredMove {
             name = "Jump",
             doMove = duration => StartCoroutine(_NPCJump(duration)),
-            checkCondition = () => grounded,
-            durationMin = 0.01f,
-            durationMax = jumpFuel / JumpFuelReductionFactor + .1f,
-            direction = Vector2.up
+            checkCondition = () => grounded && !_jumpStarted,
+            distanceMin = 0.01f,
+            distanceMax = jumpFuel / JumpFuelReductionFactor + .1f,
+            distanceToDuration = dist => dist,
+            direction = GetJumpDir(0)
         });
     }
 
@@ -187,22 +188,16 @@ public class PuffchildMovement : MovementAbstract {
     /// <param name="jump">Is jump input pressed?</param>
     /// <param name="upDown">What direction to jump if on wall</param>
     private void Jump(bool jump, float upDown) {
-        Vector2 JumpDir() {
-            float wallSteepness = 1 - Vector2.Dot(groundNormal, tf.up);
-            return wallSteepness * (1 + Mathf.Clamp(upDown, -1, .2f)) * .85f * (Vector2) tf.up +
-                   groundNormal * (1 - wallSteepness * Mathf.Clamp(upDown, -.25f, .65f));
-        }
-
         if((grounded || coyoteGrounded) && jump && !_jumpStarted) {
             // Initialize the jump
             _jumpFuelLeft = jumpFuel;
             _jumpStarted = true; //This ensures we don't repeat this step a bunch of times per jump
-            rb.velocity = rb.velocity.Projected(tf.right) + JumpDir() * jumpSpeed;
+            rb.velocity = rb.velocity.Projected(tf.right) + GetJumpDir(upDown) * jumpSpeed;
         } else {
             if(jump && _jumpFuelLeft > 0) {
                 // Make the character rise higher the longer they hold jump
                 _jumpFuelLeft -= Time.fixedDeltaTime * JumpFuelReductionFactor;
-                rb.AddForce(rb.mass * jumpFuelForce * JumpDir(), ForceMode2D.Force);
+                rb.AddForce(rb.mass * jumpFuelForce * GetJumpDir(upDown), ForceMode2D.Force);
             } else {
                 _jumpFuelLeft = 0;
             }
@@ -210,5 +205,11 @@ public class PuffchildMovement : MovementAbstract {
 
         // If landed, allow jumping again
         if(grounded && !jump) _jumpStarted = false;
+    }
+
+    private Vector2 GetJumpDir(float upDown) {
+        float wallSteepness = 1 - Vector2.Dot(groundNormal, tf.up);
+        return wallSteepness * (1 + Mathf.Clamp(upDown, -1, .2f)) * .85f * (Vector2) tf.up +
+               groundNormal * (1 - wallSteepness * Mathf.Clamp(upDown, -.25f, .65f));
     }
 }

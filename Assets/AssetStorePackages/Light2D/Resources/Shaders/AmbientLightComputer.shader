@@ -1,12 +1,7 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 /*
-
 That shader is used to compute iterative ambient lighting.
-Similiar to FastBlur shader.
-
+Similar to FastBlur shader.
 */
-
 
 Shader "Light2D/Ambient Light Computer" {
 Properties {

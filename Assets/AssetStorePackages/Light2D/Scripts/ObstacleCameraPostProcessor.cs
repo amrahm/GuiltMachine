@@ -7,7 +7,7 @@ namespace Light2D {
     ///     It is drawing one pixel wide white border on light obstacles texture.
     ///     Whithout it light sources with off screen origin may not work.
     /// </summary>
-    public class ObstacleCameraPostPorcessor {
+    public class ObstacleCameraPostProcessor {
         private readonly List<Color32> _colors32 = new List<Color32>();
         private readonly List<int> _indices = new List<int>();
         private readonly Material _material;
@@ -15,8 +15,8 @@ namespace Light2D {
         private Point2 _oldCameraSize;
         private readonly List<Vector3> _vertices = new List<Vector3>();
 
-        public ObstacleCameraPostPorcessor() {
-            if(_material == null) _material = new Material(Shader.Find("Light2D/Obstacle Texture Post Porcessor"));
+        public ObstacleCameraPostProcessor() {
+            if(_material == null) _material = new Material(Shader.Find("Light2D/Obstacle Texture Post Processor"));
         }
 
         public void DrawMesh(Camera camera, float pixelWidth) {
@@ -26,7 +26,8 @@ namespace Light2D {
                 CreateMesh(camera, pixelWidth);
             }
 
-            Graphics.DrawMesh(_mesh, camera.transform.position, camera.transform.rotation, _material,
+            var transform = camera.transform;
+            Graphics.DrawMesh(_mesh, transform.position, transform.rotation, _material,
                               LightingSystem.Instance.lightObstaclesLayer, camera);
         }
 

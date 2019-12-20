@@ -34,6 +34,7 @@ namespace Light2D {
         }
 
         private void Refresh() {
+            //TODO optimize this?
             if(_parentMeshFilter == null || _parentMeshFilter == null || _meshRenderer == null || _meshFilter == null ||
                _parentMeshFilter.sharedMesh == null || _parentMeshRenderer.sharedMaterial == null) {
                 if(_meshRenderer != null)

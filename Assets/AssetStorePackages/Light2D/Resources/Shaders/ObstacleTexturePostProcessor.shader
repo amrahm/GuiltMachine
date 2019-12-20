@@ -5,7 +5,7 @@ That shader is used after all light obstacles have been drawn to draw one pixel 
 */
 
 
-Shader "Light2D/Obstacle Texture Post Porcessor" {
+Shader "Light2D/Obstacle Texture Post Processor" {
 SubShader {
 	Tags {"Queue"="Overlay" "IgnoreProjector"="True" "RenderType"="Transparent"}
 	LOD 100

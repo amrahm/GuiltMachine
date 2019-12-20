@@ -308,12 +308,12 @@ public class CharacterPhysics : MonoBehaviour {
 
             if(lowerLimit < -360) {
                 float old = lowerLimit;
-                lowerLimit = lowerLimit % 360;
+                lowerLimit %= 360;
                 upperLimit += lowerLimit - old;
             }
             if(upperLimit > 720) {
                 float old = upperLimit;
-                upperLimit = upperLimit % 360;
+                upperLimit %= 360;
                 lowerLimit += upperLimit - old;
             }
             if(isLeg) {
@@ -513,6 +513,13 @@ public class CharacterPhysics : MonoBehaviour {
         }
     }
 
+    public void AddForceAt(Vector2 point, Vector2 force, Collider2D hitCollider) {
+        _rb.AddForceAtPosition(force, point, ForceMode2D.Impulse);
+        if(collToPart.ContainsKey(hitCollider)) {
+            collToPart[hitCollider].HitCalc(point, -force, force / 7);
+        }
+    }
+
     /// <summary> Passes info from collision events to the BodyPartClass HitCalc method </summary>
     private void CollisionHandler(Collision2D collInfo) {
         foreach(var c in collInfo.contacts) {
@@ -525,20 +532,8 @@ public class CharacterPhysics : MonoBehaviour {
         }
     }
 
-    public void AddForceAt(Vector2 point, Vector2 force, Collider2D hitCollider) {
-        _rb.AddForceAtPosition(force, point, ForceMode2D.Impulse);
-        if(collToPart.ContainsKey(hitCollider)) {
-            collToPart[hitCollider].HitCalc(point, -force, force / 7);
-        }
-    }
-
-    private void OnCollisionEnter2D(Collision2D collInfo) {
-        CollisionHandler(collInfo);
-    }
-
-    private void OnCollisionStay2D(Collision2D collInfo) {
-        CollisionHandler(collInfo);
-    }
+    private void OnCollisionEnter2D(Collision2D collInfo) { CollisionHandler(collInfo); }
+    private void OnCollisionStay2D(Collision2D collInfo) { CollisionHandler(collInfo); }
 
     #region SetAnimationMode
 
@@ -563,8 +558,8 @@ public class CharacterPhysics : MonoBehaviour {
 
     private void SwapPartsWithTargets(GameObject[] currents, GameObject[] news) {
         foreach(Transform sprite in transform.Find("Sprites")) {
-//            Commented out since SpriteSkin fields aren't officially exposed, and this would cause errors over git
-            SpriteSkin spriteSkin = sprite.GetComponent<SpriteSkin>();
+            var spriteSkin = sprite.gameObject.GetSpriteSkinComponent();
+            // SpriteSkin fields aren't exposed, so we use reflection to access them
             Transform[] bones = spriteSkin.GetFieldValue<Transform[]>("m_BoneTransforms");
             Transform root = spriteSkin.GetFieldValue<Transform>("m_RootBone");
             for(int i = 0; i < bones.Length; i++) {

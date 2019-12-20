@@ -909,6 +909,7 @@ ScriptedImporter:
     textureFormat: -1
     textureCompression: 0
     compressionQuality: 50
+    forceMaximumCompressionQuality_BC6H_BC7: 0
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     androidETC2FallbackOverride: 0
@@ -919,6 +920,10 @@ ScriptedImporter:
   importedTextureWidth: 128
   importedTextureHeight: 128
   documentSize: {x: 64, y: 64}
+  paperDollMode: 0
+  keepDupilcateSpriteName: 0
+  spriteCategoryList:
+    categories: []
   textureActualWidth: 128
   textureActualHeight: 128
   spritePackingTag: 
@@ -988,7 +993,10 @@ ScriptedImporter:
         height: 63
       spriteId: ebf3611ffe40d8648a322c8d6fd44fc7
       bones: 030000000800000002000000060000000100000005000000040000000700000000000000
+      parentGroup: 0
+      order: 0
     dimension: {x: 0, y: 0}
+    characterGroups: []
   boneGOs:
   - go: {fileID: -1713367989251008790, guid: abad538709d290341bf959d6e8784c11, type: 3}
     index: 0
@@ -1011,3 +1019,4 @@ ScriptedImporter:
   generateGOHierarchy: 0
   textureAssetName: test
   prefabAssetName: test_GO
+  spriteLibAssetName: test Sprite Lib

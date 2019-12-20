@@ -1,17 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class PuffchildControl : CharacterControlAbstract {
     public Transform target;
     [SerializeField] private bool learningMode;
     private readonly List<Vector3> _points = new List<Vector3>();
-    private RegisteredMove _hMove;
 
     private IEnumerator Start() {
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        _hMove = registeredMoves.First(move => move.continuous);
 
         if(!learningMode) yield break;
         foreach(var move in registeredMoves) {
@@ -46,7 +43,7 @@ public class PuffchildControl : CharacterControlAbstract {
                     bestMove = move;
                 }
             }
-            bestMove?.doMove(bestMove.durationMax);
+            bestMove?.doMove(bestMove.distanceToDuration(targetDir.magnitude));
             print(bestMove?.name);
         }
     }

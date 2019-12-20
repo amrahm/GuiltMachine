@@ -28,8 +28,9 @@ public abstract class CharacterControlAbstract : MonoBehaviour {
         public Func<bool> checkCondition = () => true;
         public Vector2 direction;
         public bool continuous;
-        public float durationMin;
-        public float durationMax;
+        public float distanceMin;
+        public float distanceMax;
+        public Func<float, float> distanceToDuration = _ => 0;
     }
 
     public List<RegisteredMove> registeredMoves = new List<RegisteredMove>();

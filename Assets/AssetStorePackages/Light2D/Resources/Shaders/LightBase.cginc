@@ -1,11 +1,6 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-/*
-
+﻿/*
 Base code for standard light shaders.
 Light is computed by path tracking with fixed number of steps (PATH_TRACKING_SAMPLES).
-
 */
 
 

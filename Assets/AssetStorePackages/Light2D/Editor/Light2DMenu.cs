@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -46,37 +47,7 @@ namespace Light2D {
             light.color = new Color(1, 1, 1, 0.5f);
             Selection.activeObject = obj;
         }
-
-        [MenuItem("GameObject/Light2D/Enable 2DTK Support", false, 6)]
-        public static void Enable2DToolkitSupport() {
-            BuildTargetGroup[] targets = (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup));
-            foreach(BuildTargetGroup target in targets)
-                DefineSymbol("LIGHT2D_2DTK", target);
-        }
-
-        [MenuItem("GameObject/Light2D/Disable 2DTK Support", false, 6)]
-        public static void Disable2DToolkitSupport() {
-            BuildTargetGroup[] targets = (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup));
-            foreach(BuildTargetGroup target in targets)
-                UndefineSymbol("LIGHT2D_2DTK", target);
-        }
-
-        public static void DefineSymbol(string symbol, BuildTargetGroup target) {
-            UndefineSymbol(symbol, target);
-
-            string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(target);
-            if(!defines.EndsWith(";"))
-                defines += ";";
-            defines += symbol;
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(target, defines);
-        }
-
-        public static void UndefineSymbol(string symbol, BuildTargetGroup target) {
-            string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(target);
-            defines = defines.Replace(symbol + ";", "");
-            defines = defines.Replace(";" + symbol, "");
-            defines = defines.Replace(symbol, "");
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(target, defines);
-        }
     }
 }
+
+#endif
