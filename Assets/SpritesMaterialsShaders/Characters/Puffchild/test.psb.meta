@@ -61,6 +61,7 @@ ScriptedImporter:
     maxTextureSizeSet: 0
     compressionQualitySet: 0
     textureFormatSet: 0
+    applyGammaDecoding: 0
   spriteImportData:
   - name: 
     originalName: 
@@ -997,26 +998,8 @@ ScriptedImporter:
       order: 0
     dimension: {x: 0, y: 0}
     characterGroups: []
-  boneGOs:
-  - go: {fileID: -1713367989251008790, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 0
-  - go: {fileID: 7662996288930647246, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 1
-  - go: {fileID: 5988144518457722802, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 2
-  - go: {fileID: 5585320167338348269, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 3
-  - go: {fileID: -4875834949039022487, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 4
-  - go: {fileID: 8216550766002379306, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 5
-  - go: {fileID: 1415099675567761299, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 6
-  - go: {fileID: -6074486403772538091, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 7
-  - go: {fileID: 4192252225899027550, guid: abad538709d290341bf959d6e8784c11, type: 3}
-    index: 8
   generateGOHierarchy: 0
   textureAssetName: test
   prefabAssetName: test_GO
   spriteLibAssetName: test Sprite Lib
+  secondarySpriteTextures: []

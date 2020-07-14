@@ -253,6 +253,7 @@ ScriptedImporter:
     maxTextureSizeSet: 0
     compressionQualitySet: 0
     textureFormatSet: 0
+    applyGammaDecoding: 0
   spriteImportData:
   - name: 
     originalName: 
@@ -4573,38 +4574,8 @@ ScriptedImporter:
       order: 0
     dimension: {x: 0, y: 0}
     characterGroups: []
-  boneGOs:
-  - go: {fileID: -6107350129260930122, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 0
-  - go: {fileID: 6280859391416996661, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 1
-  - go: {fileID: 74424668917902293, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 2
-  - go: {fileID: -8096810821503064040, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 3
-  - go: {fileID: -5389913031534922936, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 4
-  - go: {fileID: -3985625889622667913, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 5
-  - go: {fileID: -6192974671313589815, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 6
-  - go: {fileID: -8055332884529894662, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 7
-  - go: {fileID: 8367982190951505588, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 8
-  - go: {fileID: 6188289151334818476, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 9
-  - go: {fileID: -4991036804201371598, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 10
-  - go: {fileID: -4333155125460745773, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 11
-  - go: {fileID: -5172624758703036694, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 12
-  - go: {fileID: 3257438508209997284, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 13
-  - go: {fileID: -6250487564908887944, guid: 577903e3b912add44ae2ad514e6707aa, type: 3}
-    index: 14
   generateGOHierarchy: 1
   textureAssetName: OdysseusSprites
   prefabAssetName: OdysseusSprites_GO
   spriteLibAssetName: OdysseusSprites Sprite Lib
+  secondarySpriteTextures: []
