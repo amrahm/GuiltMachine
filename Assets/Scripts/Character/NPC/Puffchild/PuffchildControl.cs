@@ -44,7 +44,7 @@ public class PuffchildControl : CharacterControlAbstract {
                 }
             }
             bestMove?.doMove(bestMove.distanceToDuration(targetDir.magnitude));
-            print(bestMove?.name);
+            //print(bestMove?.name);
         }
     }
 }
