@@ -2,7 +2,7 @@
 using static WeaponScript;
 
 [CreateAssetMenu(menuName = "ScriptableObjects/Attacks/BasicMeleeAttack")]
-public class BasicMeleeAttack : AttackComponentAbstract {
+public class BasicMeleeAttack : AttackSubcomponentAbstract {
     public string animationTrigger;
 
     private int _animationHash;

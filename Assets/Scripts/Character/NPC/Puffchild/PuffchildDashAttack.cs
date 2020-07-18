@@ -5,7 +5,7 @@ using UnityEngine;
 using static WeaponScript;
 
 [CreateAssetMenu(menuName = "ScriptableObjects/Attacks/PuffchildDashAttack")]
-public class PuffchildDashAttack : AttackComponentAbstract {
+public class PuffchildDashAttack : AttackSubcomponentAbstract {
     private const float ActivationEnergy = 0.3f;
     private const int TrailRateOverDistance = 6;
 

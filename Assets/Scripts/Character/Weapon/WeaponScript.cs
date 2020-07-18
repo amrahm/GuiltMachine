@@ -10,18 +10,19 @@ using static MovementAbstract;
 using static UnityEngine.Physics2D;
 
 /* ------ Script Overview ------
- * This script handles the framework for weapons/enemies whose bodies are weapons.
+ * This script handles the framework for weapons/enemies-whose-bodies-are-weapons.
  * It allows us to specify attacks in different directions, dependent on input and movement state.
- * In the inspector, we can create a list of AttackDefinitions, which consist of WeaponAttackAbstracts,
+ * In the inspector, we can create a list of DirectionalAttackDefinitions (e.g. "Forward Stab (Ground)"),
+ * which consist of AttackSubcomponentAbstracts (e.g. "Stab" or "Dash Forward"),
  * as well as damage and some other stats about the attack.
- * The AttackDefinition also specifies what attack direction needs to be pressed to trigger it, as
- * well as the movement states that the player can be in (e.g. some attacks can only be triggered in the air)
- * WeaponAttackAbstracts are where the actual code for attacks live. They are scriptable objects that inherit from
- * WeaponAttackAbstract, and multiple of them can be added to a single AttackDefinition to form an attack
+ * The DirectionalAttackDefinition also specifies what attack direction needs to be pressed to trigger it, as
+ * well as the movement states that the player can be in (e.g. some attacks can only be triggered in the air).
+ * AttackSubcomponentAbstracts are where the actual code for attacks live. They are scriptable objects that inherit from
+ * AttackSubcomponentAbstract, and multiple of them can be added to a single DirectionalAttackDefinition to form an attack
  * (e.g. mixing a sword swing with a dash).
  *
  * At runtime, every time an attack input is pressed, a new AttackAction is created. The AttackAction tries to
- * find an AttackDefinition that matches the input direction and the character's current movement state,
+ * find an DirectionalAttackDefinition that matches the input direction and the character's current movement state,
  * and then begins that attack. The AttackAction keeps track of what state the attack is in
  * (winding up, attacking, recovering, or fading out) and helps move the attack from one state to the next
  * If another AttackAction is currently happening, it will instead add it as a buffer AttackAction, and if the
@@ -65,7 +66,7 @@ public class WeaponScript : MonoBehaviour {
     private Vector2 _prevTip;
 
     [Tooltip("The list of attacks this weapon can do"), SerializeField]
-    private AttackDefinition[] attacks;
+    private DirectionalAttackDefinition[] attacks;
 
     protected internal CharacterMasterAbstract holder;
     protected internal CharacterControlAbstract ctrl;
@@ -119,15 +120,15 @@ public class WeaponScript : MonoBehaviour {
 
 
     [Serializable]
-    internal class AttackDefinition : IComparable {
+    internal class DirectionalAttackDefinition : IComparable {
         // ReSharper disable once NotAccessedField.Global (Used in Unity inspector automatically)
         public string name = "I THIRST FOR A NAME";
 
         [Tooltip("Does this attack happen only if you hold it long enough, or is a tap sufficient"), SerializeField]
         internal AttackInputType attackInputType;
 
-        [FormerlySerializedAs("attackScriptableObjects")] [FormerlySerializedAs("attacks")] [SerializeField]
-        internal List<AttackComponentAbstract> attackComponents;
+        [FormerlySerializedAs("attackComponents")] [SerializeField]
+        internal List<AttackSubcomponentAbstract> attackSubcomponents;
 
         [Tooltip("Which directions can be pressed to activate this attack"), EnumFlags, SerializeField]
         private AttackDirection directionTriggerFlags = (AttackDirection) 1;
@@ -156,11 +157,12 @@ public class WeaponScript : MonoBehaviour {
         internal float knockback = 50;
 
         internal void Initialize(WeaponScript weapon) {
-            if(flipIfFacingAway) attackComponents.Insert(0, ScriptableObject.CreateInstance<FlipIfFacingAway>());
-            if(preventFlipWhileAttacking) attackComponents.Add(ScriptableObject.CreateInstance<PreventFlipWhileAttacking>());
-            for(int i = 0; i < attackComponents.Count; i++) {
-                attackComponents[i] = Instantiate(attackComponents[i]);
-                attackComponents[i].Initialize(weapon);
+            if(flipIfFacingAway) attackSubcomponents.Insert(0, ScriptableObject.CreateInstance<FlipIfFacingAway>());
+            if(preventFlipWhileAttacking)
+                attackSubcomponents.Add(ScriptableObject.CreateInstance<PreventFlipWhileAttacking>());
+            for(int i = 0; i < attackSubcomponents.Count; i++) {
+                attackSubcomponents[i] = Instantiate(attackSubcomponents[i]);
+                attackSubcomponents[i].Initialize(weapon);
             }
 
             directionTriggers = EnumFlagsAttribute.ReturnSelectedElements<AttackDirection>((int) directionTriggerFlags)
@@ -182,7 +184,7 @@ public class WeaponScript : MonoBehaviour {
         public int CompareTo(object obj) {
             // This is to sort the list of AttackDefinitions so that hold attacks are picked first,
             // then ones with more specific conditions are picked first
-            if(obj is AttackDefinition otherAttack) {
+            if(obj is DirectionalAttackDefinition otherAttack) {
                 if(attackInputType == AttackInputType.Tap && otherAttack.attackInputType == AttackInputType.Hold ||
                    groundedState == GroundedState.Both && otherAttack.groundedState != GroundedState.Both ||
                    movementStates.Length > otherAttack.movementStates.Length)
@@ -193,7 +195,7 @@ public class WeaponScript : MonoBehaviour {
                     return -1;
                 return 0;
             }
-            throw new ArgumentException($"Object is not a {nameof(AttackDefinition)}");
+            throw new ArgumentException($"Object is not a {nameof(DirectionalAttackDefinition)}");
         }
     }
 
@@ -207,14 +209,14 @@ public class WeaponScript : MonoBehaviour {
         internal int inH;
         internal int inV;
 
-        internal AttackDefinition attackDefinition;
+        internal DirectionalAttackDefinition attackDefinition;
 
         private bool _inBuffer;
         internal  Coroutine initAttack;
 
-        private static readonly AttackDefinition NoMatches = new AttackDefinition {
+        private static readonly DirectionalAttackDefinition NoMatches = new DirectionalAttackDefinition {
             name = "NoMatches",
-            attackComponents = new List<AttackComponentAbstract>()
+            attackSubcomponents = new List<AttackSubcomponentAbstract>()
         };
 
         internal AttackAction(WeaponScript weaponScript) {
@@ -267,7 +269,7 @@ public class WeaponScript : MonoBehaviour {
             // If we get here, an attack was found, so start it if/when we're not in the buffer anymore
             if(_inBuffer) yield return new WaitWhile(() => _inBuffer);
             state = AttackState.WindingUp;
-            foreach(var attack in attackDefinition.attackComponents) attack.OnAttackWindup(this);
+            foreach(var attack in attackDefinition.attackSubcomponents) attack.OnAttackWindup(this);
         }
 
         private bool ChooseAttack(bool onlyLookForTaps = false) {
@@ -292,12 +294,12 @@ public class WeaponScript : MonoBehaviour {
 
         internal void BeginAttacking() {
             state = AttackState.Attacking;
-            foreach(var attack in attackDefinition.attackComponents) attack.OnAttacking(this);
+            foreach(var attack in attackDefinition.attackSubcomponents) attack.OnAttacking(this);
         }
 
         internal void BeginRecovering() {
             state = AttackState.Recovering;
-            foreach(var attack in attackDefinition.attackComponents) attack.OnRecovering(this);
+            foreach(var attack in attackDefinition.attackSubcomponents) attack.OnRecovering(this);
         }
 
         internal void EndAttack(float duration = 0.3f, bool dontFade = false) {
@@ -307,7 +309,7 @@ public class WeaponScript : MonoBehaviour {
             if(!ReferenceEquals(_wS.primaryAttack, this)) return;
             state = AttackState.Ended;
             if(!dontFade && _wS.anim) _wS.FadeAttackOut(duration);
-            foreach(var attack in attackDefinition.attackComponents) attack.OnEnding(this);
+            foreach(var attack in attackDefinition.attackSubcomponents) attack.OnEnding(this);
 
             if(_wS.bufferAttack.state != AttackState.Ended && Time.time - _wS._bufferAttackStart < BufferTime) {
                 _wS.primaryAttack = _wS.bufferAttack;
@@ -367,9 +369,9 @@ public class WeaponScript : MonoBehaviour {
     private void Start() {
         // Everything solid but not hittable
         whatIsNotHittable = CommonObjectsSingleton.Instance.whatIsGroundMaster &
-                             ~CommonObjectsSingleton.Instance.whatIsHittableMaster;
+                            ~CommonObjectsSingleton.Instance.whatIsHittableMaster;
         _animEventObjs = CommonObjectsSingleton.Instance;
-        foreach(AttackDefinition attack in attacks) attack.Initialize(this);
+        foreach(DirectionalAttackDefinition attack in attacks) attack.Initialize(this);
         attacks = attacks.Sort();
     }
 
@@ -444,7 +446,7 @@ public class WeaponScript : MonoBehaviour {
     }
 
 
-    private class FlipIfFacingAway : AttackComponentAbstract {
+    private class FlipIfFacingAway : AttackSubcomponentAbstract {
         private WeaponScript _weaponScript;
         public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
 
@@ -458,7 +460,7 @@ public class WeaponScript : MonoBehaviour {
         public override void OnEnding(AttackAction attackAction) { }
     }
 
-    private class PreventFlipWhileAttacking : AttackComponentAbstract {
+    private class PreventFlipWhileAttacking : AttackSubcomponentAbstract {
         private WeaponScript _weaponScript;
         public override void Initialize(WeaponScript weaponScript) { _weaponScript = weaponScript; }
 
@@ -471,7 +473,7 @@ public class WeaponScript : MonoBehaviour {
     }
 
     internal IEnumerator _CheckMeleeHit(AttackAction attackAction) {
-        AttackDefinition attackDefinition = attackAction.attackDefinition;
+        DirectionalAttackDefinition attackDefinition = attackAction.attackDefinition;
         _prevBase = weaponBase.position;
         _prevTip = weaponTip.position;
         while(attackAction.state == AttackState.Attacking) {

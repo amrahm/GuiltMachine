@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [CreateAssetMenu(menuName = "ScriptableObjects/Attacks/BasicShootAttack")]
-public class BasicShootAttack : AttackComponentAbstract {
+public class BasicShootAttack : AttackSubcomponentAbstract {
     public string animationTrigger;
 
     private int _animationHash;

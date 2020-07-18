@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using static WeaponScript;
 
-public abstract class AttackComponentAbstract : ScriptableObject {
+public abstract class AttackSubcomponentAbstract : ScriptableObject {
     protected WeaponScript weapon;
 
     public abstract void Initialize(WeaponScript weaponScript);
