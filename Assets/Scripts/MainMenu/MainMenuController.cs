@@ -19,6 +19,6 @@ public class MainMenuController : MonoBehaviour
 
     public void exitGame()
     {
-        Application.Quit();
+        Application.Quit(); // this will quit the game when not run in the unity editor
     }
 }
